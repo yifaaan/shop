@@ -2,7 +2,9 @@ package api
 
 import (
 	"net/http"
+	"shop/shop_api/user_web/global/response"
 	"shop/shop_api/user_web/proto"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -76,17 +78,19 @@ func GetUserList(ctx *gin.Context) {
 		HandleGrpcErrorToHttpError(err, ctx)
 		return
 	}
+
+	// 构造响应
 	zap.S().Debugf("获取用户列表: %v", resp)
-	result := make([]any, 0, len(resp.Data))
+	result := make([]response.UserResponse, 0, len(resp.Data))
 	for _, u := range resp.Data {
-		data := make(map[string]any)
-		data["id"] = u.Id
-		data["nick_name"] = u.NickName
-		data["mobile"] = u.Mobile
-		data["gender"] = u.Gender
-		data["birthday"] = u.Birthday
-		data["role"] = u.Role
-		result = append(result, data)
+		result = append(result, response.UserResponse{
+			Id:       u.Id,
+			NickName: u.NickName,
+			Mobile:   u.Mobile,
+			Gender:   u.Gender,
+			Birthday: response.JsonTime(time.Unix(int64(u.Birthday), 0)),
+			Role:     u.Role,
+		})
 	}
 	ctx.JSON(http.StatusOK, gin.H{"data": result})
 }
