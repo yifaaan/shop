@@ -130,9 +130,14 @@ func (s *UserServer) UpdateUser(ctx context.Context, req *proto.UpdateUserInfoRe
 // CheckPassword 检查密码
 func (s *UserServer) CheckPassword(ctx context.Context, req *proto.CheckPasswordInfoRequest) (*proto.CheckPasswordResponse, error) {
 	options := &password.Options{SaltLen: 16, Iterations: 100, KeyLen: 32, HashFunction: sha512.New}
+	// 密码格式: $pbkdf2-sha512$salt$encodedPwd
 	pwd := strings.Split(req.EncryptedPassword, "$")
+	if len(pwd) != 4 {
+		return &proto.CheckPasswordResponse{Success: false}, nil
+	}
 	salt := pwd[2]
-	check := password.Verify(req.Password, salt, req.EncryptedPassword, options)
+	encodedPwd := pwd[3]
+	check := password.Verify(req.Password, salt, encodedPwd, options)
 	return &proto.CheckPasswordResponse{Success: check}, nil
 }
 
