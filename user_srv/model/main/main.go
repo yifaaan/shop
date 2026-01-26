@@ -2,23 +2,12 @@ package main
 
 import (
 	"crypto/md5"
-	"crypto/sha512"
 	"encoding/hex"
-	"fmt"
 	"io"
-	"strings"
-
-	"github.com/anaskhan96/go-password-encoder"
 )
 
 func main() {
 
-	options := &password.Options{SaltLen: 16, Iterations: 100, KeyLen: 32, HashFunction: sha512.New}
-	salt, encodedPwd := password.Encode("generic password", options)
-	ps := fmt.Sprintf("$pbkdf2-sha512$%s$%s", salt, encodedPwd)
-	passwordInfo := strings.Split(ps, "$")
-	check := password.Verify("generic password", passwordInfo[2], passwordInfo[3], options)
-	fmt.Println(check) // true
 }
 
 func genMd5(code string) string {
