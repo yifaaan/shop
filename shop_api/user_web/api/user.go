@@ -2,8 +2,10 @@ package api
 
 import (
 	"net/http"
+	"shop/shop_api/user_web/form"
 	"shop/shop_api/user_web/global/response"
 	"shop/shop_api/user_web/proto"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -66,12 +68,17 @@ func GetUserList(ctx *gin.Context) {
 		return
 	}
 
-	// 创建用户服务客户端
+	// 创建rpc用户服务客户端
 	userSrvClient := proto.NewUserClient(conn)
 
+	// 解析参数
+	pn := ctx.DefaultQuery("pn", "1")
+	pnInt, _ := strconv.Atoi(pn)
+	pSize := ctx.DefaultQuery("psize", "10")
+	pSizeInt, _ := strconv.Atoi(pSize)
 	resp, err := userSrvClient.GetUserList(ctx.Request.Context(), &proto.PageInfoRequest{
-		PageNumber: 1,
-		PageSize:   10,
+		PageNumber: uint32(pnInt),
+		PageSize:   uint32(pSizeInt),
 	})
 	if err != nil {
 		zap.S().Errorw("[GetUserList] 查询 【用户列表】失败", "msg", err.Error())
@@ -93,4 +100,14 @@ func GetUserList(ctx *gin.Context) {
 		})
 	}
 	ctx.JSON(http.StatusOK, gin.H{"data": result})
+}
+
+func Login(ctx *gin.Context) {
+	// 表单验证
+	loginForm := form.LoginForm{}
+	if err := ctx.ShouldBindJSON(&loginForm); err != nil {
+		zap.S().Errorw("[Login] 表单验证失败", "msg", err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+		return
+	}
 }
