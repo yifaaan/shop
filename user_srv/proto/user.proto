@@ -54,7 +54,7 @@ message UserInfoResponse {
 }
 
 message UserListResponse {
-    int32    total = 1;
+    int64    total = 1;
     repeated UserInfoResponse data = 2;
 }
 

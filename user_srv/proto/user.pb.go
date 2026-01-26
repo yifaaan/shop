@@ -435,7 +435,7 @@ func (x *UserInfoResponse) GetRole() int32 {
 
 type UserListResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Total         int32                  `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
+	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
 	Data          []*UserInfoResponse    `protobuf:"bytes,2,rep,name=data,proto3" json:"data,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -471,7 +471,7 @@ func (*UserListResponse) Descriptor() ([]byte, []int) {
 	return file_user_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *UserListResponse) GetTotal() int32 {
+func (x *UserListResponse) GetTotal() int64 {
 	if x != nil {
 		return x.Total
 	}
@@ -601,7 +601,7 @@ const file_user_proto_rawDesc = "" +
 	"\x06gender\x18\x06 \x01(\tR\x06gender\x12\x12\n" +
 	"\x04role\x18\a \x01(\x05R\x04role\"O\n" +
 	"\x10UserListResponse\x12\x14\n" +
-	"\x05total\x18\x01 \x01(\x05R\x05total\x12%\n" +
+	"\x05total\x18\x01 \x01(\x03R\x05total\x12%\n" +
 	"\x04data\x18\x02 \x03(\v2\x11.UserInfoResponseR\x04data\"1\n" +
 	"\x15CheckPasswordResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\"\a\n" +
