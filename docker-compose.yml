@@ -1,0 +1,47 @@
+version: "3"
+
+services:
+  yapi:
+    image: jayfong/yapi:latest
+    container_name: yapi
+    environment:
+      - YAPI_ADMIN_ACCOUNT=admin@admin.com
+      - YAPI_ADMIN_PASSWORD=admin123
+      - YAPI_DB_SERVERNAME=mongo
+      - YAPI_DB_PORT=27017
+      - YAPI_DB_DATABASE=yapi
+      - YAPI_DB_USER=
+      - YAPI_DB_PASS=
+      - YAPI_MAIL_ENABLE=false
+      - YAPI_LDAP_LOGIN_ENABLE=false
+      - YAPI_CLOSE_REGISTER=true
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+    restart: always
+
+  mongo:
+    image: mongo:4.4
+    container_name: yapi-mongo
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root123456
+      - MYSQL_DATABASE=shop_user_srv
+      - MYSQL_USER=shop_user
+      - MYSQL_PASSWORD=shop123456
+    ports:
+      - "3306:3306"
+    restart: always
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mongo-data:
+  mysql-data:
