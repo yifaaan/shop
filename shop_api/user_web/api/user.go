@@ -19,6 +19,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// removeTopStruct 移除结构体名称,只保留字段名
 func removeTopStruct(fields map[string]string) map[string]string {
 	res := map[string]string{}
 	for field, err := range fields {
@@ -71,6 +72,17 @@ func HandleGrpcErrorToHttpError(err error, c *gin.Context) {
 	}
 }
 
+// HandleValidatorError 处理表单验证错误
+func HandleValidatorError(ctx *gin.Context, err error) {
+	errs, ok := err.(validator.ValidationErrors)
+	if !ok {
+		zap.S().Errorw("[HandleValidatorError] 转换为validator.ValidationErrors失败", "msg", err.Error())
+		ctx.JSON(http.StatusOK, gin.H{"msg": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusBadRequest, gin.H{"err": removeTopStruct(errs.Translate(global.Trans))})
+}
+
 func GetUserList(ctx *gin.Context) {
 	conn, err := grpc.NewClient("127.0.0.1:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -118,14 +130,7 @@ func Login(ctx *gin.Context) {
 	// 表单验证
 	loginForm := form.LoginForm{}
 	if err := ctx.ShouldBind(&loginForm); err != nil {
-		errs, ok := err.(validator.ValidationErrors)
-		if !ok {
-			ctx.JSON(http.StatusOK, gin.H{"msg": err.Error()})
-			return
-		}
-		zap.S().Errorw("[Login] 表单验证失败", "msg", err.Error())
-		// 翻译错误
-		ctx.JSON(http.StatusBadRequest, gin.H{"err": removeTopStruct(errs.Translate(global.Trans))})
+		HandleValidatorError(ctx, err)
 		return
 	}
 }

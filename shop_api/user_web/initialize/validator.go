@@ -41,5 +41,7 @@ func InitTrans(locale string) {
 		default:
 			zh_translations.RegisterDefaultTranslations(v, global.Trans)
 		}
+	} else {
+		panic("validator engine not found")
 	}
 }
