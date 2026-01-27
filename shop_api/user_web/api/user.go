@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"shop/shop_api/user_web/form"
 	"shop/shop_api/user_web/global"
@@ -87,7 +88,9 @@ func HandleValidatorError(ctx *gin.Context, err error) {
 }
 
 func GetUserList(ctx *gin.Context) {
-	conn, err := grpc.NewClient("127.0.0.1:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", global.ServerConfig.UserSrvCfg.Host,
+		global.ServerConfig.UserSrvCfg.Port),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		zap.S().Errorw("[GetUserList] 连接【用户服务】失败", "msg", err.Error())
 		HandleGrpcErrorToHttpError(err, ctx)
@@ -140,10 +143,21 @@ func LoginPassword(ctx *gin.Context) {
 		return
 	}
 
+	// 验证码
+	if !store.Verify(loginForm.CaptchaId, loginForm.Captcha, true) {
+		zap.S().Infow("[LoginPassword] 验证码错误", "captchaId", loginForm.CaptchaId, "captcha", loginForm.Captcha)
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"captcha": "验证码错误",
+		})
+		return
+	}
+
 	// 连接用户服务
-	conn, err := grpc.NewClient("127.0.0.1:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", global.ServerConfig.UserSrvCfg.Host,
+		global.ServerConfig.UserSrvCfg.Port),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		zap.S().Errorw("[GetUserList] 连接【用户服务】失败", "msg", err.Error())
+		zap.S().Errorw("[LoginPassword] 连接【用户服务】失败", "msg", err.Error())
 		HandleGrpcErrorToHttpError(err, ctx)
 		return
 	}
@@ -154,7 +168,7 @@ func LoginPassword(ctx *gin.Context) {
 	if u, err := userSrvClient.GetUserByMobile(ctx.Request.Context(), &proto.MobileRequest{
 		Mobile: loginForm.Mobile,
 	}); err != nil {
-		zap.S().Errorw("[Login] 查询【用户】失败", "msg", err.Error())
+		zap.S().Errorw("[LoginPassword] 查询【用户】失败", "msg", err.Error())
 		errs, ok := status.FromError(err)
 		if ok {
 			switch errs.Code() {
@@ -173,12 +187,12 @@ func LoginPassword(ctx *gin.Context) {
 			EncryptedPassword: u.Password,
 		})
 		if err != nil {
-			zap.S().Errorw("[Login] 校验密码失败", "msg", err.Error())
+			zap.S().Errorw("[LoginPassword] 校验密码失败", "msg", err.Error())
 			HandleGrpcErrorToHttpError(err, ctx)
 			return
 		}
 		if !ok.Success {
-			zap.S().Errorw("[Login] 密码错误", "msg", "密码错误")
+			zap.S().Errorw("[LoginPassword] 密码错误", "msg", "密码错误")
 			ctx.JSON(http.StatusUnauthorized, gin.H{"msg": "密码错误"})
 			return
 		}
@@ -200,7 +214,7 @@ func LoginPassword(ctx *gin.Context) {
 		// 创建token
 		token, err := j.CreateToken(claims)
 		if err != nil {
-			zap.S().Errorw("[Login] 创建token失败", "msg", err.Error())
+			zap.S().Errorw("[LoginPassword] 创建token失败", "msg", err.Error())
 			ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "创建token失败"})
 			return
 		}
