@@ -9,7 +9,14 @@ type MysqlConfig struct {
 }
 
 type ServerConfig struct {
-	Host        string      `mapstructure:"host"`
-	Port        int         `mapstructure:"port"`
-	MysqlConfig MysqlConfig `mapstructure:"mysql"`
+	Name         string       `mapstructure:"name"`
+	Host         string       `mapstructure:"host"`
+	Port         int          `mapstructure:"port"`
+	MysqlConfig  MysqlConfig  `mapstructure:"mysql"`
+	ConsulConfig ConsulConfig `mapstructure:"consul"`
+}
+
+type ConsulConfig struct {
+	Host string `mapstructure:"host"`
+	Port int    `mapstructure:"port"`
 }
