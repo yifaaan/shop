@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"shop/user_srv/global"
 	"shop/user_srv/proto"
 
 	"google.golang.org/grpc"
@@ -14,7 +15,7 @@ var conn *grpc.ClientConn
 
 func Init() {
 	var err error
-	conn, err = grpc.NewClient("localhost:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err = grpc.NewClient(fmt.Sprintf("%s:%d", global.ServerConfig.Host, global.ServerConfig.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		panic(err)
 	}

@@ -8,5 +8,5 @@ import (
 
 var (
 	Trans        ut.Translator
-	ServerConfig *config.ServerConfig = new(config.ServerConfig)
+	ServerConfig *config.ServerConfig
 )

@@ -38,7 +38,7 @@ func main() {
 	// 初始化路由
 	r := initialize.Routers()
 
-	zap.S().Debugf("server run at port %s:%d", global.ServerConfig.IP, global.ServerConfig.Port)
+	zap.S().Infof("server run at port %s:%d", global.ServerConfig.IP, global.ServerConfig.Port)
 	err := r.Run(fmt.Sprintf("%s:%d", global.ServerConfig.IP, global.ServerConfig.Port))
 	if err != nil {
 		zap.S().Errorf("server run failed: %v", err)

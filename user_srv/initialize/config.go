@@ -2,7 +2,7 @@ package initialize
 
 import (
 	"fmt"
-	"shop/shop_api/user_web/global"
+	"shop/user_srv/global"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
@@ -15,9 +15,9 @@ func getEnvInfo(env string) bool {
 
 func InitConfig() {
 	if getEnvInfo("SHOP_DEBUG") {
-		viper.SetConfigFile("./shop_api/user_web/config-debug.yaml")
+		viper.SetConfigFile("./user_srv/config-debug.yaml")
 	} else {
-		viper.SetConfigFile("./shop_api/user_web/config-pro.yaml")
+		viper.SetConfigFile("./user_srv/config-pro.yaml")
 	}
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
@@ -25,7 +25,6 @@ func InitConfig() {
 	if err != nil {
 		panic(err)
 	}
-	// 读取配置到全局变量
 	err = viper.Unmarshal(&global.ServerConfig)
 	if err != nil {
 		panic(err)

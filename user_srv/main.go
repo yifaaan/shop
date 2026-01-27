@@ -1,24 +1,26 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"net"
+	"shop/user_srv/global"
 	"shop/user_srv/handler"
+	"shop/user_srv/initialize"
 	"shop/user_srv/proto"
 
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
 func main() {
-	IP := flag.String("ip", "0.0.0.0", "ip地址")
-	Port := flag.Int("port", 8080, "端口号")
-	flag.Parse()
-	fmt.Println("ip: ", *IP, "port: ", *Port)
+	initialize.InitLogger()
+	initialize.InitConfig()
+	initialize.InitDB()
 
 	server := grpc.NewServer()
 	proto.RegisterUserServer(server, &handler.UserServer{})
-	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *IP, *Port))
+	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", global.ServerConfig.Host, global.ServerConfig.Port))
+	zap.S().Infof("server run at port %s:%d", global.ServerConfig.Host, global.ServerConfig.Port)
 
 	if err != nil {
 		panic("failed to listen: " + err.Error())
