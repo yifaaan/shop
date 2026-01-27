@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"shop/shop_api/user_web/global"
 	"shop/shop_api/user_web/model"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -61,19 +60,19 @@ func JWTAuth() gin.HandlerFunc {
 type JWT struct {
 	SigningKey []byte
 	ExpiresAt  int64
+	Issuer     string
 }
 
 func NewJWT() *JWT {
 	return &JWT{
 		SigningKey: []byte(global.ServerConfig.JWTConfig.SigningKey),
 		ExpiresAt:  global.ServerConfig.JWTConfig.ExpiresAt,
+		Issuer:     global.ServerConfig.JWTConfig.Issuer,
 	}
 }
 
 // CreateToken 创建JWT
 func (j *JWT) CreateToken(claims model.CustomClaims) (string, error) {
-	// 设置过期时间
-	claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Second * time.Duration(j.ExpiresAt)))
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(j.SigningKey)
 }

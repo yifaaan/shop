@@ -20,4 +20,5 @@ type ServerConfig struct {
 type JWTConfig struct {
 	SigningKey string `mapstructure:"key"`
 	ExpiresAt  int64  `mapstructure:"exp"`
+	Issuer     string `mapstructure:"issuer"`
 }

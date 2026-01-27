@@ -5,6 +5,8 @@ import (
 	"shop/shop_api/user_web/form"
 	"shop/shop_api/user_web/global"
 	"shop/shop_api/user_web/global/response"
+	"shop/shop_api/user_web/middleware"
+	"shop/shop_api/user_web/model"
 	"shop/shop_api/user_web/proto"
 	"strconv"
 	"strings"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -176,7 +179,34 @@ func Login(ctx *gin.Context) {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"msg": "密码错误"})
 			return
 		}
-		ctx.JSON(http.StatusOK, gin.H{"msg": "登录成功", "data": u})
+
+		// 登录成功
+		// 生成JWT
+		j := middleware.NewJWT()
+		// 创建claims
+		claims := model.CustomClaims{
+			ID:          uint(u.Id),
+			NickName:    u.NickName,
+			AuthorityID: uint(u.Role),
+			RegisteredClaims: jwt.RegisteredClaims{
+				NotBefore: jwt.NewNumericDate(time.Now()),                                               // iat
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Second * time.Duration(j.ExpiresAt))), // exp
+				Issuer:    j.Issuer,
+			},
+		}
+		// 创建token
+		token, err := j.CreateToken(claims)
+		if err != nil {
+			zap.S().Errorw("[Login] 创建token失败", "msg", err.Error())
+			ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "创建token失败"})
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{
+			"id":         u.Id,
+			"nick_name":  u.NickName,
+			"token":      token,
+			"expired_at": claims.ExpiresAt.Time.Unix(),
+		})
 	}
 
 }

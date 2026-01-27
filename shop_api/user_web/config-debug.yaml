@@ -10,3 +10,4 @@ user_srv:
 jwt:
   key: "verysecret"
   exp: 86400
+  issuer: "user-web"
