@@ -94,6 +94,9 @@ func GetUserList(ctx *gin.Context) {
 		return
 	}
 
+	userID := ctx.GetUint("userID")
+	zap.S().Debugf("GetUserList userID: %d", userID)
+
 	// 创建rpc用户服务客户端
 	userSrvClient := proto.NewUserClient(conn)
 
@@ -129,7 +132,7 @@ func GetUserList(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": result})
 }
 
-func Login(ctx *gin.Context) {
+func LoginPassword(ctx *gin.Context) {
 	// 表单验证
 	loginForm := form.LoginForm{}
 	if err := ctx.ShouldBind(&loginForm); err != nil {
