@@ -16,6 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -226,4 +227,82 @@ func LoginPassword(ctx *gin.Context) {
 		})
 	}
 
+}
+
+func Register(ctx *gin.Context) {
+	// 参数验证
+	registerForm := form.RegisterForm{}
+	if err := ctx.ShouldBind(&registerForm); err != nil {
+		zap.S().Errorw("[Register] 参数绑定失败", "msg", err.Error())
+		HandleValidatorError(ctx, err)
+		return
+	}
+
+	// 连接redis
+	rdb := redis.NewClient(&redis.Options{
+		Addr: fmt.Sprintf("%s:%d", global.ServerConfig.RedisConfig.Host, global.ServerConfig.RedisConfig.Port),
+	})
+	// 获取验证码
+	code, err := rdb.Get(ctx.Request.Context(), "sms_code_"+registerForm.Mobile).Result()
+	if err != nil {
+		zap.S().Errorw("[Register] 获取验证码失败", "msg", err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "验证码错误"})
+		return
+	}
+	if code != registerForm.Code {
+		zap.S().Errorw("[Register] 验证码错误", "msg", "验证码错误")
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "验证码错误"})
+		return
+	}
+
+	// 创建rpc连接
+	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", global.ServerConfig.UserSrvCfg.Host,
+		global.ServerConfig.UserSrvCfg.Port),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		zap.S().Errorw("[Register] 连接【用户服务】失败", "msg", err.Error())
+		HandleGrpcErrorToHttpError(err, ctx)
+		return
+	}
+
+	// 创建用户rpc服务客户端
+	userSrvClient := proto.NewUserClient(conn)
+	u, err := userSrvClient.CreateUser(ctx.Request.Context(), &proto.CreateUserInfoRequest{
+		NickName: registerForm.Mobile,
+		Password: registerForm.Password,
+		Mobile:   registerForm.Mobile,
+	})
+	if err != nil {
+		zap.S().Errorw("[Register] 创建用户失败", "msg", err.Error())
+		HandleGrpcErrorToHttpError(err, ctx)
+		return
+	}
+
+	// 创建成功，切换到已登录状态
+	// 生成JWT
+	j := middleware.NewJWT()
+	// 创建claims
+	claims := model.CustomClaims{
+		ID:          uint(u.Id),
+		NickName:    u.NickName,
+		AuthorityID: uint(u.Role),
+		RegisteredClaims: jwt.RegisteredClaims{
+			NotBefore: jwt.NewNumericDate(time.Now()),                                               // iat
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Second * time.Duration(j.ExpiresAt))), // exp
+			Issuer:    j.Issuer,
+		},
+	}
+	// 创建token
+	token, err := j.CreateToken(claims)
+	if err != nil {
+		zap.S().Errorw("[LoginPassword] 创建token失败", "msg", err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "创建token失败"})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"id":         u.Id,
+		"nick_name":  u.NickName,
+		"token":      token,
+		"expired_at": claims.ExpiresAt.Time.Unix(),
+	})
 }
