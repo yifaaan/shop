@@ -1,9 +1,12 @@
 package global
 
 import (
+	"shop/shop_api/user_web/config"
+
 	ut "github.com/go-playground/universal-translator"
 )
 
 var (
-	Uni *ut.UniversalTranslator
+	Trans        ut.Translator
+	ServerConfig *config.ServerConfig = new(config.ServerConfig)
 )

@@ -3,18 +3,29 @@ package api
 import (
 	"net/http"
 	"shop/shop_api/user_web/form"
+	"shop/shop_api/user_web/global"
 	"shop/shop_api/user_web/global/response"
 	"shop/shop_api/user_web/proto"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 )
+
+func removeTopStruct(fields map[string]string) map[string]string {
+	res := map[string]string{}
+	for field, err := range fields {
+		res[field[strings.Index(field, ".")+1:]] = err
+	}
+	return res
+}
 
 // HandleGrpcErrorToHttpError 将grpc错误转换为http错误
 func HandleGrpcErrorToHttpError(err error, c *gin.Context) {
@@ -76,6 +87,7 @@ func GetUserList(ctx *gin.Context) {
 	pnInt, _ := strconv.Atoi(pn)
 	pSize := ctx.DefaultQuery("psize", "10")
 	pSizeInt, _ := strconv.Atoi(pSize)
+	// 调用用户服务
 	resp, err := userSrvClient.GetUserList(ctx.Request.Context(), &proto.PageInfoRequest{
 		PageNumber: uint32(pnInt),
 		PageSize:   uint32(pSizeInt),
@@ -105,9 +117,15 @@ func GetUserList(ctx *gin.Context) {
 func Login(ctx *gin.Context) {
 	// 表单验证
 	loginForm := form.LoginForm{}
-	if err := ctx.ShouldBindJSON(&loginForm); err != nil {
+	if err := ctx.ShouldBind(&loginForm); err != nil {
+		errs, ok := err.(validator.ValidationErrors)
+		if !ok {
+			ctx.JSON(http.StatusOK, gin.H{"msg": err.Error()})
+			return
+		}
 		zap.S().Errorw("[Login] 表单验证失败", "msg", err.Error())
-		ctx.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+		// 翻译错误
+		ctx.JSON(http.StatusBadRequest, gin.H{"err": removeTopStruct(errs.Translate(global.Trans))})
 		return
 	}
 }

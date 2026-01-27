@@ -12,5 +12,6 @@ func InitUserRouter(router *gin.RouterGroup) {
 	zap.S().Info("配置用户相关的路由...")
 	{
 		userRouter.GET("/list", api.GetUserList)
+		userRouter.POST("/login", api.Login)
 	}
 }

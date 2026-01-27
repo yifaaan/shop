@@ -16,7 +16,7 @@ import (
 
 func InitTrans(locale string) {
 	// 初始化翻译器
-	global.Uni = ut.New(en.New(), zh.New())
+	uni := ut.New(en.New(), zh.New())
 	// 初始化验证器
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		// register function to get tag name from json tags.
@@ -29,17 +29,17 @@ func InitTrans(locale string) {
 		})
 
 		// 注册翻译器
-		trans, ok := global.Uni.GetTranslator(locale)
+		global.Trans, ok = uni.GetTranslator(locale)
 		if !ok {
-			trans = global.Uni.GetFallback()
+			global.Trans = uni.GetFallback()
 		}
 		switch locale {
 		case "en":
-			en_translations.RegisterDefaultTranslations(v, trans)
+			en_translations.RegisterDefaultTranslations(v, global.Trans)
 		case "zh":
-			zh_translations.RegisterDefaultTranslations(v, trans)
+			zh_translations.RegisterDefaultTranslations(v, global.Trans)
 		default:
-			zh_translations.RegisterDefaultTranslations(v, trans)
+			zh_translations.RegisterDefaultTranslations(v, global.Trans)
 		}
 	}
 }

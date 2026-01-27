@@ -8,8 +8,9 @@ import (
 )
 
 func main() {
-	initialize.InitTrans()
 	initialize.InitLogger()
+	initialize.InitTrans("zh")
+	initialize.InitConfig()
 	r := initialize.Routers()
 
 	zap.S().Debugf("server run at port %s", ":8081")
