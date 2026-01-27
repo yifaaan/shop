@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	initialize.InitTrans()
 	initialize.InitLogger()
 	r := initialize.Routers()
 
