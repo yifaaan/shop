@@ -11,3 +11,7 @@ jwt:
   key: "verysecret"
   exp: 86400
   issuer: "user-web"
+
+redis:
+  host: "127.0.0.1"
+  port: 6379
