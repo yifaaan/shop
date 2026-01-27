@@ -16,6 +16,11 @@ func InitConfig() {
 	if err != nil {
 		panic(err)
 	}
+	// 读取配置到全局变量
+	err = viper.Unmarshal(&global.ServerConfig)
+	if err != nil {
+		panic(err)
+	}
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		fmt.Println("Config file changed:", e.Name)
