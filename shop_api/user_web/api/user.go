@@ -133,4 +133,50 @@ func Login(ctx *gin.Context) {
 		HandleValidatorError(ctx, err)
 		return
 	}
+
+	// 连接用户服务
+	conn, err := grpc.NewClient("127.0.0.1:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		zap.S().Errorw("[GetUserList] 连接【用户服务】失败", "msg", err.Error())
+		HandleGrpcErrorToHttpError(err, ctx)
+		return
+	}
+	userSrvClient := proto.NewUserClient(conn)
+
+	// login逻辑
+	// 获取user
+	if u, err := userSrvClient.GetUserByMobile(ctx.Request.Context(), &proto.MobileRequest{
+		Mobile: loginForm.Mobile,
+	}); err != nil {
+		zap.S().Errorw("[Login] 查询【用户】失败", "msg", err.Error())
+		errs, ok := status.FromError(err)
+		if ok {
+			switch errs.Code() {
+			case codes.NotFound:
+				ctx.JSON(http.StatusUnauthorized, gin.H{"msg": "用户不存在"})
+				return
+			default:
+				ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "登录失败"})
+			}
+		}
+		return
+	} else {
+		// 检查密码
+		ok, err := userSrvClient.CheckPassword(ctx.Request.Context(), &proto.CheckPasswordInfoRequest{
+			Password:          loginForm.Password,
+			EncryptedPassword: u.Password,
+		})
+		if err != nil {
+			zap.S().Errorw("[Login] 校验密码失败", "msg", err.Error())
+			HandleGrpcErrorToHttpError(err, ctx)
+			return
+		}
+		if !ok.Success {
+			zap.S().Errorw("[Login] 密码错误", "msg", "密码错误")
+			ctx.JSON(http.StatusUnauthorized, gin.H{"msg": "密码错误"})
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{"msg": "登录成功", "data": u})
+	}
+
 }
