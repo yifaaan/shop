@@ -1,4 +1,4 @@
-version: "3"
+version: "3.8"
 
 services:
   yapi:
@@ -51,7 +51,25 @@ services:
     volumes:
       - redis-data:/data
 
+  consul:
+    image: hashicorp/consul:1.17
+    container_name: consul
+    command: agent -dev -client=0.0.0.0 -ui
+    ports:
+      - "8500:8500"  # HTTP API & UI
+      - "8300:8300"    # Server RPC
+      - "8301:8301"    # Serf LAN (TCP)
+      - "8301:8301/udp"# Serf LAN (UDP)
+      - "8302:8302"    # Serf WAN (TCP)
+      - "8302:8302/udp"# Serf WAN (UDP)
+      - "8600:8600/tcp" # DNS (TCP)
+      - "8600:8600/udp" # DNS (UDP)
+    restart: always
+    volumes:
+      - consul-data:/consul/data
+
 volumes:
   mongo-data:
   mysql-data:
   redis-data:
+  consul-data:
