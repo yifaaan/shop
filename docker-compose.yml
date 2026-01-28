@@ -1,10 +1,7 @@
-version: "3.8"
-
 services:
   yapi:
     image: jayfong/yapi:latest
     container_name: yapi
-    network_mode: "host"  # 使用主机网络
     environment:
       - YAPI_ADMIN_ACCOUNT=admin@admin.com
       - YAPI_ADMIN_PASSWORD=admin123
@@ -21,6 +18,8 @@ services:
     depends_on:
       - mongo
     restart: always
+    networks:
+      - shop-network
 
   mongo:
     image: mongo:4.4
@@ -28,6 +27,8 @@ services:
     restart: always
     volumes:
       - mongo-data:/data/db
+    networks:
+      - shop-network
 
   mysql:
     image: mysql:8.0
@@ -42,6 +43,8 @@ services:
     restart: always
     volumes:
       - mysql-data:/var/lib/mysql
+    networks:
+      - shop-network
 
   redis:
     image: redis:6.2-alpine
@@ -51,6 +54,8 @@ services:
     restart: always
     volumes:
       - redis-data:/data
+    networks:
+      - shop-network
 
   consul:
     image: hashicorp/consul:1.17
@@ -68,6 +73,8 @@ services:
     restart: always
     volumes:
       - consul-data:/consul/data
+    networks:
+      - shop-network
 
   nacos:
     image: nacos/nacos-server:v2.3.2
@@ -83,6 +90,12 @@ services:
     volumes:
       - nacos-data:/home/nacos/data
       - nacos-logs:/home/nacos/logs
+    networks:
+      - shop-network
+
+networks:
+  shop-network:
+    driver: bridge
 
 volumes:
   mongo-data:
