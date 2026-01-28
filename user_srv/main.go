@@ -64,8 +64,9 @@ func main() {
 		zap.S().Infow("健康检查使用 host.docker.internal", "reason", "Consul可能在Docker容器中")
 	}
 
+	serviceId := uuid.New().String()
 	reg := api.AgentServiceRegistration{
-		ID:      uuid.New().String(),
+		ID:      serviceId,
 		Name:    global.ServerConfig.Name,
 		Tags:    []string{"user-srv"},
 		Port:    global.ServerConfig.Port,
@@ -87,7 +88,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("注册服务到Consul失败: %v", err))
 	}
-	zap.S().Infow("服务已注册到Consul", "service_id", global.ServerConfig.Name, "address", global.ServerConfig.Host, "port", global.ServerConfig.Port)
+	zap.S().Infow("服务已注册到Consul", "service_id", serviceId, "address", global.ServerConfig.Host, "port", global.ServerConfig.Port)
 
 	// 启动grpc Server
 	go func() {
@@ -105,8 +106,8 @@ func main() {
 	// 停止grpc
 	server.GracefulStop()
 	// 注销旧的服务注册
-	if err := client.Agent().ServiceDeregister(global.ServerConfig.Name); err != nil {
-		zap.S().Warnw("注销旧服务注册失败（可能服务不存在）", "service_id", global.ServerConfig.Name, "error", err.Error())
+	if err := client.Agent().ServiceDeregister(serviceId); err != nil {
+		zap.S().Warnw("注销旧服务注册失败（可能服务不存在）", "service_id", serviceId, "error", err.Error())
 	}
-	zap.S().Infow("成功注销旧服务注册", "service_id", global.ServerConfig.Name)
+	zap.S().Infow("成功注销旧服务注册", "service_id", serviceId)
 }
