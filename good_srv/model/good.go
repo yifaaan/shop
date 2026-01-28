@@ -4,10 +4,10 @@ package model
 type Category struct {
 	BaseModel
 	Name             string    `gorm:"type:varchar(20);not null"`
-	ParentCategoryID int32     `gorm:"type:int;not null;default:0 comment '父分类ID'"`
+	ParentCategoryID int32     `gorm:"type:int;not null;default:0;comment:'父分类ID'"`
 	ParentCateGory   *Category `gorm:"foreignKey:ParentCategoryID;references:ID"`         // 自关联
-	Level            int32     `gorm:"type:int;not null;default:1 comment '分类级别'"`        // 分类级别
-	IsTab            bool      `gorm:"type:bool;not null;default:false comment '是否是导航栏'"` // 是否是导航栏
+	Level            int32     `gorm:"type:int;not null;default:1;comment:'分类级别'"`        // 分类级别
+	IsTab            bool      `gorm:"type:bool;not null;default:false;comment:'是否是导航栏'"` // 是否是导航栏
 }
 
 // 商品品牌表
@@ -31,7 +31,7 @@ type Banner struct {
 	BaseModel
 	Image string `gorm:"type:varchar(200);not null comment '轮播图图片'"`
 	Url   string `gorm:"type:varchar(200);not null comment '轮播图跳转链接'"`
-	Index int32  `gorm:"type:int;not null;default:0 comment '轮播图顺序'"`
+	Index int32  `gorm:"type:int;not null;default:0;comment:'轮播图顺序'"`
 }
 
 type Good struct {
@@ -44,14 +44,14 @@ type Good struct {
 	BrandID    int32    `gorm:"type:int;not null"`
 	Brand      Brand    `gorm:"foreignKey:BrandID;references:ID"`
 
-	OnSale   bool `gorm:"type:bool;not null;default:false comment '是否上架'"`
-	ShipFree bool `gorm:"type:bool;not null;default:false comment '是否包邮'"`
-	IsNew    bool `gorm:"type:bool;not null;default:false comment '是否新品'"`
-	IsHot    bool `gorm:"type:bool;not null;default:false comment '是否热销'"`
+	OnSale   bool `gorm:"type:bool;not null;default:false;comment:'是否上架'"`
+	ShipFree bool `gorm:"type:bool;not null;default:false;comment:'是否包邮'"`
+	IsNew    bool `gorm:"type:bool;not null;default:false;comment:'是否新品'"`
+	IsHot    bool `gorm:"type:bool;not null;default:false;comment:'是否热销'"`
 
-	ClickNum    int32   `gorm:"type:int;not null;default:0 comment '点击数'"`
-	SoldNum     int32   `gorm:"type:int;not null;default:0 comment '商品销售量'"`
-	FavNum      int32   `gorm:"type:int;not null;default:0 comment '商品收藏数'"`
+	ClickNum    int32   `gorm:"type:int;not null;default:0;comment:'点击数'"`
+	SoldNum     int32   `gorm:"type:int;not null;default:0;comment:'商品销售量'"`
+	FavNum      int32   `gorm:"type:int;not null;default:0;comment:'商品收藏数'"`
 	MarketPrice float32 `gorm:"type:float;not null comment '市场价'"`
 	ShopPrice   float32 `gorm:"type:float;not null comment '本店价'"`
 

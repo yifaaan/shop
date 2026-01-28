@@ -5,9 +5,9 @@
 # mysql:
 #   host: "127.0.0.1"
 #   port: 3306
-#   user: "shop_user"
-#   password: "shop123456"
-#   db_name: "shop_user_srv"
+#   user: "root"
+#   password: "root123456"
+#   db_name: "shop_good_srv"
 
 # consul:
 #   host: "127.0.0.1"

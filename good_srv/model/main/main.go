@@ -1,33 +1,47 @@
 package main
 
 import (
-	"crypto/md5"
-	"crypto/sha512"
-	"encoding/hex"
-	"fmt"
-	"io"
+	"log"
+	"os"
 	"shop/good_srv/global"
 	"shop/good_srv/model"
+	"time"
 
-	"github.com/anaskhan96/go-password-encoder"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"gorm.io/gorm/schema"
 )
 
 func main() {
-	options := &password.Options{SaltLen: 16, Iterations: 100, KeyLen: 32, HashFunction: sha512.New}
-	salt, encodedPwd := password.Encode("123456", options)
-	newPassword := fmt.Sprintf("$pbkdf2-sha512$%s$%s", salt, encodedPwd)
-	for i := 0; i < 10; i++ {
-		user := model.User{
-			NickName: fmt.Sprintf("user%d", i),
-			Mobile:   fmt.Sprintf("1380000000%d", i),
-			Password: newPassword,
-		}
-		global.DB.Create(&user)
-	}
-}
+	// dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+	// 	global.ServerConfig.MysqlConfig.User,
+	// 	global.ServerConfig.MysqlConfig.Password,
+	// 	global.ServerConfig.MysqlConfig.Host,
+	// 	global.ServerConfig.MysqlConfig.Port,
+	// 	global.ServerConfig.MysqlConfig.DBName,
+	// )
+	dsn := "root:root123456@tcp(127.0.0.1:3306)/shop_good_srv?charset=utf8mb4&parseTime=True&loc=Local"
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold: time.Second,   // Slow SQL threshold
+			LogLevel:      logger.Silent, // Log level
+			Colorful:      true,          // Disable color
+		},
+	)
 
-func genMd5(code string) string {
-	hash := md5.New()
-	_, _ = io.WriteString(hash, code)
-	return hex.EncodeToString(hash.Sum(nil))
+	// Globally mode
+	var err error
+	global.DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+		NamingStrategy: schema.NamingStrategy{
+			SingularTable: true, // 表名默认为单数
+		},
+		Logger: newLogger,
+	})
+	if err != nil {
+		panic(err)
+	}
+	_ = global.DB.AutoMigrate(&model.Category{}, &model.Brand{}, &model.GoodCategoryBrand{}, &model.Banner{}, &model.Good{})
+
 }
