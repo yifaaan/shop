@@ -1,0 +1,279 @@
+[
+  {
+    "index": 0,
+    "name": "用户",
+    "desc": null,
+    "add_time": 1769391735,
+    "up_time": 1769391735,
+    "list": [
+      {
+        "query_path": {
+          "path": "/u/v1/base/send_sms",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 15,
+        "method": "POST",
+        "catid": 14,
+        "title": "发手机验证码",
+        "path": "/u/v1/base/send_sms",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1769500003,
+        "up_time": 1769560262,
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "697958c6f77dbe41480fe955",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [
+          {
+            "required": "1",
+            "_id": "697958c6f77dbe911a0fe957",
+            "name": "mobile",
+            "type": "text",
+            "example": "13186102265"
+          },
+          {
+            "required": "1",
+            "_id": "697958c6f77dbe360b0fe956",
+            "name": "type",
+            "type": "text",
+            "example": "1",
+            "desc": "1表示注册，2表示登录"
+          }
+        ],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": ""
+      },
+      {
+        "query_path": {
+          "path": "/u/v1/user/pwd_login",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 14,
+        "method": "POST",
+        "catid": 14,
+        "title": "密码登录_copy",
+        "path": "/u/v1/user/pwd_login",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "69795a84f77dbeeca40fe968",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [
+          {
+            "required": "1",
+            "_id": "69795a84f77dbe52680fe96c",
+            "name": "mobile",
+            "type": "text",
+            "example": "13800000000"
+          },
+          {
+            "required": "1",
+            "_id": "69795a84f77dbef9b80fe96b",
+            "name": "password",
+            "type": "text",
+            "example": "123456",
+            "desc": ""
+          },
+          {
+            "required": "1",
+            "_id": "69795a84f77dbef69b0fe96a",
+            "name": "captcha_id",
+            "type": "text",
+            "example": "tuQz9Vt9G2bAQkXvjKhH",
+            "desc": ""
+          },
+          {
+            "required": "1",
+            "_id": "69795a84f77dbe3f950fe969",
+            "name": "captcha",
+            "type": "text",
+            "example": "21120",
+            "desc": ""
+          }
+        ],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": "",
+        "uid": 11,
+        "add_time": 1769495081,
+        "up_time": 1769560708,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/u/v1/user/register",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 16,
+        "method": "POST",
+        "catid": 14,
+        "title": "注册",
+        "path": "/u/v1/user/register",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "69787b62f77dbe2a0b0fe951",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [
+          {
+            "required": "1",
+            "_id": "69787b62f77dbeb7530fe954",
+            "name": "mobile",
+            "type": "text",
+            "example": "13186102266"
+          },
+          {
+            "required": "1",
+            "_id": "69787b62f77dbe280f0fe953",
+            "name": "password",
+            "type": "text",
+            "example": "123456",
+            "desc": "1表示注册，2表示登录"
+          },
+          {
+            "required": "1",
+            "_id": "69787b62f77dbea3b30fe952",
+            "name": "code",
+            "type": "text",
+            "example": "12345",
+            "desc": ""
+          }
+        ],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": "",
+        "uid": 11,
+        "add_time": 1769503506,
+        "up_time": 1769503586,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/u/v1/user/list",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 12,
+        "method": "GET",
+        "catid": 14,
+        "title": "用户列表",
+        "path": "/u/v1/user/list",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1769424022,
+        "up_time": 1769484765,
+        "req_query": [
+          {
+            "required": "0",
+            "_id": "697831ddf77dbe4e260fe927",
+            "name": "pn",
+            "example": "2",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "697831ddf77dbe724f0fe926",
+            "name": "psize",
+            "example": "3",
+            "desc": ""
+          }
+        ],
+        "req_headers": [],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "res_body": ""
+      },
+      {
+        "query_path": {
+          "path": "/u/v1/base/captcha",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 17,
+        "method": "GET",
+        "catid": 14,
+        "title": "获取验证码",
+        "path": "/u/v1/base/captcha",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1769560299,
+        "up_time": 1769560299,
+        "req_query": [],
+        "req_headers": [],
+        "req_body_form": [],
+        "__v": 0
+      }
+    ]
+  }
+]
