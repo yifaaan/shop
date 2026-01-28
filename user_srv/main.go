@@ -12,6 +12,7 @@ import (
 	"shop/user_srv/utils"
 	"syscall"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/consul/api"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -64,7 +65,7 @@ func main() {
 	}
 
 	reg := api.AgentServiceRegistration{
-		ID:      global.ServerConfig.Name,
+		ID:      uuid.New().String(),
 		Name:    global.ServerConfig.Name,
 		Tags:    []string{"user-srv"},
 		Port:    global.ServerConfig.Port,

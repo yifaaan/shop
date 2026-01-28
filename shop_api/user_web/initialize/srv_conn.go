@@ -12,6 +12,10 @@ import (
 )
 
 func InitSrvConn() {
+
+}
+
+func InitSrvConn2() {
 	// 从注册中心获取user_srv的信息
 	// 设置consul信息获取client
 	cfg := api.DefaultConfig()
