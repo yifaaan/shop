@@ -18,6 +18,8 @@ import (
 func main() {
 	initialize.InitLogger()
 	initialize.InitConfig()
+	// 打印配置信息以便调试
+	zap.S().Infow("服务配置", "name", global.ServerConfig.Name, "host", global.ServerConfig.Host, "port", global.ServerConfig.Port)
 	initialize.InitDB()
 
 	server := grpc.NewServer()
@@ -42,25 +44,48 @@ func main() {
 		panic(err)
 	}
 
+	// 先注销旧的服务注册（如果存在）
+	err = client.Agent().ServiceDeregister(global.ServerConfig.Name)
+	if err != nil {
+		zap.S().Warnw("注销旧服务注册失败（可能服务不存在）", "service_id", global.ServerConfig.Name, "error", err.Error())
+	} else {
+		zap.S().Infow("成功注销旧服务注册", "service_id", global.ServerConfig.Name)
+	}
+
+	// 服务注册地址：供其他服务访问使用
+	serviceAddress := global.ServerConfig.Host
+	// 健康检查地址：如果 Consul 在 Docker 容器中，需要使用 host.docker.internal 来访问主机服务
+	healthCheckAddr := global.ServerConfig.Host
+	// 如果服务地址是 127.0.0.1，且 Consul 可能在容器中，使用 host.docker.internal 进行健康检查
+	if serviceAddress == "127.0.0.1" || serviceAddress == "localhost" {
+		healthCheckAddr = "host.docker.internal"
+		zap.S().Infow("健康检查使用 host.docker.internal", "reason", "Consul可能在Docker容器中")
+	}
+
 	reg := api.AgentServiceRegistration{
 		ID:      global.ServerConfig.Name,
 		Name:    global.ServerConfig.Name,
 		Tags:    []string{"user-srv"},
 		Port:    global.ServerConfig.Port,
-		Address: "host.docker.internal", // consul对外公布的usr_srv服务的ip，供其他服务访问使用
+		Address: serviceAddress, // 服务地址：供其他服务访问使用
 		Check: &api.AgentServiceCheck{
-			// GRPC:                           fmt.Sprintf("%s:%d", global.ServerConfig.Host, global.ServerConfig.Port),
-			GRPC:                           "host.docker.internal:8080", // 容器内部会解析到主机IP，从而访问主机上运行的user_srv服务
+			GRPC:                           fmt.Sprintf("%s:%d", healthCheckAddr, global.ServerConfig.Port),
 			Timeout:                        "5s",
 			Interval:                       "5s",
 			DeregisterCriticalServiceAfter: "10s",
 		},
 	}
 
+	zap.S().Infow("服务注册配置",
+		"service_address", serviceAddress,
+		"health_check_address", healthCheckAddr,
+		"port", global.ServerConfig.Port)
+
 	err = client.Agent().ServiceRegister(&reg)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("注册服务到Consul失败: %v", err))
 	}
+	zap.S().Infow("服务已注册到Consul", "service_id", global.ServerConfig.Name, "address", global.ServerConfig.Host, "port", global.ServerConfig.Port)
 
 	err = server.Serve(listener)
 	if err != nil {
