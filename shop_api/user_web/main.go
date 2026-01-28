@@ -42,6 +42,8 @@ func main() {
 	viper.AutomaticEnv()
 	// debug时，port固定
 	debug := viper.GetBool("SHOP_DEBUG")
+	fmt.Println("SHOP_DEBUG env value:", os.Getenv("SHOP_DEBUG"))
+	fmt.Println("debug ", debug)
 	if !debug {
 		port, err := utils.GetFreePort()
 		if err != nil {

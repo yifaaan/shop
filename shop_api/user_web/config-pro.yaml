@@ -1,22 +1,29 @@
-name: "user-web"
-version: "1.0.0"
-ip: "127.0.0.1"
-port: 8081
+# name: "user-web"
+# version: "1.0.0"
+# ip: "127.0.0.1"
+# port: 8081
 
-user_srv:
-  name: "user-srv"
-  host: "127.0.0.1"
-  port: 8080
+# user_srv:
+#   name: "user-srv"
+#   host: "127.0.0.1"
+#   port: 8080
 
-jwt:
-  key: "verysecret"
-  exp: 86400
-  issuer: "user-web"
+# jwt:
+#   key: "verysecret"
+#   exp: 86400
+#   issuer: "user-web"
 
-redis:
-  host: "127.0.0.1"
-  port: 6379
+# redis:
+#   host: "127.0.0.1"
+#   port: 6379
 
-consul:
-  host: "127.0.0.1"
-  port: 8500
+# consul:
+#   host: "127.0.0.1"
+#   port: 8500
+
+# nacos:
+host: "127.0.0.1"
+port: 8848
+namespace: "0ba24e61-764c-436a-bd26-9dccb6c0c7c2"
+data_id: "user-web"
+group: "dev"
