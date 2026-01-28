@@ -5,11 +5,13 @@ import (
 	"os"
 	"shop/shop_api/user_web/global"
 	"shop/shop_api/user_web/initialize"
+	"shop/shop_api/user_web/utils"
 	myValidators "shop/shop_api/user_web/validator"
 
 	"github.com/gin-gonic/gin/binding"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
@@ -36,9 +38,19 @@ func main() {
 	} else {
 		panic("validator engine not found")
 	}
+
+	viper.AutomaticEnv()
+	// debug时，port固定
+	debug := viper.GetBool("SHOP_DEBUG")
+	if !debug {
+		port, err := utils.GetFreePort()
+		if err != nil {
+			zap.S().Fatalf("get free port failed: %v", err)
+		}
+		global.ServerConfig.Port = port
+	}
 	// 初始化路由
 	r := initialize.Routers()
-
 	zap.S().Infof("server run at port %s:%d", global.ServerConfig.IP, global.ServerConfig.Port)
 	err := r.Run(fmt.Sprintf("%s:%d", global.ServerConfig.IP, global.ServerConfig.Port))
 	if err != nil {

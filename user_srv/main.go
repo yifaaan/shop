@@ -3,10 +3,14 @@ package main
 import (
 	"fmt"
 	"net"
+	"os"
+	"os/signal"
 	"shop/user_srv/global"
 	"shop/user_srv/handler"
 	"shop/user_srv/initialize"
 	"shop/user_srv/proto"
+	"shop/user_srv/utils"
+	"syscall"
 
 	"github.com/hashicorp/consul/api"
 	"go.uber.org/zap"
@@ -18,6 +22,12 @@ import (
 func main() {
 	initialize.InitLogger()
 	initialize.InitConfig()
+	// 使用系统分配的端口
+	var err error
+	global.ServerConfig.Port, err = utils.GetFreePort()
+	if err != nil {
+		zap.S().Fatalf("get free port failed: %v", err)
+	}
 	// 打印配置信息以便调试
 	zap.S().Infow("服务配置", "name", global.ServerConfig.Name, "host", global.ServerConfig.Host, "port", global.ServerConfig.Port)
 	initialize.InitDB()
@@ -27,7 +37,6 @@ func main() {
 	proto.RegisterUserServer(server, &handler.UserServer{})
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", global.ServerConfig.Host, global.ServerConfig.Port))
 	zap.S().Infof("server run at port %s:%d", global.ServerConfig.Host, global.ServerConfig.Port)
-
 	if err != nil {
 		panic("failed to listen: " + err.Error())
 	}
@@ -42,14 +51,6 @@ func main() {
 	client, err := api.NewClient(cfg)
 	if err != nil {
 		panic(err)
-	}
-
-	// 先注销旧的服务注册（如果存在）
-	err = client.Agent().ServiceDeregister(global.ServerConfig.Name)
-	if err != nil {
-		zap.S().Warnw("注销旧服务注册失败（可能服务不存在）", "service_id", global.ServerConfig.Name, "error", err.Error())
-	} else {
-		zap.S().Infow("成功注销旧服务注册", "service_id", global.ServerConfig.Name)
 	}
 
 	// 服务注册地址：供其他服务访问使用
@@ -87,8 +88,24 @@ func main() {
 	}
 	zap.S().Infow("服务已注册到Consul", "service_id", global.ServerConfig.Name, "address", global.ServerConfig.Host, "port", global.ServerConfig.Port)
 
-	err = server.Serve(listener)
-	if err != nil {
-		panic("failed to serve: " + err.Error())
+	// 启动grpc Server
+	go func() {
+		if err := server.Serve(listener); err != nil {
+			zap.S().Fatal("grpc serve error: ", err)
+		}
+	}()
+	zap.S().Info("gRPC server started")
+
+	// graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	// 停止grpc
+	server.GracefulStop()
+	// 注销旧的服务注册
+	if err := client.Agent().ServiceDeregister(global.ServerConfig.Name); err != nil {
+		zap.S().Warnw("注销旧服务注册失败（可能服务不存在）", "service_id", global.ServerConfig.Name, "error", err.Error())
 	}
+	zap.S().Infow("成功注销旧服务注册", "service_id", global.ServerConfig.Name)
 }
