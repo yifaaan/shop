@@ -19,7 +19,8 @@ func main() {
 	initialize.InitTrans("zh")
 	// 初始化配置
 	initialize.InitConfig()
-
+	// 初始化rpc连接
+	initialize.InitSrvConn()
 	// 注册手机自定义验证器
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		_ = v.RegisterValidation("mobile", myValidators.ValidateMobile)
