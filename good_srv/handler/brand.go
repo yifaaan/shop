@@ -43,8 +43,11 @@ func (s *GoodServer) BrandList(ctx context.Context, in *proto.BrandFilterRequest
 
 // CreateBrand 创建品牌
 func (s *GoodServer) CreateBrand(ctx context.Context, in *proto.BrandRequest) (*proto.BrandInfoResponse, error) {
-	brand := model.Brand{}
-	if result := global.DB.WithContext(ctx).Where("name = ?", in.Name).First(&brand); result.RowsAffected == 1 {
+	brand := model.Brand{
+		Name: in.Name,
+		Logo: in.Logo,
+	}
+	if result := global.DB.WithContext(ctx).Where(&brand).First(&brand); result.RowsAffected == 1 {
 		return nil, status.Errorf(codes.AlreadyExists, "品牌名称已存在")
 	}
 
