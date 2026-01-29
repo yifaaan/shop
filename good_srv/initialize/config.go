@@ -21,9 +21,9 @@ func getEnvInfo(env string) bool {
 
 func InitConfig() {
 	if getEnvInfo("SHOP_DEBUG") {
-		viper.SetConfigFile("./user_srv/config-debug.yaml")
+		viper.SetConfigFile("./good_srv/config-debug.yaml")
 	} else {
-		viper.SetConfigFile("./user_srv/config-pro.yaml")
+		viper.SetConfigFile("./good_srv/config-pro.yaml")
 	}
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
@@ -81,9 +81,9 @@ func InitConfig() {
 
 func InitConfig2() {
 	if getEnvInfo("SHOP_DEBUG") {
-		viper.SetConfigFile("./user_srv/config-debug.yaml")
+		viper.SetConfigFile("./good_srv/config-debug.yaml")
 	} else {
-		viper.SetConfigFile("./user_srv/config-pro.yaml")
+		viper.SetConfigFile("./good_srv/config-pro.yaml")
 	}
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")

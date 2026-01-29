@@ -16,6 +16,6 @@
 # nacos:
 host: "127.0.0.1"
 port: 8848
-namespace: "0ba24e61-764c-436a-bd26-9dccb6c0c7c2"
+namespace: "fbc06606-1efb-411d-8795-94bc4be676f6"
 data_id: "good-srv"
 group: "pro"

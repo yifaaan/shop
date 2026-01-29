@@ -35,7 +35,7 @@ func main() {
 
 	server := grpc.NewServer()
 	// 注册用户服务
-	proto.RegisterUserServer(server, &handler.UserServer{})
+	proto.RegisterGoodServer(server, &handler.GoodServer{})
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", global.ServerConfig.Host, global.ServerConfig.Port))
 	zap.S().Infof("server run at port %s:%d", global.ServerConfig.Host, global.ServerConfig.Port)
 	if err != nil {
@@ -68,7 +68,7 @@ func main() {
 	reg := api.AgentServiceRegistration{
 		ID:      serviceId,
 		Name:    global.ServerConfig.Name,
-		Tags:    []string{"user-srv"},
+		Tags:    []string{"good-srv"},
 		Port:    global.ServerConfig.Port,
 		Address: serviceAddress, // 服务地址：供其他服务访问使用
 		Check: &api.AgentServiceCheck{

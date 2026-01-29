@@ -1,0 +1,505 @@
+syntax = "proto3";
+
+// 空消息定义，用于不需要请求参数或响应数据的 RPC 方法
+message Empty {}
+
+// Go 代码生成选项：指定生成的 Go 文件包名为 proto
+option go_package = ".;proto";
+
+// Good 服务定义
+// 提供商品管理、分类管理、品牌管理、轮播图管理、品牌分类关联等功能的 gRPC 服务
+service Good {
+    // ==================== 商品相关接口 ====================
+
+    // 获取商品列表
+    // 支持分页、筛选条件查询商品信息
+    rpc GoodList(GoodFilterRequest) returns(GoodListResponse);
+
+    // 批量获取商品信息
+    // 用于用户提交订单时批量查询多个商品的详细信息
+    rpc BatchGetGood(BatchGoodIdInfo) returns(GoodListResponse);
+
+    // 创建商品
+    // 添加新商品到系统中
+    rpc CreateGood(CreateGoodInfo) returns (GoodInfoResponse);
+
+    // 删除商品
+    // 根据商品 ID 删除指定商品
+    rpc DeleteGood(DeleteGoodInfo) returns (Empty);
+
+    // 更新商品
+    // 修改已有商品的信息
+    rpc UpdateGood(CreateGoodInfo) returns (Empty);
+
+    // 获取商品详情
+    // 查询单个商品的完整详细信息
+    rpc GetGoodDetail(GoodInfoRequest) returns(GoodInfoResponse);
+
+    // ==================== 商品分类相关接口 ====================
+
+    // 获取所有分类列表
+    // 返回系统中所有商品分类的完整列表
+    rpc GetAllCategorysList(Empty) returns(CategoryListResponse);
+
+    // 获取子分类列表
+    // 根据分类 ID 和层级获取该分类下的所有子分类
+    rpc GetSubCategory(CategoryListRequest) returns(SubCategoryListResponse);
+
+    // 创建分类
+    // 添加新的商品分类
+    rpc CreateCategory(CategoryInfoRequest) returns(CategoryInfoResponse);
+
+    // 删除分类
+    // 根据分类 ID 删除指定分类
+    rpc DeleteCategory(DeleteCategoryRequest) returns(Empty);
+
+    // 更新分类
+    // 修改已有分类的信息
+    rpc UpdateCategory(CategoryInfoRequest) returns(Empty);
+
+    // ==================== 品牌相关接口 ====================
+
+    // 获取品牌列表
+    // 支持分页查询品牌信息
+    rpc BrandList(BrandFilterRequest) returns(BrandListResponse);
+
+    // 创建品牌
+    // 添加新的品牌信息
+    rpc CreateBrand(BrandRequest) returns(BrandInfoResponse);
+
+    // 删除品牌
+    // 根据品牌 ID 删除指定品牌
+    rpc DeleteBrand(BrandRequest) returns(Empty);
+
+    // 更新品牌
+    // 修改已有品牌的信息
+    rpc UpdateBrand(BrandRequest) returns(Empty);
+
+    // ==================== 轮播图相关接口 ====================
+
+    // 获取轮播图列表
+    // 返回所有轮播图信息
+    rpc BannerList(Empty) returns(BannerListResponse);
+
+    // 创建轮播图
+    // 添加新的轮播图
+    rpc CreateBanner(BannerRequest) returns(BannerResponse);
+
+    // 删除轮播图
+    // 根据轮播图 ID 删除指定轮播图
+    rpc DeleteBanner(BannerRequest) returns(Empty);
+
+    // 更新轮播图
+    // 修改已有轮播图的信息
+    rpc UpdateBanner(BannerRequest) returns(Empty);
+
+    // ==================== 品牌分类关联相关接口 ====================
+
+    // 获取品牌分类关联列表
+    // 支持分页查询品牌与分类的关联关系
+    rpc CategoryBrandList(CategoryBrandFilterRequest) returns(CategoryBrandListResponse);
+
+    // 通过分类获取品牌列表
+    // 根据分类 ID 查询该分类下的所有品牌
+    rpc GetCategoryBrandList(CategoryInfoRequest) returns(BrandListResponse);
+
+    // 创建品牌分类关联
+    // 建立品牌与分类之间的关联关系
+    rpc CreateCategoryBrand(CategoryBrandRequest) returns(CategoryBrandResponse);
+
+    // 删除品牌分类关联
+    // 删除品牌与分类之间的关联关系
+    rpc DeleteCategoryBrand(CategoryBrandRequest) returns(Empty);
+
+    // 更新品牌分类关联
+    // 修改品牌与分类之间的关联关系
+    rpc UpdateCategoryBrand(CategoryBrandRequest) returns(Empty);
+}
+
+// ==================== 分类相关消息定义 ====================
+
+// 分类列表请求
+// 用于获取子分类时的请求参数
+message CategoryListRequest {
+    // 分类 ID，0 表示获取根分类
+    int32 id    = 1;
+    // 分类层级，用于指定查询哪一层级的子分类
+    int32 level = 2;
+}
+
+// 分类信息请求
+// 用于创建或更新分类时的请求参数
+message CategoryInfoRequest {
+    // 分类 ID，创建时为空，更新时必填
+    int32  id             = 1;
+    // 分类名称
+    string name           = 2;
+    // 父分类 ID，顶级分类为 0
+    int32  parentCategory = 3;
+    // 分类层级，1=一级分类，2=二级分类，3=三级分类
+    int32  level          = 4;
+    // 是否在导航栏显示
+    bool   isTab          = 5;
+}
+
+// 删除分类请求
+message DeleteCategoryRequest {
+    // 要删除的分类 ID
+    int32 id = 1;
+}
+
+// 查询分类请求
+// 用于根据条件查询分类
+message QueryCategoryRequest {
+    // 分类 ID
+    int32  id   = 1;
+    // 分类名称（支持模糊查询）
+    string name = 2;
+}
+
+// 分类信息响应
+// 返回单个分类的完整信息
+message CategoryInfoResponse {
+    // 分类 ID
+    int32  id             = 1;
+    // 分类名称
+    string name           = 2;
+    // 父分类 ID
+    int32  parentCategory = 3;
+    // 分类层级
+    int32  level          = 4;
+    // 是否在导航栏显示
+    bool   isTab          = 5;
+}
+
+// 分类列表响应
+// 返回多个分类的分页列表
+message CategoryListResponse {
+    // 总记录数
+    int32                         total    = 1;
+    // 分类数据列表
+    repeated CategoryInfoResponse data     = 2;
+    // JSON 格式的额外数据（用于前端展示）
+    string                        jsonData = 3;
+}
+
+// 子分类列表响应
+// 返回某个分类及其子分类的完整信息
+message SubCategoryListResponse {
+    // 总记录数
+    int32                         total        = 1;
+    // 当前分类信息
+    CategoryInfoResponse          info         = 2;
+    // 子分类列表
+    repeated CategoryInfoResponse subCategorys = 3;
+}
+
+// ==================== 品牌分类关联相关消息定义 ====================
+
+// 品牌分类关联筛选请求
+// 用于分页查询品牌分类关联关系
+message CategoryBrandFilterRequest {
+    // 当前页码，从 1 开始
+    int32 pages       = 1;
+    // 每页记录数
+    int32 pagePerNums = 2;
+}
+
+// 通用筛选请求
+// 用于基础的分页查询
+message FilterRequest {
+    // 当前页码，从 1 开始
+    int32 pages       = 1;
+    // 每页记录数
+    int32 pagePerNums = 2;
+}
+
+// 品牌分类关联请求
+// 用于创建或更新品牌分类关联
+message CategoryBrandRequest{
+    // 关联记录 ID，创建时为空，更新时必填
+    int32 id         = 1;
+    // 分类 ID
+    int32 categoryId = 2;
+    // 品牌 ID
+    int32 brandId    = 3;
+}
+
+// 品牌分类关联响应
+// 返回品牌分类关联的完整信息
+message CategoryBrandResponse{
+    // 关联记录 ID
+    int32                id       = 1;
+    // 品牌信息
+    BrandInfoResponse    brand    = 2;
+    // 分类信息
+    CategoryInfoResponse category = 3;
+}
+
+// ==================== 轮播图相关消息定义 ====================
+
+// 轮播图请求
+// 用于创建或更新轮播图
+message BannerRequest {
+    // 轮播图 ID，创建时为空，更新时必填
+    int32  id    = 1;
+    // 轮播图排序索引，数值越小排序越靠前
+    int32  index = 2;
+    // 轮播图图片 URL
+    string image = 3;
+    // 轮播图跳转链接
+    string url   = 4;
+}
+
+// 轮播图响应
+// 返回轮播图的完整信息
+message BannerResponse {
+    // 轮播图 ID
+    int32  id    = 1;
+    // 轮播图排序索引
+    int32  index = 2;
+    // 轮播图图片 URL
+    string image = 3;
+    // 轮播图跳转链接
+    string url   = 4;
+}
+
+// ==================== 品牌相关消息定义 ====================
+
+// 品牌筛选请求
+// 用于分页查询品牌列表
+message BrandFilterRequest {
+    // 当前页码，从 1 开始
+    int32 pages       = 1;
+    // 每页记录数
+    int32 pagePerNums = 2;
+}
+
+// 品牌请求
+// 用于创建、更新、删除品牌
+message BrandRequest {
+    // 品牌 ID，创建时为空，更新/删除时必填
+    int32  id   = 1;
+    // 品牌名称
+    string name = 2;
+    // 品牌 Logo URL
+    string logo = 3;
+}
+
+// 品牌信息响应
+// 返回品牌的完整信息
+message BrandInfoResponse {
+    // 品牌 ID
+    int32  id   = 1;
+    // 品牌名称
+    string name = 2;
+    // 品牌 Logo URL
+    string logo = 3;
+}
+
+// 品牌列表响应
+// 返回品牌的分页列表
+message BrandListResponse {
+    // 总记录数
+    int32                      total = 1;
+    // 品牌数据列表
+    repeated BrandInfoResponse data  = 2;
+}
+
+// 轮播图列表响应
+// 返回轮播图的分页列表
+message BannerListResponse {
+    // 总记录数
+    int32                   total = 1;
+    // 轮播图数据列表
+    repeated BannerResponse data  = 2;
+}
+
+// 品牌分类关联列表响应
+// 返回品牌分类关联的分页列表
+message CategoryBrandListResponse {
+    // 总记录数
+    int32                          total = 1;
+    // 品牌分类关联数据列表
+    repeated CategoryBrandResponse data  = 2;
+}
+
+// ==================== 商品相关消息定义 ====================
+
+// 批量商品 ID 请求
+// 用于批量查询商品信息
+message BatchGoodIdInfo {
+    // 商品 ID 列表
+    repeated int32 id = 1;
+}
+
+// 删除商品请求
+message DeleteGoodInfo {
+    // 要删除的商品 ID
+    int32 id = 1;
+}
+
+// 分类简要信息响应
+// 用于商品信息中嵌套返回分类的基本信息
+message CategoryBriefInfoResponse {
+    // 分类 ID
+    int32  id   = 1;
+    // 分类名称
+    string name = 2;
+}
+
+// 分类筛选请求
+// 用于根据条件筛选分类
+message CategoryFilterRequest {
+    // 分类 ID
+    int32 id    = 1;
+    // 是否在导航栏显示
+    bool  isTab = 2;
+}
+
+// 商品信息请求
+// 用于查询单个商品详情
+message GoodInfoRequest {
+    // 商品 ID
+    int32 id = 1;
+}
+
+// 创建商品信息
+// 用于创建或更新商品时的请求参数
+message CreateGoodInfo {
+    // 商品 ID，创建时为空，更新时必填
+    int32           id             = 1;
+    // 商品名称
+    string          name           = 2;
+    // 商品货号（SKU）
+    string          goodSn         = 3;
+    // 商品库存数量
+    int32           stocks         = 7;
+    // 市场价格（原价）
+    float           marketPrice    = 8;
+    // 店铺售价（实际售价）
+    float           shopPrice      = 9;
+    // 商品简介
+    string          goodBrief      = 10;
+    // 商品详细描述（HTML 格式）
+    string          goodDesc       = 11;
+    // 是否包邮
+    bool            shipFree       = 12;
+    // 商品图片 URL 列表
+    repeated string images         = 13;
+    // 商品详情描述图片 URL 列表
+    repeated string descImages     = 14;
+    // 商品封面图 URL
+    string          goodFrontImage = 15;
+    // 是否新品
+    bool            isNew          = 16;
+    // 是否热销
+    bool            isHot          = 17;
+    // 是否上架销售
+    bool            onSale         = 18;
+    // 所属分类 ID
+    int32           categoryId     = 19;
+    // 所属品牌 ID
+    int32           brandId        = 20;
+}
+
+// 商品库存扣减请求
+// 用于订单创建时扣减商品库存
+message GoodReduceRequest {
+    // 商品 ID
+    int32 GoodId = 1;
+    // 扣减数量
+    int32 nums   = 2;
+}
+
+// 批量分类信息请求
+// 用于批量查询分类信息
+message BatchCategoryInfoRequest {
+    // 分类 ID 列表
+    repeated int32 id        = 1;
+    // 商品数量限制
+    int32          goodNums  = 2;
+    // 品牌数量限制
+    int32          brandNums = 3;
+}
+
+// 商品筛选请求
+// 用于分页筛选查询商品列表
+message GoodFilterRequest {
+    // 最低价格（用于价格区间筛选）
+    int32  priceMin    = 1;
+    // 最高价格（用于价格区间筛选）
+    int32  priceMax    = 2;
+    // 是否筛选热销商品
+    bool   isHot       = 3;
+    // 是否筛选新品
+    bool   isNew       = 4;
+    // 是否在导航栏显示
+    bool   isTab       = 5;
+    // 顶级分类 ID（用于按分类筛选）
+    int32  topCategory = 6;
+    // 当前页码，从 1 开始
+    int32  pages       = 7;
+    // 每页记录数
+    int32  pagePerNums = 8;
+    // 关键词（用于商品名称模糊搜索）
+    string keyWords    = 9;
+    // 品牌 ID（用于按品牌筛选）
+    int32  brand       = 10;
+}
+
+// 商品信息响应
+// 返回商品的完整详细信息
+message GoodInfoResponse {
+    // 商品 ID
+    int32                     id             = 1;
+    // 分类 ID
+    int32                     categoryId     = 2;
+    // 商品名称
+    string                    name           = 3;
+    // 商品货号（SKU）
+    string                    goodSn         = 4;
+    // 点击次数/浏览量
+    int32                     clickNum       = 5;
+    // 已售数量
+    int32                     soldNum        = 6;
+    // 收藏数量
+    int32                     favNum         = 7;
+    // 市场价格（原价）
+    float                     marketPrice    = 9;
+    // 店铺售价（实际售价）
+    float                     shopPrice      = 10;
+    // 商品简介
+    string                    goodBrief      = 11;
+    // 商品详细描述
+    string                    goodDesc       = 12;
+    // 是否包邮
+    bool                      shipFree       = 13;
+    // 商品图片 URL 列表
+    repeated string           images         = 14;
+    // 商品详情描述图片 URL 列表
+    repeated string           descImages     = 15;
+    // 商品封面图 URL
+    string                    goodFrontImage = 16;
+    // 是否新品
+    bool                      isNew          = 17;
+    // 是否热销
+    bool                      isHot          = 18;
+    // 是否上架销售
+    bool                      onSale         = 19;
+    // 添加时间（Unix 时间戳）
+    int64                     addTime        = 20;
+    // 分类信息
+    CategoryBriefInfoResponse category       = 21;
+    // 品牌信息
+    BrandInfoResponse         brand          = 22;
+}
+
+// 商品列表响应
+// 返回商品的分页列表
+message GoodListResponse {
+    // 总记录数
+    int32                     total = 1;
+    // 商品数据列表
+    repeated GoodInfoResponse data  = 2;
+}
