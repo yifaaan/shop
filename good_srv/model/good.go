@@ -3,11 +3,16 @@ package model
 // 商品分类表
 type Category struct {
 	BaseModel
-	Name             string    `gorm:"type:varchar(20);not null"`
-	ParentCategoryID int32     `gorm:"type:int;null;default:null;comment:'父分类ID'"`
-	ParentCateGory   *Category `gorm:"foreignKey:ParentCategoryID;references:ID"`         // 自关联
-	Level            int32     `gorm:"type:int;not null;default:1;comment:'分类级别'"`        // 分类级别
-	IsTab            bool      `gorm:"type:bool;not null;default:false;comment:'是否是导航栏'"` // 是否是导航栏
+	Name string `gorm:"type:varchar(20);not null"`
+	// 父分类ID
+	ParentCategoryID int32     `gorm:"type:int;null;default:null;comment:'父分类ID'" json:"parent"`
+	ParentCateGory   *Category `gorm:"foreignKey:ParentCategoryID;references:ID" json:"-"` // 自关联
+	// 一个父分类有多个子分类
+	// foreignKey:ParentCategoryID 指定外键是关联表(多方)的 ParentCategoryID 字段
+	// references:ID 指定本表表(一方)的主键是 ID 字段
+	SubCategories []Category `gorm:"foreignKey:ParentCategoryID;references:ID" json:"sub_categories"` // 子分类
+	Level         int32      `gorm:"type:int;not null;default:1;comment:'分类级别'"`                      // 分类级别
+	IsTab         bool       `gorm:"type:bool;not null;default:false;comment:'是否是导航栏'" json:"is_tab"` // 是否是导航栏
 }
 
 // 商品品牌表
@@ -39,10 +44,13 @@ type Good struct {
 	Name   string `gorm:"type:varchar(100);not null comment '商品名称'"`
 	GoodSn string `gorm:"type:varchar(50);not null comment '商品唯一货号, 商家自定义'"`
 
-	CategoryID int32    `gorm:"type:int;not null"`
-	Category   Category `gorm:"foreignKey:CategoryID;references:ID"`
-	BrandID    int32    `gorm:"type:int;not null"`
-	Brand      Brand    `gorm:"foreignKey:BrandID;references:ID"`
+	// 一个分类对应多个商品
+	CategoryID int32 `gorm:"type:int;not null"`
+	// foreignKey:CategoryID 指定外键是本表(多方)的 CategoryID 字段
+	// references:ID 指定关联表(一方)的主键是 ID 字段
+	Category Category `gorm:"foreignKey:CategoryID;references:ID"`
+	BrandID  int32    `gorm:"type:int;not null"`
+	Brand    Brand    `gorm:"foreignKey:BrandID;references:ID"`
 
 	OnSale   bool `gorm:"type:bool;not null;default:false;comment:'是否上架'"`
 	ShipFree bool `gorm:"type:bool;not null;default:false;comment:'是否包邮'"`
