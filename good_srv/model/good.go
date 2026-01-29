@@ -4,7 +4,7 @@ package model
 type Category struct {
 	BaseModel
 	Name             string    `gorm:"type:varchar(20);not null"`
-	ParentCategoryID int32     `gorm:"type:int;not null;default:0;comment:'父分类ID'"`
+	ParentCategoryID int32     `gorm:"type:int;null;default:null;comment:'父分类ID'"`
 	ParentCateGory   *Category `gorm:"foreignKey:ParentCategoryID;references:ID"`         // 自关联
 	Level            int32     `gorm:"type:int;not null;default:1;comment:'分类级别'"`        // 分类级别
 	IsTab            bool      `gorm:"type:bool;not null;default:false;comment:'是否是导航栏'"` // 是否是导航栏
@@ -36,7 +36,7 @@ type Banner struct {
 
 type Good struct {
 	BaseModel
-	Name   string `gorm:"type:varchar(50);not null comment '商品名称'"`
+	Name   string `gorm:"type:varchar(100);not null comment '商品名称'"`
 	GoodSn string `gorm:"type:varchar(50);not null comment '商品唯一货号, 商家自定义'"`
 
 	CategoryID int32    `gorm:"type:int;not null"`
@@ -57,7 +57,7 @@ type Good struct {
 
 	GoodBrief string `gorm:"type:varchar(100);not null default:'' comment '商品简短描述'"`
 
-	GoodFrontImage string   `gorm:"type:varchar(200);not null comment '商品封面图'"`  // 商品封面图
-	Images         GormList `gorm:"type:varchar(1024);not null comment '商品轮播图'"` // 商品轮播图
-	DescImages     GormList `gorm:"type:varchar(1024);not null comment '商品详情图'"` // 商品详情图
+	GoodFrontImage string   `gorm:"type:varchar(1024);not null comment '商品封面图'"` // 商品封面图
+	Images         GormList `gorm:"type:varchar(4096);not null comment '商品轮播图'"` // 商品轮播图
+	DescImages     GormList `gorm:"type:varchar(4096);not null comment '商品详情图'"` // 商品详情图
 }

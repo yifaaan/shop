@@ -11,6 +11,7 @@ import (
 type BaseModel struct {
 	ID        int32          `gorm:"primaryKey;type:int"`
 	CreatedAt time.Time      `gorm:"column:add_time"`
+	IsDeleted int32          `gorm:"type:int;default:0;comment:'是否删除'"`
 	UpdatedAt time.Time      `gorm:"column:update_time"`
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
