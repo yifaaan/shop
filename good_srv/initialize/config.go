@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"shop/good_srv/global"
+	"shop/good_srv/utils"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
@@ -20,7 +21,9 @@ func getEnvInfo(env string) bool {
 }
 
 func InitConfig() {
+	debug := false
 	if getEnvInfo("SHOP_DEBUG") {
+		debug = true
 		viper.SetConfigFile("./good_srv/config-debug.yaml")
 	} else {
 		viper.SetConfigFile("./good_srv/config-pro.yaml")
@@ -75,6 +78,14 @@ func InitConfig() {
 	err = json.Unmarshal([]byte(content), &global.ServerConfig)
 	if err != nil {
 		zap.S().Fatalf("unmarshal nacos config failed: %v", err)
+	}
+
+	if !debug {
+		var err error
+		global.ServerConfig.Port, err = utils.GetFreePort()
+		if err != nil {
+			zap.S().Fatalf("get free port failed: %v", err)
+		}
 	}
 	fmt.Println(global.ServerConfig)
 }

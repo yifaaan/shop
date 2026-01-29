@@ -9,7 +9,6 @@ import (
 	"shop/good_srv/handler"
 	"shop/good_srv/initialize"
 	"shop/good_srv/proto"
-	"shop/good_srv/utils"
 	"syscall"
 
 	"github.com/google/uuid"
@@ -24,11 +23,7 @@ func main() {
 	initialize.InitLogger()
 	initialize.InitConfig()
 	// 使用系统分配的端口
-	var err error
-	global.ServerConfig.Port, err = utils.GetFreePort()
-	if err != nil {
-		zap.S().Fatalf("get free port failed: %v", err)
-	}
+
 	// 打印配置信息以便调试
 	zap.S().Infow("服务配置", "name", global.ServerConfig.Name, "host", global.ServerConfig.Host, "port", global.ServerConfig.Port)
 	initialize.InitDB()
