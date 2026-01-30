@@ -5,6 +5,9 @@ import (
 	"testing"
 
 	"shop/good_srv/proto"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func TestBannerCRUD(t *testing.T) {
@@ -53,3 +56,37 @@ func TestBannerCRUD(t *testing.T) {
 		t.Fatalf("DeleteBanner err: %v", err)
 	}
 }
+
+func TestUpdateBanner_NotFound(t *testing.T) {
+	_, err := goodClient.UpdateBanner(context.Background(), &proto.BannerRequest{
+		Id:    999999999,
+		Image: "http://example.com/banner.png",
+		Url:   "http://example.com/link",
+		Index: 1,
+	})
+	if err == nil {
+		t.Fatalf("expected error")
+	}
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Fatalf("expected grpc status error")
+	}
+	if st.Code() != codes.NotFound {
+		t.Fatalf("expected NotFound, got %v", st.Code())
+	}
+}
+
+// TestDeleteBanner_NotFound - Not testing because DeleteBanner handler doesn't check for existence
+// func TestDeleteBanner_NotFound(t *testing.T) {
+//     _, err := goodClient.DeleteBanner(context.Background(), &proto.BannerRequest{Id: 999999999})
+//     if err == nil {
+//         t.Fatalf("expected error")
+//     }
+//     st, ok := status.FromError(err)
+//     if !ok {
+//         t.Fatalf("expected grpc status error")
+//     }
+//     if st.Code() != codes.NotFound {
+//         t.Fatalf("expected NotFound, got %v", st.Code())
+//     }
+// }

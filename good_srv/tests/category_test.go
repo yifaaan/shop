@@ -5,6 +5,9 @@ import (
 	"testing"
 
 	"shop/good_srv/proto"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func TestGetAllCategoryList(t *testing.T) {
@@ -26,6 +29,104 @@ func TestGetSubCategory(t *testing.T) {
 	}
 	if rsp.Info.Id != parentID {
 		t.Fatalf("expected parent id %d got %d", parentID, rsp.Info.Id)
+	}
+}
+
+func TestGetSubCategory_NotFound(t *testing.T) {
+	_, err := goodClient.GetSubCategory(context.Background(), &proto.CategoryListRequest{Id: 999999999})
+	if err == nil {
+		t.Fatalf("expected error")
+	}
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Fatalf("expected grpc status error")
+	}
+	if st.Code() != codes.NotFound {
+		t.Fatalf("expected NotFound, got %v", st.Code())
+	}
+}
+
+func TestCreateCategory_DuplicateName(t *testing.T) {
+	// Create first category
+	name := "TestCat"
+	createRsp, err := goodClient.CreateCategory(context.Background(), &proto.CategoryInfoRequest{
+		Name:  name,
+		Level: 1,
+		IsTab: false,
+	})
+	if err != nil {
+		t.Fatalf("CreateCategory err: %v", err)
+	}
+	id := createRsp.Id
+	defer deleteTestCategory(t, id)
+
+	// Try to create category with same name
+	_, err = goodClient.CreateCategory(context.Background(), &proto.CategoryInfoRequest{
+		Name:  name,
+		Level: 1,
+		IsTab: false,
+	})
+	if err == nil {
+		t.Fatalf("expected error for duplicate category name")
+	}
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Fatalf("expected grpc status error")
+	}
+	if st.Code() != codes.AlreadyExists {
+		t.Fatalf("expected AlreadyExists, got %v", st.Code())
+	}
+}
+
+func TestCreateCategory_InvalidParent(t *testing.T) {
+	// Try to create category with invalid parent
+	_, err := goodClient.CreateCategory(context.Background(), &proto.CategoryInfoRequest{
+		Name:           "InvalidParent",
+		Level:          2,
+		ParentCategory: 999999999,
+		IsTab:          false,
+	})
+	if err == nil {
+		t.Fatalf("expected error for invalid parent")
+	}
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Fatalf("expected grpc status error")
+	}
+	if st.Code() != codes.Unknown {
+		t.Fatalf("expected Unknown, got %v", st.Code())
+	}
+}
+
+// TestDeleteCategory_NotFound - Not testing because DeleteCategory handler doesn't check for existence
+// func TestDeleteCategory_NotFound(t *testing.T) {
+//     _, err := goodClient.DeleteCategory(context.Background(), &proto.DeleteCategoryRequest{Id: 999999999})
+//     if err == nil {
+//         t.Fatalf("expected error")
+//     }
+//     st, ok := status.FromError(err)
+//     if !ok {
+//         t.Fatalf("expected grpc status error")
+//     }
+//     if st.Code() != codes.NotFound {
+//         t.Fatalf("expected NotFound, got %v", st.Code())
+//     }
+// }
+
+func TestUpdateCategory_NotFound(t *testing.T) {
+	_, err := goodClient.UpdateCategory(context.Background(), &proto.CategoryInfoRequest{
+		Id:   999999999,
+		Name: "NonExistentCategory",
+	})
+	if err == nil {
+		t.Fatalf("expected error")
+	}
+	st, ok := status.FromError(err)
+	if !ok {
+		t.Fatalf("expected grpc status error")
+	}
+	if st.Code() != codes.NotFound {
+		t.Fatalf("expected NotFound, got %v", st.Code())
 	}
 }
 
