@@ -61,9 +61,6 @@ func (s *GoodServer) DeleteBanner(ctx context.Context, in *proto.BannerRequest) 
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	if result.RowsAffected == 0 {
-		return nil, status.Errorf(codes.NotFound, "轮播图不存在")
-	}
 	return &proto.Empty{}, nil
 }
 func (s *GoodServer) UpdateBanner(ctx context.Context, in *proto.BannerRequest) (*proto.Empty, error) {

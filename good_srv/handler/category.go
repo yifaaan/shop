@@ -9,6 +9,7 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"gorm.io/gorm"
 )
 
 // 商品分类
@@ -41,18 +42,102 @@ func (s *GoodServer) GetAllCategorysList(ctx context.Context, in *proto.Empty) (
 
 // 获取⼦分类
 func (s *GoodServer) GetSubCategory(ctx context.Context, in *proto.CategoryListRequest) (*proto.SubCategoryListResponse, error) {
-	return nil, nil
+	var category model.Category
+	result := global.DB.WithContext(ctx).Preload("SubCategories").First(&category, in.Id)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return nil, status.Errorf(codes.NotFound, "商品分类不存在")
+		}
 
+		return nil, status.Errorf(codes.Internal, "查询分类失败: %v", result.Error)
+	}
+
+	resp := &proto.SubCategoryListResponse{}
+	resp.Info = &proto.CategoryInfoResponse{
+		Name:           category.Name,
+		Id:             category.ID,
+		ParentCategory: category.ParentCategoryID,
+		Level:          category.Level,
+		IsTab:          category.IsTab,
+	}
+	if category.Level == 1 || category.Level == 2 {
+		subCategorys := make([]*proto.CategoryInfoResponse, 0, len(category.SubCategories))
+		for _, sub := range category.SubCategories {
+			subCategorys = append(subCategorys, &proto.CategoryInfoResponse{
+				Id:             sub.ID,
+				Name:           sub.Name,
+				ParentCategory: sub.ParentCategoryID,
+				Level:          sub.Level,
+				IsTab:          sub.IsTab,
+			})
+		}
+		resp.SubCategorys = subCategorys
+		resp.Total = int32(len(subCategorys))
+	} else {
+		resp.SubCategorys = []*proto.CategoryInfoResponse{}
+		resp.Total = 0
+	}
+	return resp, nil
 }
 func (s *GoodServer) CreateCategory(ctx context.Context, in *proto.CategoryInfoRequest) (*proto.CategoryInfoResponse, error) {
-	return nil, nil
+	category := model.Category{
+		Name:  in.Name,
+		Level: in.Level,
+	}
+	if in.Level != 1 {
+		category.ParentCategoryID = in.ParentCategory
+	}
 
+	// Check if category with same name already exists
+	var existingCategory model.Category
+	if result := global.DB.WithContext(ctx).Where("name = ?", in.Name).First(&existingCategory); result.RowsAffected == 1 {
+		return nil, status.Errorf(codes.AlreadyExists, "分类已存在")
+	}
+
+	category.IsTab = in.IsTab
+	result := global.DB.WithContext(ctx).Create(&category)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &proto.CategoryInfoResponse{
+		Id:             category.ID,
+		Name:           category.Name,
+		ParentCategory: category.ParentCategoryID,
+		Level:          category.Level,
+		IsTab:          category.IsTab,
+	}, nil
 }
 func (s *GoodServer) DeleteCategory(ctx context.Context, in *proto.DeleteCategoryRequest) (*proto.Empty, error) {
-	return nil, nil
-
+	result := global.DB.WithContext(ctx).Delete(&model.Category{}, in.Id)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &proto.Empty{}, nil
 }
 func (s *GoodServer) UpdateCategory(ctx context.Context, in *proto.CategoryInfoRequest) (*proto.Empty, error) {
-	return nil, nil
+	var category model.Category
+	result := global.DB.WithContext(ctx).First(&category, in.Id)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return nil, status.Errorf(codes.NotFound, "分类不存在")
+		}
+		return nil, result.Error
+	}
 
+	if in.Name != "" {
+		category.Name = in.Name
+	}
+	if in.ParentCategory > 0 {
+		category.ParentCategoryID = in.ParentCategory
+	}
+	if in.Level > 0 {
+		category.Level = in.Level
+	}
+	category.IsTab = in.IsTab
+	result = global.DB.WithContext(ctx).Model(&category).Updates(&category)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &proto.Empty{}, nil
 }

@@ -71,9 +71,6 @@ func (s *GoodServer) DeleteBrand(ctx context.Context, in *proto.BrandRequest) (*
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	if result.RowsAffected == 0 {
-		return nil, status.Errorf(codes.NotFound, "品牌不存在")
-	}
 	return &proto.Empty{}, nil
 }
 

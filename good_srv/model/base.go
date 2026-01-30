@@ -9,7 +9,7 @@ import (
 )
 
 type BaseModel struct {
-	ID        int32          `gorm:"primaryKey;type:int" json:"id"`
+	ID        int32          `gorm:"primaryKey;autoIncrement" json:"id"`
 	CreatedAt time.Time      `gorm:"column:add_time" json:"-"`
 	IsDeleted int32          `gorm:"type:int;default:0;comment:'是否删除'" json:"-"`
 	UpdatedAt time.Time      `gorm:"column:update_time" json:"-"`
