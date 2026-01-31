@@ -2,6 +2,7 @@ package good
 
 import (
 	"net/http"
+	"shop/good_web/form"
 	"shop/good_web/global"
 	"shop/good_web/proto"
 	"strconv"
@@ -78,6 +79,7 @@ func HandleValidatorError(ctx *gin.Context, err error) {
 	ctx.JSON(http.StatusBadRequest, gin.H{"err": removeTopStruct(errs.Translate(global.Trans))})
 }
 
+// List 获取商品列表
 func List(ctx *gin.Context) {
 	// 过滤参数解析
 	request := &proto.GoodFilterRequest{}
@@ -142,4 +144,35 @@ func List(ctx *gin.Context) {
 		"data":  goodList,
 	}
 	ctx.JSON(http.StatusOK, m)
+}
+
+func New(ctx *gin.Context) {
+	goodForm := form.GoodForm{}
+	if err := ctx.ShouldBind(&goodForm); err != nil {
+		zap.S().Errorw("[New] 绑定【商品】失败", "msg", err.Error())
+		HandleValidatorError(ctx, err)
+		return
+	}
+	goodReq := &proto.CreateGoodInfo{
+		Name:           goodForm.Name,
+		GoodSn:         goodForm.GoodSn,
+		Stocks:         goodForm.Stocks,
+		CategoryId:     goodForm.CategoryId,
+		BrandId:        goodForm.BrandId,
+		MarketPrice:    goodForm.MarketPrice,
+		ShopPrice:      goodForm.ShopPrice,
+		GoodBrief:      goodForm.GoodBrief,
+		Images:         goodForm.Images,
+		DescImages:     goodForm.DescImages,
+		GoodDesc:       goodForm.GoodDesc,
+		ShipFree:       goodForm.ShipFree,
+		GoodFrontImage: goodForm.FrontImage,
+	}
+	resp, err := global.GoodSrvClient.CreateGood(ctx.Request.Context(), goodReq)
+	if err != nil {
+		zap.S().Errorw("[New] 创建【商品】失败", "msg", err.Error())
+		HandleGrpcErrorToHttpError(err, ctx)
+		return
+	}
+	ctx.JSON(http.StatusOK, resp)
 }
