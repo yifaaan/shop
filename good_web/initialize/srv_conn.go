@@ -12,6 +12,7 @@ import (
 )
 
 func InitSrvConn() {
+
 	// grpc-consul-resolver进程内负载均衡
 	consulAddr := fmt.Sprintf("consul://%s:%d/%s?wait=14s", global.ServerConfig.ConsulConfig.Host, global.ServerConfig.ConsulConfig.Port, global.ServerConfig.GoodSrvCfg.Name)
 	conn, err := grpc.NewClient(
