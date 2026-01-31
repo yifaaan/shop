@@ -3,6 +3,8 @@ package good
 import (
 	"net/http"
 	"shop/good_web/global"
+	"shop/good_web/proto"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -77,5 +79,67 @@ func HandleValidatorError(ctx *gin.Context, err error) {
 }
 
 func List(ctx *gin.Context) {
+	// 过滤参数解析
+	request := &proto.GoodFilterRequest{}
+	priceMin, _ := strconv.Atoi(ctx.DefaultQuery("pmin", "0"))
+	request.PriceMax = int32(priceMin)
+	priceMax, _ := strconv.Atoi(ctx.DefaultQuery("pmax", "0"))
+	request.PriceMax = int32(priceMax)
+	isHot, _ := strconv.ParseBool(ctx.DefaultQuery("ih", "false"))
+	request.IsHot = isHot
+	isNew, _ := strconv.ParseBool(ctx.DefaultQuery("in", "false"))
+	request.IsNew = isNew
+	isTab, _ := strconv.ParseBool(ctx.DefaultQuery("it", "false"))
+	request.IsTab = isTab
+	categoryId, _ := strconv.Atoi(ctx.DefaultQuery("c", "0"))
+	request.TopCategory = int32(categoryId)
+	pages, _ := strconv.Atoi(ctx.DefaultQuery("pn", "0"))
+	request.Pages = int32(pages)
+	perNums, _ := strconv.Atoi(ctx.DefaultQuery("pnum", "0"))
+	request.PagePerNums = int32(perNums)
+	keywords := ctx.DefaultQuery("q", "")
+	request.KeyWords = keywords
+	brandId, _ := strconv.Atoi(ctx.DefaultQuery("b", "0"))
+	request.Brand = int32(brandId)
 
+	// 商品rpc服务
+	resp, err := global.GoodSrvClient.GoodList(ctx.Request.Context(), request)
+	if err != nil {
+		zap.S().Errorw("[List] 查询【商品列表】失败", "msg", err.Error())
+		HandleGrpcErrorToHttpError(err, ctx)
+		return
+	}
+	// 返回响应
+	goodList := make([]any, 0, len(resp.Data))
+	for _, g := range resp.Data {
+		goodList = append(goodList, map[string]any{
+			"id":          g.Id,
+			"name":        g.Name,
+			"goods_brief": g.GoodBrief,
+			"desc":        g.GoodDesc,
+			"ship_free":   g.ShipFree,
+			"images":      g.Images,
+			"desc_images": g.DescImages,
+			"front_image": g.GoodFrontImage,
+			"shop_price":  g.ShopPrice,
+
+			"category": map[string]any{
+				"id":   g.Category.Id,
+				"name": g.Category.Name,
+			},
+			"brand": map[string]any{
+				"id":   g.Brand.Id,
+				"name": g.Brand.Name,
+				"logo": g.Brand.Logo,
+			},
+			"is_hot":  g.IsHot,
+			"is_new":  g.IsNew,
+			"on_sale": g.OnSale,
+		})
+	}
+	m := map[string]any{
+		"total": resp.Total,
+		"data":  goodList,
+	}
+	ctx.JSON(http.StatusOK, m)
 }

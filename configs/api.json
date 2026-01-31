@@ -275,5 +275,117 @@
         "__v": 0
       }
     ]
+  },
+  {
+    "index": 0,
+    "name": "商品",
+    "desc": null,
+    "add_time": 1769822345,
+    "up_time": 1769822345,
+    "list": [
+      {
+        "query_path": {
+          "path": "/g/v1/good",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": true,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 18,
+        "method": "GET",
+        "catid": 18,
+        "title": "商品列表",
+        "path": "/g/v1/good",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1769822371,
+        "up_time": 1769824529,
+        "req_query": [
+          {
+            "required": "0",
+            "_id": "697d61116de25b2ce4870574",
+            "name": "pmin",
+            "example": "10",
+            "desc": "最低价格"
+          },
+          {
+            "required": "0",
+            "_id": "697d61116de25bff56870573",
+            "name": "pmax",
+            "example": "20",
+            "desc": "最高价格"
+          },
+          {
+            "required": "0",
+            "_id": "697d61116de25b839e870572",
+            "name": "ih",
+            "example": "1",
+            "desc": "是否热门"
+          },
+          {
+            "required": "0",
+            "_id": "697d61116de25b8c24870571",
+            "name": "in",
+            "example": "1",
+            "desc": "是否最新"
+          },
+          {
+            "required": "0",
+            "_id": "697d61116de25bcff7870570",
+            "name": "it",
+            "example": "1",
+            "desc": "是否tab栏"
+          },
+          {
+            "required": "0",
+            "_id": "697d61116de25b0b6c87056f",
+            "name": "c",
+            "example": "1",
+            "desc": "分类id"
+          },
+          {
+            "required": "0",
+            "_id": "697d61116de25b72c187056e",
+            "name": "pn",
+            "example": "1",
+            "desc": "页码"
+          },
+          {
+            "required": "0",
+            "_id": "697d61116de25b912c87056d",
+            "name": "pnum",
+            "example": "10",
+            "desc": "每页的数量"
+          },
+          {
+            "required": "0",
+            "_id": "697d61116de25b940187056c",
+            "name": "q",
+            "example": "啤酒",
+            "desc": "搜索关键字"
+          },
+          {
+            "required": "0",
+            "_id": "697d61116de25b390f87056b",
+            "name": "b",
+            "example": "1",
+            "desc": "品牌id"
+          }
+        ],
+        "req_headers": [],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\"type\":\"object\",\"title\":\"title\",\"properties\":{\"data\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"brand\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"logo\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}},\"required\":[\"id\",\"logo\",\"name\"]},\"category\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"name\":{\"type\":\"string\"}}},\"desc\":{\"type\":\"string\"},\"desc_images\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"front_image\":{\"type\":\"string\"},\"good_brief\":{\"type\":\"string\"},\"id\":{\"type\":\"number\"},\"images\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"is_hot\":{\"type\":\"boolean\"},\"is_new\":{\"type\":\"boolean\"},\"is_tab\":{\"type\":\"boolean\"},\"on_sale\":{\"type\":\"boolean\"}},\"required\":[\"brand\",\"category\",\"desc\",\"desc_images\",\"front_image\",\"good_brief\",\"id\",\"images\",\"is_hot\",\"is_new\",\"is_tab\",\"on_sale\"]}},\"total\":{\"type\":\"number\"}},\"required\":[\"total\"]}"
+      }
+    ]
   }
 ]
