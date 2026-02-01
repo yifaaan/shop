@@ -3,8 +3,8 @@
     "index": 0,
     "name": "用户",
     "desc": null,
-    "add_time": 1769391735,
-    "up_time": 1769391735,
+    "add_time": 1769611712,
+    "up_time": 1769611712,
     "list": [
       {
         "query_path": {
@@ -19,7 +19,7 @@
         "api_opened": false,
         "index": 0,
         "tag": [],
-        "_id": 15,
+        "_id": 11,
         "method": "POST",
         "catid": 14,
         "title": "发手机验证码",
@@ -27,9 +27,6 @@
         "project_id": 11,
         "req_params": [],
         "res_body_type": "json",
-        "uid": 11,
-        "add_time": 1769500003,
-        "up_time": 1769560262,
         "req_query": [],
         "req_headers": [
           {
@@ -56,11 +53,14 @@
             "desc": "1表示注册，2表示登录"
           }
         ],
-        "__v": 0,
         "desc": "",
         "markdown": "",
         "req_body_type": "form",
-        "res_body": ""
+        "res_body": "",
+        "uid": 11,
+        "add_time": 1769611712,
+        "up_time": 1769908344,
+        "__v": 0
       },
       {
         "query_path": {
@@ -75,7 +75,7 @@
         "api_opened": false,
         "index": 0,
         "tag": [],
-        "_id": 14,
+        "_id": 18,
         "method": "POST",
         "catid": 14,
         "title": "密码登录_copy",
@@ -130,8 +130,8 @@
         "req_body_type": "form",
         "res_body": "",
         "uid": 11,
-        "add_time": 1769495081,
-        "up_time": 1769560708,
+        "add_time": 1769611712,
+        "up_time": 1769908344,
         "__v": 0
       },
       {
@@ -147,7 +147,7 @@
         "api_opened": false,
         "index": 0,
         "tag": [],
-        "_id": 16,
+        "_id": 25,
         "method": "POST",
         "catid": 14,
         "title": "注册",
@@ -194,8 +194,8 @@
         "req_body_type": "form",
         "res_body": "",
         "uid": 11,
-        "add_time": 1769503506,
-        "up_time": 1769503586,
+        "add_time": 1769611712,
+        "up_time": 1769908344,
         "__v": 0
       },
       {
@@ -211,7 +211,7 @@
         "api_opened": false,
         "index": 0,
         "tag": [],
-        "_id": 12,
+        "_id": 32,
         "method": "GET",
         "catid": 14,
         "title": "用户列表",
@@ -219,9 +219,6 @@
         "project_id": 11,
         "req_params": [],
         "res_body_type": "json",
-        "uid": 11,
-        "add_time": 1769424022,
-        "up_time": 1769484765,
         "req_query": [
           {
             "required": "0",
@@ -240,10 +237,13 @@
         ],
         "req_headers": [],
         "req_body_form": [],
-        "__v": 0,
         "desc": "",
         "markdown": "",
-        "res_body": ""
+        "res_body": "",
+        "uid": 11,
+        "add_time": 1769611712,
+        "up_time": 1769908344,
+        "__v": 0
       },
       {
         "query_path": {
@@ -258,7 +258,7 @@
         "api_opened": false,
         "index": 0,
         "tag": [],
-        "_id": 17,
+        "_id": 39,
         "method": "GET",
         "catid": 14,
         "title": "获取验证码",
@@ -266,12 +266,12 @@
         "project_id": 11,
         "req_params": [],
         "res_body_type": "json",
-        "uid": 11,
-        "add_time": 1769560299,
-        "up_time": 1769560299,
         "req_query": [],
         "req_headers": [],
         "req_body_form": [],
+        "uid": 11,
+        "add_time": 1769611712,
+        "up_time": 1769908344,
         "__v": 0
       }
     ]
@@ -280,8 +280,8 @@
     "index": 0,
     "name": "商品",
     "desc": null,
-    "add_time": 1769822345,
-    "up_time": 1769822345,
+    "add_time": 1769908344,
+    "up_time": 1769908344,
     "list": [
       {
         "query_path": {
@@ -296,17 +296,14 @@
         "api_opened": false,
         "index": 0,
         "tag": [],
-        "_id": 18,
+        "_id": 43,
         "method": "GET",
-        "catid": 18,
+        "catid": 15,
         "title": "商品列表",
         "path": "/g/v1/good",
         "project_id": 11,
         "req_params": [],
         "res_body_type": "json",
-        "uid": 11,
-        "add_time": 1769822371,
-        "up_time": 1769824529,
         "req_query": [
           {
             "required": "0",
@@ -381,10 +378,53 @@
         ],
         "req_headers": [],
         "req_body_form": [],
-        "__v": 0,
         "desc": "",
         "markdown": "",
-        "res_body": "{\"type\":\"object\",\"title\":\"title\",\"properties\":{\"data\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"brand\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"logo\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}},\"required\":[\"id\",\"logo\",\"name\"]},\"category\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"name\":{\"type\":\"string\"}}},\"desc\":{\"type\":\"string\"},\"desc_images\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"front_image\":{\"type\":\"string\"},\"good_brief\":{\"type\":\"string\"},\"id\":{\"type\":\"number\"},\"images\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"is_hot\":{\"type\":\"boolean\"},\"is_new\":{\"type\":\"boolean\"},\"is_tab\":{\"type\":\"boolean\"},\"on_sale\":{\"type\":\"boolean\"}},\"required\":[\"brand\",\"category\",\"desc\",\"desc_images\",\"front_image\",\"good_brief\",\"id\",\"images\",\"is_hot\",\"is_new\",\"is_tab\",\"on_sale\"]}},\"total\":{\"type\":\"number\"}},\"required\":[\"total\"]}"
+        "res_body": "{\"type\":\"object\",\"title\":\"title\",\"properties\":{\"data\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"brand\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"logo\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}},\"required\":[\"id\",\"logo\",\"name\"]},\"category\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"name\":{\"type\":\"string\"}}},\"desc\":{\"type\":\"string\"},\"desc_images\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"front_image\":{\"type\":\"string\"},\"good_brief\":{\"type\":\"string\"},\"id\":{\"type\":\"number\"},\"images\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"is_hot\":{\"type\":\"boolean\"},\"is_new\":{\"type\":\"boolean\"},\"is_tab\":{\"type\":\"boolean\"},\"on_sale\":{\"type\":\"boolean\"}},\"required\":[\"brand\",\"category\",\"desc\",\"desc_images\",\"front_image\",\"good_brief\",\"id\",\"images\",\"is_hot\",\"is_new\",\"is_tab\",\"on_sale\"]}},\"total\":{\"type\":\"number\"}},\"required\":[\"total\"]}",
+        "uid": 11,
+        "add_time": 1769908344,
+        "up_time": 1769908344,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/g/v1/1",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": true,
+        "res_body_is_json_schema": true,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 47,
+        "method": "GET",
+        "catid": 15,
+        "title": "商品详情",
+        "path": "/g/v1/1",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "0",
+            "_id": "697eaa8cd3c4cb1f644e694d",
+            "name": "id",
+            "example": "10",
+            "desc": "商品id"
+          }
+        ],
+        "req_headers": [],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\"type\":\"object\",\"title\":\"title\",\"properties\":{\"id\":{\"type\":\"number\"},\"name\":{\"type\":\"string\"},\"shop_price\":{\"type\":\"number\"},\"good_brief\":{\"type\":\"string\"},\"ship_free\":{\"type\":\"boolean\"},\"images\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"front_image\":{\"type\":\"string\"},\"desc\":{\"type\":\"string\"},\"brand\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"logo\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}},\"category\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"name\":{\"type\":\"string\"}}},\"is_hot\":{\"type\":\"boolean\"},\"is_new\":{\"type\":\"boolean\"},\"on_sale\":{\"type\":\"boolean\"}},\"required\":[\"desc\"]}",
+        "uid": 11,
+        "add_time": 1769908471,
+        "up_time": 1769908876,
+        "__v": 0
       }
     ]
   }
