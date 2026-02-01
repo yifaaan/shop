@@ -19,7 +19,7 @@ func List(ctx *gin.Context) {
 		return
 	}
 	// resp中的JsonData是json字符串，需要反序列化
-	data := make(map[string]any)
+	data := make([]map[string]any, 0)
 	err = json.Unmarshal([]byte(resp.JsonData), &data)
 	if err != nil {
 		zap.S().Errorw("[List] 反序列化【分类列表】失败", "msg", err.Error())
