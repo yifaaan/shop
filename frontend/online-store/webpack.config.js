@@ -54,7 +54,8 @@ module.exports = {
 		historyApiFallback: true, // 不跳转
 		inline: true, // 实时刷新
 		hot: true,
-		port: 8089,
+		port: 3000,
+		host: '0.0.0.0',
     // https: true,
 		proxy:Proxy
 	},

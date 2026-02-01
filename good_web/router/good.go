@@ -15,5 +15,9 @@ func InitGoodRouter(router *gin.RouterGroup) {
 		goodRouter.GET("", good.List)
 		goodRouter.POST("", middleware.JWTAuth(), middleware.AdminAuth(), good.List)
 		goodRouter.GET("/:id", good.Detail)
+		goodRouter.DELETE("/:id", middleware.JWTAuth(), middleware.AdminAuth(), good.Delete)
+		goodRouter.GET("/:id/stock", good.Stock)                                                  // 库存
+		goodRouter.PUT("/:id", middleware.JWTAuth(), middleware.AdminAuth(), good.Update)         // 更新商品
+		goodRouter.PATCH("/:id", middleware.JWTAuth(), middleware.AdminAuth(), good.UpdateStatus) // 更新商品部分状态信息
 	}
 }

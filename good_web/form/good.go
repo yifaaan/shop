@@ -15,3 +15,9 @@ type GoodForm struct {
 	ShipFree    bool     `form:"ship_free" json:"ship_free" binding:"required"`
 	FrontImage  string   `form:"front_image" json:"front_image" binding:"required"`
 }
+
+type GoodStatusForm struct {
+	IsNew  bool `form:"new" json:"new" binding:"required"`
+	IsHot  bool `form:"hot" json:"hot" binding:"required"`
+	OnSale bool `form:"sale" json:"sale" binding:"required"`
+}

@@ -285,6 +285,35 @@
     "list": [
       {
         "query_path": {
+          "path": "/g/v1/good/1",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 52,
+        "method": "DELETE",
+        "catid": 15,
+        "title": "删除商品",
+        "path": "/g/v1/good/1",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1769932417,
+        "up_time": 1769932417,
+        "req_query": [],
+        "req_headers": [],
+        "req_body_form": [],
+        "__v": 0
+      },
+      {
+        "query_path": {
           "path": "/g/v1/good",
           "params": []
         },
@@ -388,7 +417,7 @@
       },
       {
         "query_path": {
-          "path": "/g/v1/1",
+          "path": "/g/v1/good/421",
           "params": []
         },
         "edit_uid": 0,
@@ -403,14 +432,14 @@
         "method": "GET",
         "catid": 15,
         "title": "商品详情",
-        "path": "/g/v1/1",
+        "path": "/g/v1/good/421",
         "project_id": 11,
         "req_params": [],
         "res_body_type": "json",
         "req_query": [
           {
             "required": "0",
-            "_id": "697eaa8cd3c4cb1f644e694d",
+            "_id": "697f0192bddea3b128a6a6aa",
             "name": "id",
             "example": "10",
             "desc": "商品id"
@@ -423,8 +452,216 @@
         "res_body": "{\"type\":\"object\",\"title\":\"title\",\"properties\":{\"id\":{\"type\":\"number\"},\"name\":{\"type\":\"string\"},\"shop_price\":{\"type\":\"number\"},\"good_brief\":{\"type\":\"string\"},\"ship_free\":{\"type\":\"boolean\"},\"images\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"front_image\":{\"type\":\"string\"},\"desc\":{\"type\":\"string\"},\"brand\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"logo\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}},\"category\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"name\":{\"type\":\"string\"}}},\"is_hot\":{\"type\":\"boolean\"},\"is_new\":{\"type\":\"boolean\"},\"on_sale\":{\"type\":\"boolean\"}},\"required\":[\"desc\"]}",
         "uid": 11,
         "add_time": 1769908471,
-        "up_time": 1769908876,
+        "up_time": 1769931154,
         "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/g/v1/good/2",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": true,
+        "res_body_is_json_schema": true,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 62,
+        "method": "PUT",
+        "catid": 15,
+        "title": "更新商品",
+        "path": "/g/v1/good/2",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "697f07ffbddea30d74a6a6b1",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [
+          {
+            "required": "0",
+            "_id": "697f07ffbddea33d24a6a6be",
+            "name": "name",
+            "type": "text",
+            "example": "5090GPU"
+          },
+          {
+            "required": "0",
+            "_id": "697f07ffbddea3bf99a6a6bd",
+            "name": "goodSn",
+            "type": "text",
+            "example": "123",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "697f07ffbddea353b0a6a6bc",
+            "name": "stocks",
+            "type": "text",
+            "example": "10",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "697f07ffbddea3fde7a6a6bb",
+            "name": "category",
+            "type": "text",
+            "example": "222",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "697f07ffbddea31f91a6a6ba",
+            "name": "brand",
+            "type": "text",
+            "example": "2",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "697f07ffbddea38203a6a6b9",
+            "name": "marketrice",
+            "type": "text",
+            "example": "11",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "697f07ffbddea35ed5a6a6b8",
+            "name": "shoprice",
+            "type": "text",
+            "example": "234",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "697f07ffbddea3d7f6a6a6b7",
+            "name": "good_brief",
+            "type": "text",
+            "example": "afsdfs",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "697f07ffbddea300dba6a6b6",
+            "name": "images",
+            "type": "text",
+            "example": "http:dsfa",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "697f07ffbddea3e696a6a6b5",
+            "name": "desc_images",
+            "type": "text",
+            "example": "dsfsd",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "697f07ffbddea31c9ba6a6b4",
+            "name": "desc",
+            "type": "text",
+            "example": "dsf",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "697f07ffbddea33244a6a6b3",
+            "name": "ship_free",
+            "type": "text",
+            "example": "true",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "697f07ffbddea36692a6a6b2",
+            "name": "front_image",
+            "type": "text",
+            "example": "sdfsd",
+            "desc": ""
+          }
+        ],
+        "uid": 11,
+        "add_time": 1769932447,
+        "up_time": 1769932799,
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": "{\"type\":\"object\",\"title\":\"title\",\"properties\":{}}"
+      },
+      {
+        "query_path": {
+          "path": "/g/v1/good/1",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": true,
+        "res_body_is_json_schema": true,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 57,
+        "method": "PATCH",
+        "catid": 15,
+        "title": "更新商品状态",
+        "path": "/g/v1/good/1",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1769932445,
+        "up_time": 1769932517,
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "697f06e5bddea305afa6a6ac",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [
+          {
+            "required": "0",
+            "_id": "697f06e5bddea3b9a5a6a6af",
+            "name": "new",
+            "type": "text",
+            "example": "true"
+          },
+          {
+            "required": "0",
+            "_id": "697f06e5bddea30820a6a6ae",
+            "name": "hot",
+            "type": "text",
+            "example": "true",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "697f06e5bddea382dda6a6ad",
+            "name": "sale",
+            "type": "text",
+            "example": "true",
+            "desc": ""
+          }
+        ],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": ""
       }
     ]
   }

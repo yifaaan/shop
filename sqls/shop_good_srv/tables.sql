@@ -76,7 +76,7 @@ CREATE TABLE `good_category_brand`  (
 DROP TABLE IF EXISTS `good`;
 CREATE TABLE `good`  (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '商品名称',
+  `name` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '商品名称',
   `good_sn` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '商品唯一货号, 商家自定义',
   `category_id` int(11) NOT NULL,
   `brand_id` int(11) NOT NULL,
@@ -91,8 +91,8 @@ CREATE TABLE `good`  (
   `shop_price` float NOT NULL COMMENT '本店价',
   `good_brief` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '商品简短描述',
   `good_front_image` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '商品封面图',
-  `images` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '商品轮播图',
-  `desc_images` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '商品详情图',
+  `images` varchar(4096) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '商品轮播图',
+  `desc_images` varchar(4096) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '商品详情图',
   `add_time` datetime(3) NULL DEFAULT NULL,
   `is_deleted` int(11) NULL DEFAULT NULL COMMENT '是否删除',
   `update_time` datetime(3) NULL DEFAULT NULL,

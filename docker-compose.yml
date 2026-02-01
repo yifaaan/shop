@@ -62,7 +62,7 @@ services:
     container_name: consul
     command: agent -dev -client=0.0.0.0 -ui
     ports:
-      - "8500:8500"  # HTTP API & UI
+      - "9500:8500"  # HTTP API & UI
       - "8300:8300"    # Server RPC
       - "8301:8301"    # Serf LAN (TCP)
       - "8301:8301/udp"# Serf LAN (UDP)

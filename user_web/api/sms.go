@@ -125,6 +125,10 @@ func run(mobile string) error {
 	rdb := redis.NewClient(&redis.Options{
 		Addr: fmt.Sprintf("%s:%d", global.ServerConfig.RedisConfig.Host, global.ServerConfig.RedisConfig.Port),
 	})
-	rdb.Set(context.Background(), "sms_code_"+mobile, code, 300*time.Second)
+	if err := rdb.Set(context.Background(), "sms_code_"+mobile, code, 300*time.Second).Err(); err != nil {
+		zap.S().Errorw("[SendSMS] 保存验证码到Redis失败", "msg", err.Error())
+		return err
+	}
+	zap.S().Infow("[SendSMS] 验证码保存成功", "mobile", mobile, "code", code)
 	return nil
 }
