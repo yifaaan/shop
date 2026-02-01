@@ -14,5 +14,6 @@ func InitGoodRouter(router *gin.RouterGroup) {
 	{
 		goodRouter.GET("", good.List)
 		goodRouter.POST("", middleware.JWTAuth(), middleware.AdminAuth(), good.List)
+		goodRouter.GET("/:id", good.Detail)
 	}
 }

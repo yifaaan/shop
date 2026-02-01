@@ -176,3 +176,46 @@ func New(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, resp)
 }
+
+func Detail(ctx *gin.Context) {
+	// 解析参数
+	id, _ := strconv.Atoi(ctx.Param("id"))
+	if id == 0 {
+		ctx.Status(http.StatusNotFound)
+		return
+	}
+
+	// 调用good rpc服务
+	g, err := global.GoodSrvClient.GetGoodDetail(ctx.Request.Context(), &proto.GoodInfoRequest{Id: int32(id)})
+	if err != nil {
+		zap.S().Errorw("[Detail] 获取【商品详情】失败", "msg", err.Error())
+		HandleGrpcErrorToHttpError(err, ctx)
+		return
+	}
+	// TODO:库存服务查询库存
+	detail := map[string]any{
+		"id":          g.Id,
+		"name":        g.Name,
+		"goods_brief": g.GoodBrief,
+		"desc":        g.GoodDesc,
+		"ship_free":   g.ShipFree,
+		"images":      g.Images,
+		"desc_images": g.DescImages,
+		"front_image": g.GoodFrontImage,
+		"shop_price":  g.ShopPrice,
+
+		"category": map[string]any{
+			"id":   g.Category.Id,
+			"name": g.Category.Name,
+		},
+		"brand": map[string]any{
+			"id":   g.Brand.Id,
+			"name": g.Brand.Name,
+			"logo": g.Brand.Logo,
+		},
+		"is_hot":  g.IsHot,
+		"is_new":  g.IsNew,
+		"on_sale": g.OnSale,
+	}
+	ctx.JSON(http.StatusOK, detail)
+}
