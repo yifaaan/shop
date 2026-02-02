@@ -2,4 +2,4 @@
 logs
 # tmp
 .vscode
-tmp/nacos/log
+tmp/nacos/log/*.log
