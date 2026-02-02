@@ -6,7 +6,7 @@ let goodsUrl = "http://124.223.201.78:8022/g"
 let orderUrl = "http://124.223.201.78:8023/o"
 let userUrl = "http://127.0.0.1:40001/u"
 let userOpUrl = "http://124.223.201.78:8027/up"
-export const ossUrl = "http://124.223.201.78:8029"
+export const ossUrl = "http://127.0.0.1:8029"
 
 // let host = 'http://127.0.0.1:8000';
 

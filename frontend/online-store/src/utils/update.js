@@ -15,7 +15,7 @@ function send_request()
     {
       let tokenUrl = ossUrl//"http://39.107.30.137:8029"
         // serverUrl是 用户获取 '签名和Policy' 等信息的应用服务器的URL，请将下面的IP和Port配置为您自己的真实信息。
-        let serverUrl = tokenUrl+'/oss/v1/oss/token'
+        let serverUrl = tokenUrl+'/oss/v1/oss/sign'
 
         xmlhttp.open( "GET", serverUrl, false );
         xmlhttp.send( null );
