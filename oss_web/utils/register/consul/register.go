@@ -53,7 +53,7 @@ func (r *Registry) Register(address string, port int, name string, tags []string
 		Port:    port,
 		Address: serviceAddress, // 服务地址：供其他服务访问使用
 		Check: &api.AgentServiceCheck{
-			HTTP:                           fmt.Sprintf("http://%s:%d/g/v1/health", healthCheckAddr, port),
+			HTTP:                           fmt.Sprintf("http://%s:%d/oss/v1/health", healthCheckAddr, port),
 			Timeout:                        "5s",
 			Interval:                       "5s",
 			DeregisterCriticalServiceAfter: "10s",

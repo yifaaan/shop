@@ -2,6 +2,6 @@
 host: "127.0.0.1"
 port: 8848
 grpc_port: 19848
-namespace: "fbc06606-1efb-411d-8795-94bc4be676f6"
+namespace: "f59fe720-bbdf-4e39-8b2b-e06e22fd486e"
 data_id: "oss-web"
 group: "dev"
