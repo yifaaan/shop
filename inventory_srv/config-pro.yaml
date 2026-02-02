@@ -1,0 +1,7 @@
+# nacos:
+host: "127.0.0.1"
+port: 8848
+grpc_port: 19848
+namespace: "2faa4e07-9234-4de4-b480-238ce5ca624e"
+data_id: "inventory-srv"
+group: "pro"

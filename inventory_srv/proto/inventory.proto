@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+// 空消息定义，用于不需要请求参数或响应数据的 RPC 方法
+message Empty {}
+
+// Go 代码生成选项：指定生成的 Go 文件包名为 proto
+option go_package = ".;proto";
+
+// 
+service Inventory {
+    rpc SetInv(GoodInvInfo) returns (Empty); // 设置库存
+    rpc InvDetail(GoodInvInfo) returns (GoodInvInfo); // 获取库存详情
+    rpc Sell(SellInfo) returns (Empty); // 扣减库存, 批量扣减
+    rpc Reback(SellInfo) returns (Empty); // 回滚库存, 批量回滚
+}
+
+message GoodInvInfo {
+    int32 goodId = 1;
+    int32 nums = 2;
+}
+
+message SellInfo {
+    repeated GoodInvInfo goodInfos = 1; // 商品库存信息
+}
+
