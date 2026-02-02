@@ -41,7 +41,6 @@ func main() {
 	}
 	// 初始化路由
 	r := initialize.Routers()
-
 	// 定义 http server
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", global.ServerConfig.IP, global.ServerConfig.Port),
