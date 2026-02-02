@@ -2,3 +2,4 @@
 logs
 # tmp
 .vscode
+tmp/nacos/log
