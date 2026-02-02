@@ -3,8 +3,8 @@
     "index": 0,
     "name": "用户",
     "desc": null,
-    "add_time": 1769611712,
-    "up_time": 1769611712,
+    "add_time": 1769391735,
+    "up_time": 1769391735,
     "list": [
       {
         "query_path": {
@@ -19,7 +19,7 @@
         "api_opened": false,
         "index": 0,
         "tag": [],
-        "_id": 11,
+        "_id": 15,
         "method": "POST",
         "catid": 14,
         "title": "发手机验证码",
@@ -27,6 +27,9 @@
         "project_id": 11,
         "req_params": [],
         "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1769500003,
+        "up_time": 1769560262,
         "req_query": [],
         "req_headers": [
           {
@@ -53,14 +56,11 @@
             "desc": "1表示注册，2表示登录"
           }
         ],
+        "__v": 0,
         "desc": "",
         "markdown": "",
         "req_body_type": "form",
-        "res_body": "",
-        "uid": 11,
-        "add_time": 1769611712,
-        "up_time": 1769908344,
-        "__v": 0
+        "res_body": ""
       },
       {
         "query_path": {
@@ -75,7 +75,7 @@
         "api_opened": false,
         "index": 0,
         "tag": [],
-        "_id": 18,
+        "_id": 14,
         "method": "POST",
         "catid": 14,
         "title": "密码登录_copy",
@@ -130,8 +130,8 @@
         "req_body_type": "form",
         "res_body": "",
         "uid": 11,
-        "add_time": 1769611712,
-        "up_time": 1769908344,
+        "add_time": 1769495081,
+        "up_time": 1769560708,
         "__v": 0
       },
       {
@@ -147,7 +147,7 @@
         "api_opened": false,
         "index": 0,
         "tag": [],
-        "_id": 25,
+        "_id": 16,
         "method": "POST",
         "catid": 14,
         "title": "注册",
@@ -194,8 +194,8 @@
         "req_body_type": "form",
         "res_body": "",
         "uid": 11,
-        "add_time": 1769611712,
-        "up_time": 1769908344,
+        "add_time": 1769503506,
+        "up_time": 1769503586,
         "__v": 0
       },
       {
@@ -211,7 +211,7 @@
         "api_opened": false,
         "index": 0,
         "tag": [],
-        "_id": 32,
+        "_id": 12,
         "method": "GET",
         "catid": 14,
         "title": "用户列表",
@@ -219,6 +219,9 @@
         "project_id": 11,
         "req_params": [],
         "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1769424022,
+        "up_time": 1769484765,
         "req_query": [
           {
             "required": "0",
@@ -237,13 +240,10 @@
         ],
         "req_headers": [],
         "req_body_form": [],
+        "__v": 0,
         "desc": "",
         "markdown": "",
-        "res_body": "",
-        "uid": 11,
-        "add_time": 1769611712,
-        "up_time": 1769908344,
-        "__v": 0
+        "res_body": ""
       },
       {
         "query_path": {
@@ -258,7 +258,7 @@
         "api_opened": false,
         "index": 0,
         "tag": [],
-        "_id": 39,
+        "_id": 17,
         "method": "GET",
         "catid": 14,
         "title": "获取验证码",
@@ -266,12 +266,12 @@
         "project_id": 11,
         "req_params": [],
         "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1769560299,
+        "up_time": 1769560299,
         "req_query": [],
         "req_headers": [],
         "req_body_form": [],
-        "uid": 11,
-        "add_time": 1769611712,
-        "up_time": 1769908344,
         "__v": 0
       }
     ]
@@ -280,8 +280,8 @@
     "index": 0,
     "name": "商品",
     "desc": null,
-    "add_time": 1769908344,
-    "up_time": 1769908344,
+    "add_time": 1769822345,
+    "up_time": 1769822345,
     "list": [
       {
         "query_path": {
@@ -296,21 +296,32 @@
         "api_opened": false,
         "index": 0,
         "tag": [],
-        "_id": 52,
+        "_id": 26,
         "method": "DELETE",
-        "catid": 15,
+        "catid": 18,
         "title": "删除商品",
         "path": "/g/v1/good/1",
         "project_id": 11,
         "req_params": [],
         "res_body_type": "json",
         "uid": 11,
-        "add_time": 1769932417,
-        "up_time": 1769932417,
+        "add_time": 1769992048,
+        "up_time": 1769992079,
         "req_query": [],
-        "req_headers": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "697fef8fe4260ddd877ae227",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
         "req_body_form": [],
-        "__v": 0
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": ""
       },
       {
         "query_path": {
@@ -325,14 +336,17 @@
         "api_opened": false,
         "index": 0,
         "tag": [],
-        "_id": 43,
+        "_id": 18,
         "method": "GET",
-        "catid": 15,
+        "catid": 18,
         "title": "商品列表",
         "path": "/g/v1/good",
         "project_id": 11,
         "req_params": [],
         "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1769822371,
+        "up_time": 1769824529,
         "req_query": [
           {
             "required": "0",
@@ -407,53 +421,10 @@
         ],
         "req_headers": [],
         "req_body_form": [],
+        "__v": 0,
         "desc": "",
         "markdown": "",
-        "res_body": "{\"type\":\"object\",\"title\":\"title\",\"properties\":{\"data\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"brand\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"logo\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}},\"required\":[\"id\",\"logo\",\"name\"]},\"category\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"name\":{\"type\":\"string\"}}},\"desc\":{\"type\":\"string\"},\"desc_images\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"front_image\":{\"type\":\"string\"},\"good_brief\":{\"type\":\"string\"},\"id\":{\"type\":\"number\"},\"images\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"is_hot\":{\"type\":\"boolean\"},\"is_new\":{\"type\":\"boolean\"},\"is_tab\":{\"type\":\"boolean\"},\"on_sale\":{\"type\":\"boolean\"}},\"required\":[\"brand\",\"category\",\"desc\",\"desc_images\",\"front_image\",\"good_brief\",\"id\",\"images\",\"is_hot\",\"is_new\",\"is_tab\",\"on_sale\"]}},\"total\":{\"type\":\"number\"}},\"required\":[\"total\"]}",
-        "uid": 11,
-        "add_time": 1769908344,
-        "up_time": 1769908344,
-        "__v": 0
-      },
-      {
-        "query_path": {
-          "path": "/g/v1/good/421",
-          "params": []
-        },
-        "edit_uid": 0,
-        "status": "undone",
-        "type": "static",
-        "req_body_is_json_schema": true,
-        "res_body_is_json_schema": true,
-        "api_opened": false,
-        "index": 0,
-        "tag": [],
-        "_id": 47,
-        "method": "GET",
-        "catid": 15,
-        "title": "商品详情",
-        "path": "/g/v1/good/421",
-        "project_id": 11,
-        "req_params": [],
-        "res_body_type": "json",
-        "req_query": [
-          {
-            "required": "0",
-            "_id": "697f0192bddea3b128a6a6aa",
-            "name": "id",
-            "example": "10",
-            "desc": "商品id"
-          }
-        ],
-        "req_headers": [],
-        "req_body_form": [],
-        "desc": "",
-        "markdown": "",
-        "res_body": "{\"type\":\"object\",\"title\":\"title\",\"properties\":{\"id\":{\"type\":\"number\"},\"name\":{\"type\":\"string\"},\"shop_price\":{\"type\":\"number\"},\"good_brief\":{\"type\":\"string\"},\"ship_free\":{\"type\":\"boolean\"},\"images\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"front_image\":{\"type\":\"string\"},\"desc\":{\"type\":\"string\"},\"brand\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"logo\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}},\"category\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"name\":{\"type\":\"string\"}}},\"is_hot\":{\"type\":\"boolean\"},\"is_new\":{\"type\":\"boolean\"},\"on_sale\":{\"type\":\"boolean\"}},\"required\":[\"desc\"]}",
-        "uid": 11,
-        "add_time": 1769908471,
-        "up_time": 1769931154,
-        "__v": 0
+        "res_body": "{\"type\":\"object\",\"title\":\"title\",\"properties\":{\"data\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"brand\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"logo\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}},\"required\":[\"id\",\"logo\",\"name\"]},\"category\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"name\":{\"type\":\"string\"}}},\"desc\":{\"type\":\"string\"},\"desc_images\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"front_image\":{\"type\":\"string\"},\"good_brief\":{\"type\":\"string\"},\"id\":{\"type\":\"number\"},\"images\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"is_hot\":{\"type\":\"boolean\"},\"is_new\":{\"type\":\"boolean\"},\"is_tab\":{\"type\":\"boolean\"},\"on_sale\":{\"type\":\"boolean\"}},\"required\":[\"brand\",\"category\",\"desc\",\"desc_images\",\"front_image\",\"good_brief\",\"id\",\"images\",\"is_hot\",\"is_new\",\"is_tab\",\"on_sale\"]}},\"total\":{\"type\":\"number\"}},\"required\":[\"total\"]}"
       },
       {
         "query_path": {
@@ -463,15 +434,15 @@
         "edit_uid": 0,
         "status": "undone",
         "type": "static",
-        "req_body_is_json_schema": true,
+        "req_body_is_json_schema": false,
         "res_body_is_json_schema": true,
         "api_opened": false,
         "index": 0,
         "tag": [],
-        "_id": 62,
-        "method": "PUT",
-        "catid": 15,
-        "title": "更新商品",
+        "_id": 34,
+        "method": "GET",
+        "catid": 18,
+        "title": "商品详情",
         "path": "/g/v1/good/2",
         "project_id": 11,
         "req_params": [],
@@ -480,7 +451,47 @@
         "req_headers": [
           {
             "required": "1",
-            "_id": "697f07ffbddea30d74a6a6b1",
+            "_id": "697ff105e4260d074c7ae229",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": "{\"type\":\"object\",\"title\":\"title\",\"properties\":{\"id\":{\"type\":\"number\"},\"name\":{\"type\":\"string\"},\"shop_price\":{\"type\":\"number\"},\"good_brief\":{\"type\":\"string\"},\"ship_free\":{\"type\":\"boolean\"},\"images\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"front_image\":{\"type\":\"string\"},\"desc\":{\"type\":\"string\"},\"brand\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"logo\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}},\"category\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"name\":{\"type\":\"string\"}}},\"is_hot\":{\"type\":\"boolean\"},\"is_new\":{\"type\":\"boolean\"},\"on_sale\":{\"type\":\"boolean\"}},\"required\":[\"desc\"]}",
+        "uid": 11,
+        "add_time": 1769992116,
+        "up_time": 1769992453,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/g/v1/good/3",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": true,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 42,
+        "method": "PUT",
+        "catid": 18,
+        "title": "更新商品",
+        "path": "/g/v1/good/3",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "697ff1c6e4260d47327ae22b",
             "name": "Content-Type",
             "value": "application/x-www-form-urlencoded"
           }
@@ -488,14 +499,14 @@
         "req_body_form": [
           {
             "required": "0",
-            "_id": "697f07ffbddea33d24a6a6be",
+            "_id": "697ff1c6e4260d09027ae238",
             "name": "name",
             "type": "text",
-            "example": "5090GPU"
+            "example": "苹果"
           },
           {
             "required": "0",
-            "_id": "697f07ffbddea3bf99a6a6bd",
+            "_id": "697ff1c6e4260d6db97ae237",
             "name": "goodSn",
             "type": "text",
             "example": "123",
@@ -503,131 +514,128 @@
           },
           {
             "required": "0",
-            "_id": "697f07ffbddea353b0a6a6bc",
+            "_id": "697ff1c6e4260d79a97ae236",
             "name": "stocks",
             "type": "text",
-            "example": "10",
+            "example": "",
             "desc": ""
           },
           {
             "required": "0",
-            "_id": "697f07ffbddea3fde7a6a6bb",
+            "_id": "697ff1c6e4260d49007ae235",
             "name": "category",
             "type": "text",
-            "example": "222",
+            "example": "",
             "desc": ""
           },
           {
             "required": "0",
-            "_id": "697f07ffbddea31f91a6a6ba",
+            "_id": "697ff1c6e4260d7b087ae234",
             "name": "brand",
             "type": "text",
-            "example": "2",
+            "example": "",
             "desc": ""
           },
           {
             "required": "0",
-            "_id": "697f07ffbddea38203a6a6b9",
-            "name": "marketrice",
+            "_id": "697ff1c6e4260d06277ae233",
+            "name": "market_price",
             "type": "text",
-            "example": "11",
+            "example": "",
             "desc": ""
           },
           {
             "required": "0",
-            "_id": "697f07ffbddea35ed5a6a6b8",
-            "name": "shoprice",
+            "_id": "697ff1c6e4260d6e247ae232",
+            "name": "shop_price",
             "type": "text",
-            "example": "234",
+            "example": "",
             "desc": ""
           },
           {
             "required": "0",
-            "_id": "697f07ffbddea3d7f6a6a6b7",
+            "_id": "697ff1c6e4260d50cf7ae231",
             "name": "good_brief",
             "type": "text",
-            "example": "afsdfs",
+            "example": "",
             "desc": ""
           },
           {
             "required": "0",
-            "_id": "697f07ffbddea300dba6a6b6",
+            "_id": "697ff1c6e4260d741e7ae230",
             "name": "images",
             "type": "text",
-            "example": "http:dsfa",
+            "example": "",
             "desc": ""
           },
           {
             "required": "0",
-            "_id": "697f07ffbddea3e696a6a6b5",
+            "_id": "697ff1c6e4260d20747ae22f",
             "name": "desc_images",
             "type": "text",
-            "example": "dsfsd",
+            "example": "",
             "desc": ""
           },
           {
             "required": "0",
-            "_id": "697f07ffbddea31c9ba6a6b4",
+            "_id": "697ff1c6e4260dc5dd7ae22e",
             "name": "desc",
             "type": "text",
-            "example": "dsf",
+            "example": "",
             "desc": ""
           },
           {
             "required": "0",
-            "_id": "697f07ffbddea33244a6a6b3",
+            "_id": "697ff1c6e4260d42567ae22d",
             "name": "ship_free",
             "type": "text",
-            "example": "true",
+            "example": "",
             "desc": ""
           },
           {
             "required": "0",
-            "_id": "697f07ffbddea36692a6a6b2",
+            "_id": "697ff1c6e4260db2ba7ae22c",
             "name": "front_image",
             "type": "text",
-            "example": "sdfsd",
+            "example": "",
             "desc": ""
           }
         ],
-        "uid": 11,
-        "add_time": 1769932447,
-        "up_time": 1769932799,
-        "__v": 0,
         "desc": "",
         "markdown": "",
         "req_body_type": "form",
-        "res_body": "{\"type\":\"object\",\"title\":\"title\",\"properties\":{}}"
+        "res_body": "{\"type\":\"object\",\"title\":\"title\",\"properties\":{\"id\":{\"type\":\"number\"},\"name\":{\"type\":\"string\"},\"shop_price\":{\"type\":\"number\"},\"good_brief\":{\"type\":\"string\"},\"ship_free\":{\"type\":\"boolean\"},\"images\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"front_image\":{\"type\":\"string\"},\"desc\":{\"type\":\"string\"},\"brand\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"logo\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}}},\"category\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"number\"},\"name\":{\"type\":\"string\"}}},\"is_hot\":{\"type\":\"boolean\"},\"is_new\":{\"type\":\"boolean\"},\"on_sale\":{\"type\":\"boolean\"}},\"required\":[\"desc\"]}",
+        "uid": 11,
+        "add_time": 1769992494,
+        "up_time": 1769992646,
+        "__v": 0
       },
       {
         "query_path": {
-          "path": "/g/v1/good/1",
+          "path": "/g/v1/good/4",
           "params": []
         },
-        "edit_uid": 0,
+        "edit_uid": 11,
         "status": "undone",
         "type": "static",
-        "req_body_is_json_schema": true,
-        "res_body_is_json_schema": true,
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
         "api_opened": false,
         "index": 0,
         "tag": [],
-        "_id": 57,
+        "_id": 50,
         "method": "PATCH",
-        "catid": 15,
+        "catid": 18,
         "title": "更新商品状态",
-        "path": "/g/v1/good/1",
+        "path": "/g/v1/good/4",
         "project_id": 11,
         "req_params": [],
         "res_body_type": "json",
-        "uid": 11,
-        "add_time": 1769932445,
-        "up_time": 1769932517,
         "req_query": [],
         "req_headers": [
           {
             "required": "1",
-            "_id": "697f06e5bddea305afa6a6ac",
+            "_id": "697ff246e4260d838e7ae24b",
             "name": "Content-Type",
             "value": "application/x-www-form-urlencoded"
           }
@@ -635,14 +643,14 @@
         "req_body_form": [
           {
             "required": "0",
-            "_id": "697f06e5bddea3b9a5a6a6af",
+            "_id": "697ff246e4260d0ba67ae24e",
             "name": "new",
             "type": "text",
             "example": "true"
           },
           {
             "required": "0",
-            "_id": "697f06e5bddea30820a6a6ae",
+            "_id": "697ff246e4260d0a037ae24d",
             "name": "hot",
             "type": "text",
             "example": "true",
@@ -650,18 +658,21 @@
           },
           {
             "required": "0",
-            "_id": "697f06e5bddea382dda6a6ad",
+            "_id": "697ff246e4260d65a07ae24c",
             "name": "sale",
             "type": "text",
             "example": "true",
             "desc": ""
           }
         ],
-        "__v": 0,
         "desc": "",
         "markdown": "",
         "req_body_type": "form",
-        "res_body": ""
+        "res_body": "{\n   \"type\": \"object\",\n   \"title\": \"title\",\n   \"properties\": {}\n}",
+        "uid": 11,
+        "add_time": 1769992655,
+        "up_time": 1769992774,
+        "__v": 0
       }
     ]
   }

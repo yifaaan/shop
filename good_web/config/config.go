@@ -38,6 +38,7 @@ type ConsulConfig struct {
 type NacosConfig struct {
 	Host      string `mapstructure:"host"`
 	Port      uint64 `mapstructure:"port"`
+	GrpcPort  uint64 `mapstructure:"grpc_port"`
 	Namespace string `mapstructure:"namespace"`
 	DataID    string `mapstructure:"data_id"`
 	Group     string `mapstructure:"group"`

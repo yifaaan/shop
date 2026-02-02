@@ -24,6 +24,7 @@
 # nacos:
 host: "127.0.0.1"
 port: 8848
-namespace: "feb9807c-cdbf-41d0-bdda-4dc4a2f39c5d"
+grpc_port: 19848
+namespace: "0ba24e61-764c-436a-bd26-9dccb6c0c7c2"
 data_id: "user-web"
 group: "pro"

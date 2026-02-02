@@ -39,16 +39,25 @@ func InitConfig() {
 
 	serverConfigs := []constant.ServerConfig{
 		{
-			IpAddr: global.NacosConfig.Host,
-			Port:   global.NacosConfig.Port,
+			IpAddr:   global.NacosConfig.Host,
+			Port:     global.NacosConfig.Port,
+			GrpcPort: global.NacosConfig.GrpcPort,
 		},
 	}
+	logDir := "/tmp/nacos/log"
+	cacheDir := "/tmp/nacos/cache"
+	for _, dir := range []string{logDir, cacheDir} {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			zap.S().Fatalf("create nacos dir failed: %v", err)
+		}
+	}
+
 	clientConfig := constant.ClientConfig{
 		NamespaceId:         global.NacosConfig.Namespace,
 		TimeoutMs:           5000,
 		NotLoadCacheAtStart: true,
-		LogDir:              "/tmp/nacos/log",
-		CacheDir:            "/tmp/nacos/cache",
+		LogDir:              logDir,
+		CacheDir:            cacheDir,
 		LogLevel:            "debug",
 	}
 

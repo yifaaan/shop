@@ -1,6 +1,7 @@
 # nacos:
 host: "127.0.0.1"
 port: 8848
-namespace: "841b0151-0e97-4771-a897-0f33aa5e5f9d"
+grpc_port: 19848
+namespace: "fbc06606-1efb-411d-8795-94bc4be676f6"
 data_id: "good-web"
 group: "dev"
