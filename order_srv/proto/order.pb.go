@@ -931,11 +931,12 @@ const file_order_proto_rawDesc = "" +
 	"\x04data\x18\x02 \x03(\v2\x12.OrderInfoResponseR\x04data\"W\n" +
 	"\x14CartItemListResponse\x12\x14\n" +
 	"\x05total\x18\x01 \x01(\x05R\x05total\x12)\n" +
-	"\x04data\x18\x02 \x03(\v2\x15.ShopCartInfoResponseR\x04data2\xe6\x02\n" +
+	"\x04data\x18\x02 \x03(\v2\x15.ShopCartInfoResponseR\x04data2\x92\x03\n" +
 	"\x05Order\x120\n" +
 	"\fCartItemList\x12\t.UserInfo\x1a\x15.CartItemListResponse\x129\n" +
 	"\x0eCreateCartItem\x12\x10.CartItemRequest\x1a\x15.ShopCartInfoResponse\x12*\n" +
-	"\x0eUpdateCartItem\x12\x10.CartItemRequest\x1a\x06.Empty\x12+\n" +
+	"\x0eUpdateCartItem\x12\x10.CartItemRequest\x1a\x06.Empty\x12*\n" +
+	"\x0eDeleteCartItem\x12\x10.CartItemRequest\x1a\x06.Empty\x12+\n" +
 	"\x06Create\x12\r.OrderRequest\x1a\x12.OrderInfoResponse\x124\n" +
 	"\tOrderList\x12\x13.OrderFilterRequest\x1a\x12.OrderListResponse\x126\n" +
 	"\vOrderDetail\x12\r.OrderRequest\x1a\x18.OrderInfoDetailResponse\x12)\n" +
@@ -976,19 +977,21 @@ var file_order_proto_depIdxs = []int32{
 	1,  // 4: Order.CartItemList:input_type -> UserInfo
 	3,  // 5: Order.CreateCartItem:input_type -> CartItemRequest
 	3,  // 6: Order.UpdateCartItem:input_type -> CartItemRequest
-	4,  // 7: Order.Create:input_type -> OrderRequest
-	9,  // 8: Order.OrderList:input_type -> OrderFilterRequest
-	4,  // 9: Order.OrderDetail:input_type -> OrderRequest
-	2,  // 10: Order.UpdateOrderStatus:input_type -> OrderStatus
-	11, // 11: Order.CartItemList:output_type -> CartItemListResponse
-	6,  // 12: Order.CreateCartItem:output_type -> ShopCartInfoResponse
-	0,  // 13: Order.UpdateCartItem:output_type -> Empty
-	5,  // 14: Order.Create:output_type -> OrderInfoResponse
-	10, // 15: Order.OrderList:output_type -> OrderListResponse
-	8,  // 16: Order.OrderDetail:output_type -> OrderInfoDetailResponse
-	0,  // 17: Order.UpdateOrderStatus:output_type -> Empty
-	11, // [11:18] is the sub-list for method output_type
-	4,  // [4:11] is the sub-list for method input_type
+	3,  // 7: Order.DeleteCartItem:input_type -> CartItemRequest
+	4,  // 8: Order.Create:input_type -> OrderRequest
+	9,  // 9: Order.OrderList:input_type -> OrderFilterRequest
+	4,  // 10: Order.OrderDetail:input_type -> OrderRequest
+	2,  // 11: Order.UpdateOrderStatus:input_type -> OrderStatus
+	11, // 12: Order.CartItemList:output_type -> CartItemListResponse
+	6,  // 13: Order.CreateCartItem:output_type -> ShopCartInfoResponse
+	0,  // 14: Order.UpdateCartItem:output_type -> Empty
+	0,  // 15: Order.DeleteCartItem:output_type -> Empty
+	5,  // 16: Order.Create:output_type -> OrderInfoResponse
+	10, // 17: Order.OrderList:output_type -> OrderListResponse
+	8,  // 18: Order.OrderDetail:output_type -> OrderInfoDetailResponse
+	0,  // 19: Order.UpdateOrderStatus:output_type -> Empty
+	12, // [12:20] is the sub-list for method output_type
+	4,  // [4:12] is the sub-list for method input_type
 	4,  // [4:4] is the sub-list for extension type_name
 	4,  // [4:4] is the sub-list for extension extendee
 	0,  // [0:4] is the sub-list for field type_name
