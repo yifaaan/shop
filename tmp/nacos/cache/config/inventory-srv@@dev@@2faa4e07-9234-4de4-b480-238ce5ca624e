@@ -2,6 +2,10 @@
   "name": "inventory-srv",
   "host": "127.0.0.1",
   "port": 40004,
+  "redis": {
+    "host": "127.0.0.1",
+    "port": 6379
+  },
   "mysql": {
     "host": "127.0.0.1",
     "port": 3306,

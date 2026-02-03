@@ -110,6 +110,7 @@ require (
 
 require (
 	github.com/gin-gonic/gin v1.11.0
+	github.com/go-redsync/redsync/v4 v4.15.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/hashicorp/consul/api v1.33.2
 	github.com/jinzhu/inflection v1.0.0 // indirect

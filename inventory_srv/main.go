@@ -27,6 +27,8 @@ func main() {
 	// 打印配置信息以便调试
 	zap.S().Infow("服务配置", "name", global.ServerConfig.Name, "host", global.ServerConfig.Host, "port", global.ServerConfig.Port)
 	initialize.InitDB()
+	// 初始化分布式锁
+	initialize.InitRedisSync()
 
 	server := grpc.NewServer()
 	// 注册用户服务
