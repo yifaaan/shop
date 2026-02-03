@@ -117,6 +117,13 @@ func (s *InventoryServer) Sell(ctx context.Context, in *proto.SellInfo) (*proto.
 		// }
 
 		// 分布式锁，防止多个节点同时扣减库存
+		// 互斥：setnx
+		// 死锁: 设置超时时间，超时后自动释放锁
+		// 安全：设置的value要唯一，防止误解锁
+		//  	goroutine A 拿锁：key=lock421, value=AAA, TTL=5s
+		// 		A 卡顿/GC/网络抖动，5 秒到了锁过期
+		// 		goroutine B 拿锁：key=lock421, value=BBB, TTL=5s
+		// 		A 这时才执行解锁，因为value变了，不能释放goroutine B的锁
 		mutex := global.RedisSync.NewMutex(
 			fmt.Sprintf("inventory_lock_good_%d", goodInfo.GoodId),
 			redsync.WithExpiry(5*time.Second),
