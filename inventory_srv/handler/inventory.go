@@ -6,6 +6,7 @@ import (
 	"shop/inventory_srv/model"
 	"shop/inventory_srv/proto"
 
+	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm/clause"
@@ -65,17 +66,42 @@ func (s *InventoryServer) Sell(ctx context.Context, in *proto.SellInfo) (*proto.
 		var inv model.Inventory
 		// 悲观锁, 锁住商品库存，good是索引，会使用行锁
 		// 当条件中没有索引时，会使用表锁
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("good = ?", goodInfo.GoodId).First(&inv); err.RowsAffected == 0 {
-			tx.Rollback()
-			return nil, status.Errorf(codes.NotFound, "库存信息不存在")
+		// if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("good = ?", goodInfo.GoodId).First(&inv); err.RowsAffected == 0 {
+		// 	tx.Rollback()
+		// 	return nil, status.Errorf(codes.NotFound, "库存信息不存在")
+		// }
+		// if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("good = ?", goodInfo.GoodId).First(&inv); err.RowsAffected == 0 {
+		// 	tx.Rollback()
+		// 	return nil, status.Errorf(codes.NotFound, "库存信息不存在")
+		// }
+		// inv.Stock -= goodInfo.Nums
+		// tx.Save(&inv)
+
+		// 乐观锁, 使用版本号来保证数据一致性,失败重试
+		for {
+			if err := tx.Where("good = ?", goodInfo.GoodId).First(&inv); err.RowsAffected == 0 {
+				tx.Rollback()
+				return nil, status.Errorf(codes.NotFound, "库存信息不存在")
+			}
+
+			if inv.Stock < goodInfo.Nums {
+				tx.Rollback()
+				return nil, status.Errorf(codes.ResourceExhausted, "库存不足")
+			}
+
+			// UPDATE inventory set stock = stock - 1, version = version + 1 WHERE good = x AND version = 0
+
+			// Updates(struct)：默认跳过零值（0、""、false 不更新）,下面第一种方式会跳过零值，有问题
+			// r := tx.Model(&model.Inventory{}).Where("good = ? AND version = ?", goodInfo.GoodId, inv.Version).Updates(&model.Inventory{Stock: inv.Stock - goodInfo.Nums, Version: inv.Version + 1})
+			// Select或Updates(map)：会更新零值
+			r := tx.Model(&model.Inventory{}).Select("stock", "version").Where("good = ? AND version = ?", goodInfo.GoodId, inv.Version).Updates(&model.Inventory{Stock: inv.Stock - goodInfo.Nums, Version: inv.Version + 1})
+			if r.RowsAffected == 0 {
+				zap.S().Errorf("库存扣减失败，库存信息不存在")
+				continue
+			}
+			break
 		}
-		if inv.Stock < goodInfo.Nums {
-			tx.Rollback()
-			return nil, status.Errorf(codes.ResourceExhausted, "库存不足")
-		}
-		// 扣减库存，并发出现超卖问题，需要使用分布式锁来保证数据一致性
-		inv.Stock -= goodInfo.Nums
-		tx.Save(&inv)
+
 	}
 	tx.Commit()
 	return &proto.Empty{}, nil
@@ -93,7 +119,6 @@ func (s *InventoryServer) Reback(ctx context.Context, in *proto.SellInfo) (*prot
 			tx.Rollback()
 			return nil, status.Errorf(codes.NotFound, "库存信息不存在")
 		}
-		// 归还库存，需要使用分布式锁来保证数据一致性
 		inv.Stock += goodInfo.Nums
 		tx.Save(&inv)
 	}
