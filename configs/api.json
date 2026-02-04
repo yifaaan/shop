@@ -1564,6 +1564,62 @@
         "req_headers": [],
         "req_body_form": [],
         "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/o/v1/shopcart",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 134,
+        "method": "POST",
+        "catid": 48,
+        "title": "添加商品",
+        "path": "/o/v1/shopcart",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1770190737,
+        "up_time": 1770190762,
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "6982f7aa50248b1ab9797ec3",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [
+          {
+            "required": "1",
+            "_id": "6982f7aa50248b169f797ec5",
+            "name": "good",
+            "type": "text",
+            "example": "421"
+          },
+          {
+            "required": "1",
+            "_id": "6982f7aa50248b9504797ec4",
+            "name": "nums",
+            "type": "text",
+            "example": "2",
+            "desc": ""
+          }
+        ],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": ""
       }
     ]
   }

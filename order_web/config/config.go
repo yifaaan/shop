@@ -13,17 +13,24 @@ type OrderSrvConfig struct {
 	Port int    `mapstructure:"port" json:"port"`
 }
 
+type InventorySrvConfig struct {
+	Name string `mapstructure:"name" json:"name"`
+	Host string `mapstructure:"host" json:"host"`
+	Port int    `mapstructure:"port" json:"port"`
+}
+
 // ServerConfig 服务配置
 type ServerConfig struct {
-	Name         string         `mapstructure:"name" json:"name"`
-	Version      string         `mapstructure:"version" json:"version"`
-	IP           string         `mapstructure:"ip" json:"ip"`
-	Port         int            `mapstructure:"port" json:"port"`
-	GoodSrvCfg   GoodSrvConfig  `mapstructure:"good_srv" json:"good_srv"`
-	OrderSrvCfg  OrderSrvConfig `mapstructure:"order_srv" json:"order_srv"`
-	JWTConfig    JWTConfig      `mapstructure:"jwt" json:"jwt"`
-	RedisConfig  RedisConfig    `mapstructure:"redis" json:"redis"`
-	ConsulConfig ConsulConfig   `mapstructure:"consul" json:"consul"`
+	Name            string             `mapstructure:"name" json:"name"`
+	Version         string             `mapstructure:"version" json:"version"`
+	IP              string             `mapstructure:"ip" json:"ip"`
+	Port            int                `mapstructure:"port" json:"port"`
+	GoodSrvCfg      GoodSrvConfig      `mapstructure:"good_srv" json:"good_srv"`
+	OrderSrvCfg     OrderSrvConfig     `mapstructure:"order_srv" json:"order_srv"`
+	InventorySrvCfg InventorySrvConfig `mapstructure:"inventory_srv" json:"inventory_srv"`
+	JWTConfig       JWTConfig          `mapstructure:"jwt" json:"jwt"`
+	RedisConfig     RedisConfig        `mapstructure:"redis" json:"redis"`
+	ConsulConfig    ConsulConfig       `mapstructure:"consul" json:"consul"`
 }
 
 type JWTConfig struct {

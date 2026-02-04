@@ -35,4 +35,15 @@ func InitSrvConn() {
 		zap.S().Fatalf("new grpc client failed: %v", err)
 	}
 	global.GoodSrvClient = proto.NewGoodClient(conn)
+
+	consulAddr = fmt.Sprintf("consul://%s:%d/%s?wait=14s", global.ServerConfig.ConsulConfig.Host, global.ServerConfig.ConsulConfig.Port, global.ServerConfig.InventorySrvCfg.Name)
+	conn, err = grpc.NewClient(
+		consulAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`),
+	)
+	if err != nil {
+		zap.S().Fatalf("new grpc client failed: %v", err)
+	}
+	global.InvSrvClient = proto.NewInventoryClient(conn)
 }
