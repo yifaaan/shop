@@ -1,6 +1,12 @@
 package handler
 
-import "gorm.io/gorm"
+import (
+	"fmt"
+	"math/rand"
+	"time"
+
+	"gorm.io/gorm"
+)
 
 // 分页查询
 func paginate(page, pageSize int) func(db *gorm.DB) *gorm.DB {
@@ -17,4 +23,9 @@ func paginate(page, pageSize int) func(db *gorm.DB) *gorm.DB {
 		offset := (page - 1) * pageSize
 		return db.Offset(offset).Limit(pageSize)
 	}
+}
+
+func generateOrderSn(userId int32) string {
+	now := time.Now()
+	return fmt.Sprintf("%d%d%d%d%d%d%d%d%d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second(), now.Nanosecond(), userId, rand.Intn(1000000))
 }

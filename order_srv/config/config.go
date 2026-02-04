@@ -13,13 +13,27 @@ type RedisConfig struct {
 	Port int    `mapstructure:"port" json:"port"`
 }
 
+type GoodSrvConfig struct {
+	Name string `mapstructure:"name" json:"name"`
+	Host string `mapstructure:"host" json:"host"`
+	Port int    `mapstructure:"port" json:"port"`
+}
+
+type InventorySrvConfig struct {
+	Name string `mapstructure:"name" json:"name"`
+	Host string `mapstructure:"host" json:"host"`
+	Port int    `mapstructure:"port" json:"port"`
+}
+
 type ServerConfig struct {
-	Name         string       `mapstructure:"name" json:"name"`
-	Host         string       `mapstructure:"host" json:"host"`
-	Port         int          `mapstructure:"port" json:"port"`
-	MysqlConfig  MysqlConfig  `mapstructure:"mysql" json:"mysql"`
-	RedisConfig  RedisConfig  `mapstructure:"redis" json:"redis"`
-	ConsulConfig ConsulConfig `mapstructure:"consul" json:"consul"`
+	Name            string             `mapstructure:"name" json:"name"`
+	Host            string             `mapstructure:"host" json:"host"`
+	Port            int                `mapstructure:"port" json:"port"`
+	MysqlConfig     MysqlConfig        `mapstructure:"mysql" json:"mysql"`
+	RedisConfig     RedisConfig        `mapstructure:"redis" json:"redis"`
+	ConsulConfig    ConsulConfig       `mapstructure:"consul" json:"consul"`
+	GoodSrvCfg      GoodSrvConfig      `mapstructure:"good_srv" json:"good_srv"`
+	InventorySrvCfg InventorySrvConfig `mapstructure:"inventory_srv" json:"inventory_srv"`
 }
 
 type ConsulConfig struct {

@@ -30,8 +30,12 @@ func main() {
 	// 初始化分布式锁
 	initialize.InitRedisSync()
 
+	// 初始化rpc连接
+	initialize.InitGoodSrvConn()
+	initialize.InitInventorySrvConn()
+
 	server := grpc.NewServer()
-	// 注册用户服务
+	// 注册订单服务
 	proto.RegisterOrderServer(server, &handler.OrderServer{})
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", global.ServerConfig.Host, global.ServerConfig.Port))
 	zap.S().Infof("server run at port %s:%d", global.ServerConfig.Host, global.ServerConfig.Port)

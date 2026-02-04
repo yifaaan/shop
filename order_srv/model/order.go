@@ -40,4 +40,5 @@ type OrderGood struct {
 	Nums      int32   `gorm:"type:int;not null;comment:'数量'"`
 	GoodsName string  `gorm:"type:varchar(100);not null;comment:'商品名称'"`
 	GoodPrice float32 `gorm:"type:float;not null;comment:'商品价格'"`
+	GoodImage string  `gorm:"type:varchar(1024);not null;comment:'商品图片'"`
 }

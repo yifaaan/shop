@@ -4,20 +4,20 @@ import (
 	"os"
 	"testing"
 
-	"shop/inventory_srv/proto"
+	"shop/order_srv/proto"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-var inventoryClient proto.InventoryClient
+var orderClient proto.OrderClient
 var conn *grpc.ClientConn
 
 // TestMain 初始化 gRPC 连接，所有测试共用，结束后关闭
 func TestMain(m *testing.M) {
-	addr := os.Getenv("INVENTORY_SRV_ADDR")
+	addr := os.Getenv("ORDER_SRV_ADDR")
 	if addr == "" {
-		addr = "127.0.0.1:40004"
+		addr = "127.0.0.1:40006"
 	}
 
 	var err error
@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
-	inventoryClient = proto.NewInventoryClient(conn)
+	orderClient = proto.NewOrderClient(conn)
 
 	code := m.Run()
 

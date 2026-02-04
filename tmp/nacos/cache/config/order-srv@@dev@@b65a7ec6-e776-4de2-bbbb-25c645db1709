@@ -2,6 +2,16 @@
   "name": "order-srv",
   "host": "127.0.0.1",
   "port": 40006,
+  "good_srv": {
+    "name": "good-srv",
+    "host": "127.0.0.1",
+    "port": 40002
+  },
+  "inventory_srv": {
+    "name": "inventory-srv",
+    "host": "127.0.0.1",
+    "port": 40004
+  },
   "redis": {
     "host": "127.0.0.1",
     "port": 6379

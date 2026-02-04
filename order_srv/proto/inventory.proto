@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+// Go 代码生成选项：指定生成的 Go 文件包名为 proto
+option go_package = ".;proto";
+
+// 
+service Inventory {
+    rpc SetInv(GoodInvInfo) returns (google.protobuf.Empty); // 设置库存
+    rpc InvDetail(GoodInvInfo) returns (GoodInvInfo); // 获取库存详情
+    rpc Sell(SellInfo) returns (google.protobuf.Empty); // 扣减库存, 批量扣减
+    rpc Reback(SellInfo) returns (google.protobuf.Empty); // 回滚库存, 批量回滚
+}
+
+message GoodInvInfo {
+    int32 goodId = 1;
+    int32 nums = 2;
+}
+
+message SellInfo {
+    repeated GoodInvInfo goodInfos = 1; // 商品库存信息
+}
+

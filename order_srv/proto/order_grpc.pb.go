@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -23,7 +24,7 @@ const (
 	Order_CreateCartItem_FullMethodName    = "/Order/CreateCartItem"
 	Order_UpdateCartItem_FullMethodName    = "/Order/UpdateCartItem"
 	Order_DeleteCartItem_FullMethodName    = "/Order/DeleteCartItem"
-	Order_Create_FullMethodName            = "/Order/Create"
+	Order_CreateOrder_FullMethodName       = "/Order/CreateOrder"
 	Order_OrderList_FullMethodName         = "/Order/OrderList"
 	Order_OrderDetail_FullMethodName       = "/Order/OrderDetail"
 	Order_UpdateOrderStatus_FullMethodName = "/Order/UpdateOrderStatus"
@@ -38,13 +39,13 @@ type OrderClient interface {
 	// 购物车相关接口
 	CartItemList(ctx context.Context, in *UserInfo, opts ...grpc.CallOption) (*CartItemListResponse, error)
 	CreateCartItem(ctx context.Context, in *CartItemRequest, opts ...grpc.CallOption) (*ShopCartInfoResponse, error)
-	UpdateCartItem(ctx context.Context, in *CartItemRequest, opts ...grpc.CallOption) (*Empty, error)
-	DeleteCartItem(ctx context.Context, in *CartItemRequest, opts ...grpc.CallOption) (*Empty, error)
+	UpdateCartItem(ctx context.Context, in *CartItemRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteCartItem(ctx context.Context, in *CartItemRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 订单相关接口
-	Create(ctx context.Context, in *OrderRequest, opts ...grpc.CallOption) (*OrderInfoResponse, error)
+	CreateOrder(ctx context.Context, in *OrderRequest, opts ...grpc.CallOption) (*OrderInfoResponse, error)
 	OrderList(ctx context.Context, in *OrderFilterRequest, opts ...grpc.CallOption) (*OrderListResponse, error)
 	OrderDetail(ctx context.Context, in *OrderRequest, opts ...grpc.CallOption) (*OrderInfoDetailResponse, error)
-	UpdateOrderStatus(ctx context.Context, in *OrderStatus, opts ...grpc.CallOption) (*Empty, error)
+	UpdateOrderStatus(ctx context.Context, in *OrderStatus, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type orderClient struct {
@@ -75,9 +76,9 @@ func (c *orderClient) CreateCartItem(ctx context.Context, in *CartItemRequest, o
 	return out, nil
 }
 
-func (c *orderClient) UpdateCartItem(ctx context.Context, in *CartItemRequest, opts ...grpc.CallOption) (*Empty, error) {
+func (c *orderClient) UpdateCartItem(ctx context.Context, in *CartItemRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Empty)
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, Order_UpdateCartItem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -85,9 +86,9 @@ func (c *orderClient) UpdateCartItem(ctx context.Context, in *CartItemRequest, o
 	return out, nil
 }
 
-func (c *orderClient) DeleteCartItem(ctx context.Context, in *CartItemRequest, opts ...grpc.CallOption) (*Empty, error) {
+func (c *orderClient) DeleteCartItem(ctx context.Context, in *CartItemRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Empty)
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, Order_DeleteCartItem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -95,10 +96,10 @@ func (c *orderClient) DeleteCartItem(ctx context.Context, in *CartItemRequest, o
 	return out, nil
 }
 
-func (c *orderClient) Create(ctx context.Context, in *OrderRequest, opts ...grpc.CallOption) (*OrderInfoResponse, error) {
+func (c *orderClient) CreateOrder(ctx context.Context, in *OrderRequest, opts ...grpc.CallOption) (*OrderInfoResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(OrderInfoResponse)
-	err := c.cc.Invoke(ctx, Order_Create_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, Order_CreateOrder_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -125,9 +126,9 @@ func (c *orderClient) OrderDetail(ctx context.Context, in *OrderRequest, opts ..
 	return out, nil
 }
 
-func (c *orderClient) UpdateOrderStatus(ctx context.Context, in *OrderStatus, opts ...grpc.CallOption) (*Empty, error) {
+func (c *orderClient) UpdateOrderStatus(ctx context.Context, in *OrderStatus, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Empty)
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, Order_UpdateOrderStatus_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -144,13 +145,13 @@ type OrderServer interface {
 	// 购物车相关接口
 	CartItemList(context.Context, *UserInfo) (*CartItemListResponse, error)
 	CreateCartItem(context.Context, *CartItemRequest) (*ShopCartInfoResponse, error)
-	UpdateCartItem(context.Context, *CartItemRequest) (*Empty, error)
-	DeleteCartItem(context.Context, *CartItemRequest) (*Empty, error)
+	UpdateCartItem(context.Context, *CartItemRequest) (*emptypb.Empty, error)
+	DeleteCartItem(context.Context, *CartItemRequest) (*emptypb.Empty, error)
 	// 订单相关接口
-	Create(context.Context, *OrderRequest) (*OrderInfoResponse, error)
+	CreateOrder(context.Context, *OrderRequest) (*OrderInfoResponse, error)
 	OrderList(context.Context, *OrderFilterRequest) (*OrderListResponse, error)
 	OrderDetail(context.Context, *OrderRequest) (*OrderInfoDetailResponse, error)
-	UpdateOrderStatus(context.Context, *OrderStatus) (*Empty, error)
+	UpdateOrderStatus(context.Context, *OrderStatus) (*emptypb.Empty, error)
 	mustEmbedUnimplementedOrderServer()
 }
 
@@ -167,14 +168,14 @@ func (UnimplementedOrderServer) CartItemList(context.Context, *UserInfo) (*CartI
 func (UnimplementedOrderServer) CreateCartItem(context.Context, *CartItemRequest) (*ShopCartInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateCartItem not implemented")
 }
-func (UnimplementedOrderServer) UpdateCartItem(context.Context, *CartItemRequest) (*Empty, error) {
+func (UnimplementedOrderServer) UpdateCartItem(context.Context, *CartItemRequest) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateCartItem not implemented")
 }
-func (UnimplementedOrderServer) DeleteCartItem(context.Context, *CartItemRequest) (*Empty, error) {
+func (UnimplementedOrderServer) DeleteCartItem(context.Context, *CartItemRequest) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteCartItem not implemented")
 }
-func (UnimplementedOrderServer) Create(context.Context, *OrderRequest) (*OrderInfoResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method Create not implemented")
+func (UnimplementedOrderServer) CreateOrder(context.Context, *OrderRequest) (*OrderInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateOrder not implemented")
 }
 func (UnimplementedOrderServer) OrderList(context.Context, *OrderFilterRequest) (*OrderListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method OrderList not implemented")
@@ -182,7 +183,7 @@ func (UnimplementedOrderServer) OrderList(context.Context, *OrderFilterRequest) 
 func (UnimplementedOrderServer) OrderDetail(context.Context, *OrderRequest) (*OrderInfoDetailResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method OrderDetail not implemented")
 }
-func (UnimplementedOrderServer) UpdateOrderStatus(context.Context, *OrderStatus) (*Empty, error) {
+func (UnimplementedOrderServer) UpdateOrderStatus(context.Context, *OrderStatus) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateOrderStatus not implemented")
 }
 func (UnimplementedOrderServer) mustEmbedUnimplementedOrderServer() {}
@@ -278,20 +279,20 @@ func _Order_DeleteCartItem_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Order_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Order_CreateOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(OrderRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrderServer).Create(ctx, in)
+		return srv.(OrderServer).CreateOrder(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Order_Create_FullMethodName,
+		FullMethod: Order_CreateOrder_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrderServer).Create(ctx, req.(*OrderRequest))
+		return srv.(OrderServer).CreateOrder(ctx, req.(*OrderRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -374,8 +375,8 @@ var Order_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Order_DeleteCartItem_Handler,
 		},
 		{
-			MethodName: "Create",
-			Handler:    _Order_Create_Handler,
+			MethodName: "CreateOrder",
+			Handler:    _Order_CreateOrder_Handler,
 		},
 		{
 			MethodName: "OrderList",
