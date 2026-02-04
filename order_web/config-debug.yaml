@@ -1,0 +1,7 @@
+# nacos:
+host: "127.0.0.1"
+port: 8848
+grpc_port: 19848
+namespace: "b65a7ec6-e776-4de2-bbbb-25c645db1709"
+data_id: "order-web"
+group: "dev"
