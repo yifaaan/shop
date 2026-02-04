@@ -1288,5 +1288,283 @@
         "__v": 0
       }
     ]
+  },
+  {
+    "index": 0,
+    "name": "品牌分类",
+    "desc": null,
+    "add_time": 1770010562,
+    "up_time": 1770010562,
+    "list": [
+      {
+        "query_path": {
+          "path": "/g/v1/categorybrand/1111",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 106,
+        "method": "PUT",
+        "catid": 46,
+        "title": "修改",
+        "path": "/g/v1/categorybrand/1111",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "69803874a4c74e020ecbb3fe",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [
+          {
+            "required": "0",
+            "_id": "69803874a4c74e6789cbb400",
+            "name": "category_id",
+            "type": "text"
+          },
+          {
+            "required": "0",
+            "_id": "69803874a4c74e854fcbb3ff",
+            "name": "brand_id",
+            "type": "text",
+            "example": "",
+            "desc": ""
+          }
+        ],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": "",
+        "uid": 11,
+        "add_time": 1770010571,
+        "up_time": 1770010740,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/g/v1/categorybrand",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": true,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 114,
+        "method": "GET",
+        "catid": 46,
+        "title": "列表",
+        "path": "/g/v1/categorybrand",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "0",
+            "_id": "698038fca4c74ee253cbb403",
+            "name": "pn",
+            "example": "2",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "698038fca4c74e0e69cbb402",
+            "name": "psize",
+            "example": "20",
+            "desc": ""
+          }
+        ],
+        "req_headers": [],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"},\"category\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"},\"name\":{\"type\":\"string\"}},\"required\":[\"id\",\"name\"]},\"brand\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"},\"name\":{\"type\":\"string\"},\"logo\":{\"type\":\"string\"}},\"required\":[\"id\",\"name\",\"logo\"]}},\"required\":[\"id\",\"category\",\"brand\"]}}",
+        "uid": 11,
+        "add_time": 1770010572,
+        "up_time": 1770010876,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/g/v1/categorybrand/22222",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 110,
+        "method": "DELETE",
+        "catid": 46,
+        "title": "删除",
+        "path": "/g/v1/categorybrand/22222",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "69803896a4c74e1718cbb401",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": "",
+        "uid": 11,
+        "add_time": 1770010571,
+        "up_time": 1770010774,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/g/v1/categorybrand/130368",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": true,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 118,
+        "method": "GET",
+        "catid": 46,
+        "title": "根据分类获取品牌列表",
+        "path": "/g/v1/categorybrand/130368",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"},\"name\":{\"type\":\"string\"},\"logo\":{\"type\":\"string\"}},\"required\":[\"id\",\"name\",\"logo\"]}}",
+        "uid": 11,
+        "add_time": 1770010890,
+        "up_time": 1770011369,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/g/v1/categorybrand",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": true,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 102,
+        "method": "POST",
+        "catid": 46,
+        "title": "添加",
+        "path": "/g/v1/categorybrand",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "6980384ca4c74e5e42cbb3fb",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [
+          {
+            "required": "0",
+            "_id": "6980384ca4c74e0577cbb3fd",
+            "name": "category_id",
+            "type": "text",
+            "example": "",
+            "desc": "排序"
+          },
+          {
+            "required": "0",
+            "_id": "6980384ca4c74e10d0cbb3fc",
+            "name": "brand_id",
+            "type": "text",
+            "example": "",
+            "desc": "图片url"
+          }
+        ],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": "{\"type\":\"object\",\"title\":\"title\",\"properties\":{\"id\":{\"type\":\"integer\"}},\"required\":[\"id\"]}",
+        "uid": 11,
+        "add_time": 1770010569,
+        "up_time": 1770010700,
+        "__v": 0
+      }
+    ]
+  },
+  {
+    "index": 0,
+    "name": "购物车",
+    "desc": null,
+    "add_time": 1770187271,
+    "up_time": 1770187271,
+    "list": [
+      {
+        "query_path": {
+          "path": "/o/v1/shopcart",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 126,
+        "method": "GET",
+        "catid": 48,
+        "title": "查看购物车记录",
+        "path": "/o/v1/shopcart",
+        "project_id": 11,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1770187293,
+        "up_time": 1770187293,
+        "req_query": [],
+        "req_headers": [],
+        "req_body_form": [],
+        "__v": 0
+      }
+    ]
   }
 ]
