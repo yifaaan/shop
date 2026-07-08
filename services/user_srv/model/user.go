@@ -3,18 +3,11 @@ package model
 import (
 	"time"
 
-	"gorm.io/gorm"
+	basemodel "shop/pkg/model"
 )
 
-type BaseModel struct {
-	ID        int32          `gorm:"primaryKey"`
-	CreatedAt time.Time      `gorm:"column:add_time"`
-	UpdatedAt time.Time      `gorm:"column:update_time"`
-	DeletedAt gorm.DeletedAt `gorm:"index"`
-}
-
 type User struct {
-	BaseModel
+	basemodel.BaseModel
 	Mobile   string     `gorm:"index:idx_mobile,unique;type:varchar(11);not null"`
 	Password string     `gorm:"type:varchar(100);not null"`
 	NickName string     `gorm:"type:varchar(20)"`

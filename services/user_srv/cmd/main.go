@@ -1,11 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
-	"shop/pkg/model"
+	"shop/services/user_srv/model"
 	"time"
 
+	"crypto/sha512"
+
+	"github.com/anaskhan96/go-password-encoder"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -27,7 +31,7 @@ func main() {
 	// Globally mode
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
-			SingularTable: true, // 表明默认为单数
+			SingularTable: true, // 表名默认为单数
 		},
 		Logger: newLogger,
 	})
@@ -36,4 +40,19 @@ func main() {
 	}
 
 	_ = db.AutoMigrate(&model.User{})
+
+}
+
+func genPwd(code string) string {
+
+	// Using custom options
+	options := &password.Options{10, 20, 16, sha512.New}
+	salt, encodedPwd := password.Encode(code, options)
+
+	newPassword := fmt.Sprintf("$pbkdf2-sha512$%s$%s", salt, encodedPwd)
+	// parts := strings.Split(newPassword, "$")
+
+	// check := password.Verify(code, parts[2], parts[3], options)
+	// fmt.Println(check) // true
+	return newPassword
 }
