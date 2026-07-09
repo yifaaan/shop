@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"shop/pkg/proto"
+	"shop/services/user_web/global"
 	"shop/services/user_web/global/response"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -35,12 +37,10 @@ func HandleGrpcErrorToHttp(err error, ctx *gin.Context) {
 }
 
 func GetUserList(ctx *gin.Context) {
-	ip := "127.0.0.1"
-	port := 50051
 	zap.S().Debug("GetUserList called")
 
 	// Connect to the user service via gRPC
-	userConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", ip, port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	userConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", global.ServerConfig.UserSrv.Host, global.ServerConfig.UserSrv.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		zap.S().Error("failed to connect to user service: ", err.Error())
 		HandleGrpcErrorToHttp(err, ctx)
@@ -50,9 +50,13 @@ func GetUserList(ctx *gin.Context) {
 
 	userSrvClient := proto.NewUserClient(userConn)
 
+	pn := ctx.DefaultQuery("pn", "0")
+	psize := ctx.DefaultQuery("psize", "10")
+	pnInt, _ := strconv.Atoi(pn)
+	psizeInt, _ := strconv.Atoi(psize)
 	srvRsp, err := userSrvClient.GetUserList(ctx.Request.Context(), &proto.PageInfo{
-		Pn:    0,
-		PSize: 0,
+		Pn:    uint32(pnInt),
+		PSize: uint32(psizeInt),
 	})
 	if err != nil {
 		zap.S().Error("failed to get user list: ", err.Error())
