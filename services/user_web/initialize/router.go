@@ -1,6 +1,7 @@
 package initialize
 
 import (
+	"shop/services/user_web/middlewares"
 	rt "shop/services/user_web/router"
 
 	"github.com/gin-gonic/gin"
@@ -9,6 +10,8 @@ import (
 
 func Routers() *gin.Engine {
 	router := gin.Default()
+	router.Use(middlewares.Cors())
+
 	apiGroup := router.Group("/u/v1")
 
 	zap.S().Debug("registering user router")
