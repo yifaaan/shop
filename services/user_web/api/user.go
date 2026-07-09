@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"net/http"
 	"shop/pkg/proto"
+	"shop/services/user_web/forms"
 	"shop/services/user_web/global"
 	"shop/services/user_web/global/response"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -36,10 +39,25 @@ func HandleGrpcErrorToHttp(err error, ctx *gin.Context) {
 	}
 }
 
+func removeTopStruct(fields map[string]string) map[string]string {
+	res := map[string]string{}
+	for field, err := range fields {
+		res[field[strings.Index(field, ".")+1:]] = err
+	}
+	return res
+}
+
+func handleValidatorError(err error, ctx *gin.Context) {
+	errs, ok := err.(validator.ValidationErrors)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusBadRequest, gin.H{"msg": removeTopStruct(errs.Translate(global.Translator))})
+}
 func GetUserList(ctx *gin.Context) {
 	zap.S().Debug("GetUserList called")
 
-	// Connect to the user service via gRPC
 	userConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", global.ServerConfig.UserSrv.Host, global.ServerConfig.UserSrv.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		zap.S().Error("failed to connect to user service: ", err.Error())
@@ -76,4 +94,49 @@ func GetUserList(ctx *gin.Context) {
 		result = append(result, user)
 	}
 	ctx.JSON(http.StatusOK, result)
+}
+
+func PasswordLogin(ctx *gin.Context) {
+	var loginForm forms.PasswordLoginForm
+	if err := ctx.ShouldBind(&loginForm); err != nil {
+		zap.S().Error("PasswordLogin form binding error: ", err.Error())
+		handleValidatorError(err, ctx)
+		return
+	}
+
+	userConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", global.ServerConfig.UserSrv.Host, global.ServerConfig.UserSrv.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		zap.S().Error("failed to connect to user service: ", err.Error())
+		HandleGrpcErrorToHttp(err, ctx)
+		return
+	}
+	defer userConn.Close()
+
+	userSrvClient := proto.NewUserClient(userConn)
+
+	rsp, err := userSrvClient.GetUserByMobile(ctx.Request.Context(), &proto.MobileRequest{
+		Mobile: loginForm.Mobile,
+	})
+	if err != nil {
+		zap.S().Error("failed to get user by mobile: ", err.Error())
+		HandleGrpcErrorToHttp(err, ctx)
+		return
+	}
+
+	checkRsp, err := userSrvClient.CheckPassWord(ctx.Request.Context(), &proto.PasswordCheckInfo{
+		Password:          loginForm.Password,
+		EncryptedPassword: rsp.Password,
+	})
+	if err != nil {
+		zap.S().Error("failed to check password: ", err.Error())
+		HandleGrpcErrorToHttp(err, ctx)
+		return
+	}
+
+	if !checkRsp.Success {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"msg": "invalid password"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"msg": "login success"})
 }
