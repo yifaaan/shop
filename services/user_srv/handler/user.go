@@ -153,6 +153,7 @@ func ModelToResponse(user *model.User) *proto.UserInfoResponse {
 		NickName: user.NickName,
 		Gender:   user.Gender,
 		Role:     int32(user.Role),
+		Mobile:   user.Mobile,
 	}
 	if user.Birthday != nil {
 		userInfo.BirthDay = uint64(user.Birthday.Unix())

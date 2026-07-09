@@ -9,7 +9,7 @@ import (
 
 func Routers() *gin.Engine {
 	router := gin.Default()
-	apiGroup := router.Group("/v1")
+	apiGroup := router.Group("/u/v1")
 
 	zap.S().Debug("registering user router")
 	rt.InitUserRouter(apiGroup)

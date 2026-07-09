@@ -7,7 +7,7 @@ import (
 )
 
 func InitUserRouter(router *gin.RouterGroup) {
-	router.Group("user")
+	userGroup := router.Group("user")
 
-	router.GET("/list", api.GetUserList)
+	userGroup.GET("/list", api.GetUserList)
 }
