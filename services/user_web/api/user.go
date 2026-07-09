@@ -3,14 +3,17 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"shop/pkg/model"
 	"shop/pkg/proto"
 	"shop/services/user_web/forms"
 	"shop/services/user_web/global"
 	"shop/services/user_web/global/response"
+	"shop/services/user_web/middlewares"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
@@ -56,7 +59,8 @@ func handleValidatorError(err error, ctx *gin.Context) {
 	ctx.JSON(http.StatusBadRequest, gin.H{"msg": removeTopStruct(errs.Translate(global.Translator))})
 }
 func GetUserList(ctx *gin.Context) {
-	zap.S().Debug("GetUserList called")
+	uid := ctx.GetUint("userId")
+	zap.S().Debug("GetUserList called, userId: ", uid)
 
 	userConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", global.ServerConfig.UserSrv.Host, global.ServerConfig.UserSrv.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -138,5 +142,25 @@ func PasswordLogin(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"msg": "login success"})
+	// Generate JWT token
+	j := middlewares.NewJWT()
+	claims := &model.CustomClaims{
+		ID:          uint(rsp.Id),
+		NickName:    rsp.NickName,
+		AuthorityId: uint(rsp.Role),
+		StandardClaims: jwt.StandardClaims{
+			NotBefore: time.Now().Unix(),            // Token is valid from now
+			ExpiresAt: time.Now().Unix() + 60*60*24, // 1 day
+			Issuer:    "shop",                       // Issuer
+		},
+	}
+
+	token, err := j.CreateToken(claims)
+	if err != nil {
+		zap.S().Error("failed to create token: ", err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to create token"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"id": rsp.Id, "nickname": rsp.NickName, "token": token})
 }
