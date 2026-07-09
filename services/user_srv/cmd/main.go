@@ -1,26 +1,26 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"net"
 
-	"shop/services/user_srv/global"
-	"shop/services/user_srv/model"
+	"shop/pkg/proto"
+	"shop/services/user_srv/handler"
 
-	"crypto/sha512"
-
-	"github.com/anaskhan96/go-password-encoder"
+	"google.golang.org/grpc"
 )
 
 func main() {
 	log.Println("DB init done")
-	_ = global.DB.AutoMigrate(&model.User{})
-}
 
-func genPwd(code string) string {
-	options := &password.Options{10, 20, 16, sha512.New}
-	salt, encodedPwd := password.Encode(code, options)
-
-	newPassword := fmt.Sprintf("$pbkdf2-sha512$%s$%s", salt, encodedPwd)
-	return newPassword
+	server := grpc.NewServer()
+	proto.RegisterUserServer(server, &handler.UserServer{})
+	lis, err := net.Listen("tcp", "0.0.0.0:50051")
+	if err != nil {
+		panic("failed to listen:" + err.Error())
+	}
+	err = server.Serve(lis)
+	if err != nil {
+		panic("failed to start grpc:" + err.Error())
+	}
 }

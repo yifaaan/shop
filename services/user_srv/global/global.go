@@ -3,6 +3,7 @@ package global
 import (
 	"log"
 	"os"
+	"shop/services/user_srv/model"
 	"time"
 
 	"gorm.io/driver/mysql"
@@ -34,4 +35,5 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	_ = DB.AutoMigrate(&model.User{})
 }
