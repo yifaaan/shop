@@ -16,6 +16,7 @@ func Routers() *gin.Engine {
 
 	zap.S().Debug("registering user router")
 	rt.InitUserRouter(apiGroup)
+	rt.InitBaseRouter(apiGroup)
 
 	return router
 }

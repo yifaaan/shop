@@ -108,6 +108,12 @@ func PasswordLogin(ctx *gin.Context) {
 		return
 	}
 
+	// Verify captcha
+	if !store.Verify(loginForm.CaptchaId, loginForm.Captcha, true) {
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "invalid captcha"})
+		return
+	}
+
 	userConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", global.ServerConfig.UserSrv.Host, global.ServerConfig.UserSrv.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		zap.S().Error("failed to connect to user service: ", err.Error())
