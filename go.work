@@ -3,4 +3,5 @@ go 1.26.5
 use (
 	./pkg
 	./services/user_srv
+	./services/user_web
 )
