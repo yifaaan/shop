@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"shop/pkg/proto"
+	"shop/services/user_web/global/response"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -58,14 +60,16 @@ func GetUserList(ctx *gin.Context) {
 		return
 	}
 
-	result := make([]any, 0, srvRsp.Total)
+	result := make([]response.UserResponse, 0, srvRsp.Total)
 	for _, val := range srvRsp.Data {
-		data := make(map[string]any)
-		data["id"] = val.Id
-		data["name"] = val.NickName
-		data["mobile"] = val.Mobile
-		data["birthday"] = val.BirthDay
-		result = append(result, data)
+		user := response.UserResponse{
+			Id:       val.Id,
+			NickName: val.NickName,
+			Mobile:   val.Mobile,
+			Gender:   val.Gender,
+			Birthday: response.JsonTime(time.Unix(int64(val.BirthDay), 0)),
+		}
+		result = append(result, user)
 	}
 	ctx.JSON(http.StatusOK, result)
 }
