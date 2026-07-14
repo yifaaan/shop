@@ -3,13 +3,18 @@ package initialize
 import (
 	"fmt"
 	"shop/services/user_web/global"
+	"strings"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
 func InitConfig() {
+	_ = godotenv.Load(".env.local")
+	_ = godotenv.Load(".env")
+
 	viper.AutomaticEnv()
 	debug := viper.GetBool("SHOP_DEBUG")
 	configFilePrefix := "config"
@@ -19,6 +24,9 @@ func InitConfig() {
 	}
 
 	v := viper.New()
+	v.SetEnvPrefix("SHOP")
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+	v.AutomaticEnv()
 	v.SetConfigFile(cfgFileName)
 	if err := v.ReadInConfig(); err != nil {
 		panic(fmt.Errorf("fatal error config file: %s", err))

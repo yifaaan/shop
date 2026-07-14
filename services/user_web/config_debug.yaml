@@ -5,3 +5,14 @@ user-srv:
   port: 50051
 jwt:
   signing_key: '123456'
+redis:
+  host: '127.0.0.1'
+  port: 6379
+  password: ''
+  db: 0
+aliyun-sms:
+  region_id: ''
+  access_key_id: ''
+  access_key_secret: ''
+  sign_name: ''
+  template_code: ''

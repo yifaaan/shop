@@ -6,3 +6,8 @@ type PasswordLoginForm struct {
 	Captcha   string `form:"captcha" json:"captcha" binding:"required,len=5"`
 	CaptchaId string `form:"captcha_id" json:"captcha_id" binding:"required"`
 }
+
+type SendSmsForm struct {
+	Mobile string `form:"mobile" json:"mobile" binding:"required,mobile"`
+	Type   int    `form:"type" json:"type" binding:"required,oneof=1 2"` // 1:注册 2:登录
+}
