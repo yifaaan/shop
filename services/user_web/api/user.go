@@ -16,6 +16,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -169,4 +170,73 @@ func PasswordLogin(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"id": rsp.Id, "nickname": rsp.NickName, "token": token})
+}
+
+func Register(ctx *gin.Context) {
+	var registerForm forms.RegisterForm
+	if err := ctx.ShouldBind(&registerForm); err != nil {
+		zap.S().Error("Register form binding error: ", err.Error())
+		handleValidatorError(err, ctx)
+		return
+	}
+
+	// Verify SMS code
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", global.ServerConfig.Redis.Host, global.ServerConfig.Redis.Port),
+		Password: global.ServerConfig.Redis.Password,
+		DB:       global.ServerConfig.Redis.DB,
+	})
+	defer rdb.Close()
+	code, err := rdb.Get(ctx.Request.Context(), "sms:code:"+registerForm.Mobile).Result()
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "验证码已过期"})
+		return
+	}
+	if code != registerForm.Code {
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "验证码错误"})
+		return
+	}
+
+	// Proceed with registration logic, e.g., call user service to create a new user
+	userConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", global.ServerConfig.UserSrv.Host, global.ServerConfig.UserSrv.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		zap.S().Error("failed to connect to user service: ", err.Error())
+		HandleGrpcErrorToHttp(err, ctx)
+		return
+	}
+	defer userConn.Close()
+
+	userSrvClient := proto.NewUserClient(userConn)
+	srvRsp, err := userSrvClient.CreateUser(ctx.Request.Context(), &proto.CreateUserInfo{
+		Mobile:   registerForm.Mobile,
+		Password: registerForm.Password,
+		NickName: registerForm.Mobile, // Default nickname is the mobile number
+	})
+	if err != nil {
+		zap.S().Error("failed to create user: ", err.Error())
+		HandleGrpcErrorToHttp(err, ctx)
+		return
+	}
+
+	// Generate JWT token
+	j := middlewares.NewJWT()
+	claims := &model.CustomClaims{
+		ID:          uint(srvRsp.Id),
+		NickName:    srvRsp.NickName,
+		AuthorityId: uint(srvRsp.Role),
+		StandardClaims: jwt.StandardClaims{
+			NotBefore: time.Now().Unix(),            // Token is valid from now
+			ExpiresAt: time.Now().Unix() + 60*60*24, // 1 day
+			Issuer:    "shop",                       // Issuer
+		},
+	}
+
+	token, err := j.CreateToken(claims)
+	if err != nil {
+		zap.S().Error("failed to create token: ", err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to create token"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"id": srvRsp.Id, "nickname": srvRsp.NickName, "token": token})
 }
