@@ -1,4 +1,4 @@
-package forms
+package web
 
 type PasswordLoginForm struct {
 	Mobile    string `form:"mobile" json:"mobile" binding:"required,mobile"`

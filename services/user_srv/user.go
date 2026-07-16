@@ -1,15 +1,15 @@
-package handler
+package main
 
 import (
 	"context"
 	"crypto/sha512"
 	"errors"
 	"fmt"
-	"shop/pkg/proto"
-	"shop/services/user_srv/global"
-	"shop/services/user_srv/model"
 	"strings"
 	"time"
+
+	basemodel "shop/pkg/model"
+	"shop/pkg/proto"
 
 	"github.com/anaskhan96/go-password-encoder"
 	"google.golang.org/grpc/codes"
@@ -18,14 +18,40 @@ import (
 	"gorm.io/gorm"
 )
 
+// User is the persisted user record owned by the user service.
+type User struct {
+	basemodel.BaseModel
+	Mobile   string     `gorm:"index:idx_mobile,unique;type:varchar(11);not null"`
+	Password string     `gorm:"type:varchar(100);not null"`
+	NickName string     `gorm:"type:varchar(20)"`
+	Birthday *time.Time `gorm:"type:datetime"` // 指针允许字段为 null
+	Gender   string     `gorm:"column:gender;default:male;type:varchar(6) comment 'female 女, male男'"`
+	Role     int        `gorm:"column:role;default:1;type:int comment '1表示用户, 2表示管理员'"`
+}
+
+// UserServer implements proto.UserServer over an injected *gorm.DB.
 type UserServer struct {
 	proto.UnimplementedUserServer
+	db *gorm.DB
+}
+
+// passwordOptions is the shared PBKDF2-SHA512 encoder config for password hashing.
+var passwordOptions = &password.Options{
+	SaltLen:      10,
+	Iterations:   100,
+	KeyLen:       16,
+	HashFunction: sha512.New,
+}
+
+// NewUserServer wires a UserServer to its data store.
+func NewUserServer(db *gorm.DB) *UserServer {
+	return &UserServer{db: db}
 }
 
 // GetUserList 获取用户列表
 func (s *UserServer) GetUserList(ctx context.Context, req *proto.PageInfo) (*proto.UserListResponse, error) {
-	var users []model.User
-	result := global.DB.Scopes(Paginate(int(req.Pn), int(req.PSize))).Find(&users)
+	var users []User
+	result := s.db.Scopes(Paginate(int(req.Pn), int(req.PSize))).Find(&users)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -35,8 +61,7 @@ func (s *UserServer) GetUserList(ctx context.Context, req *proto.PageInfo) (*pro
 	rsp.Data = make([]*proto.UserInfoResponse, 0, rsp.Total)
 
 	for _, user := range users {
-		userInfo := ModelToResponse(&user)
-		rsp.Data = append(rsp.Data, userInfo)
+		rsp.Data = append(rsp.Data, ModelToResponse(&user))
 	}
 
 	return rsp, nil
@@ -44,8 +69,8 @@ func (s *UserServer) GetUserList(ctx context.Context, req *proto.PageInfo) (*pro
 
 // GetUserByMobile 通过手机号查询用户
 func (s *UserServer) GetUserByMobile(ctx context.Context, req *proto.MobileRequest) (*proto.UserInfoResponse, error) {
-	var user model.User
-	result := global.DB.Where(&model.User{Mobile: req.Mobile}).First(&user)
+	var user User
+	result := s.db.Where(&User{Mobile: req.Mobile}).First(&user)
 	if result.RowsAffected == 0 {
 		return nil, status.Errorf(codes.NotFound, "用户不存在")
 	}
@@ -53,13 +78,12 @@ func (s *UserServer) GetUserByMobile(ctx context.Context, req *proto.MobileReque
 		return nil, result.Error
 	}
 
-	userInfo := ModelToResponse(&user)
-	return userInfo, nil
+	return ModelToResponse(&user), nil
 }
 
 func (s *UserServer) GetUserById(ctx context.Context, req *proto.IdRequest) (*proto.UserInfoResponse, error) {
-	var user model.User
-	result := global.DB.First(&user, req.Id)
+	var user User
+	result := s.db.First(&user, req.Id)
 	if result.RowsAffected == 0 {
 		return nil, status.Errorf(codes.NotFound, "用户不存在")
 	}
@@ -67,13 +91,12 @@ func (s *UserServer) GetUserById(ctx context.Context, req *proto.IdRequest) (*pr
 		return nil, result.Error
 	}
 
-	userInfo := ModelToResponse(&user)
-	return userInfo, nil
+	return ModelToResponse(&user), nil
 }
 
 func (s *UserServer) CreateUser(ctx context.Context, req *proto.CreateUserInfo) (*proto.UserInfoResponse, error) {
-	var user model.User
-	result := global.DB.Where(&model.User{Mobile: req.Mobile}).First(&user)
+	var user User
+	result := s.db.Where(&User{Mobile: req.Mobile}).First(&user)
 	if result.RowsAffected == 1 {
 		return nil, status.Errorf(codes.AlreadyExists, "用户已存在")
 	}
@@ -85,23 +108,21 @@ func (s *UserServer) CreateUser(ctx context.Context, req *proto.CreateUserInfo) 
 	user.NickName = req.NickName
 
 	// 密码加密
-	options := &password.Options{10, 100, 16, sha512.New}
-	salt, encodedPwd := password.Encode(req.Password, options)
+	salt, encodedPwd := password.Encode(req.Password, passwordOptions)
 	newPassword := fmt.Sprintf("$pbkdf2-sha512$%s$%s", salt, encodedPwd)
 	user.Password = newPassword
 
-	result = global.DB.Create(&user)
+	result = s.db.Create(&user)
 	if result.Error != nil {
-		return nil, status.Errorf(codes.Internal, result.Error.Error())
+		return nil, status.Error(codes.Internal, result.Error.Error())
 	}
 
-	userInfo := ModelToResponse(&user)
-	return userInfo, nil
+	return ModelToResponse(&user), nil
 }
 
 func (s *UserServer) UpdateUser(ctx context.Context, req *proto.UpdateUserInfo) (*emptypb.Empty, error) {
-	var user model.User
-	result := global.DB.First(&user, req.Id)
+	var user User
+	result := s.db.First(&user, req.Id)
 	if result.RowsAffected == 0 {
 		return nil, status.Errorf(codes.NotFound, "用户不存在")
 	}
@@ -114,17 +135,16 @@ func (s *UserServer) UpdateUser(ctx context.Context, req *proto.UpdateUserInfo) 
 	user.Birthday = &birthDay
 	user.Gender = req.Gender
 
-	result = global.DB.Save(&user)
+	result = s.db.Save(&user)
 	if result.Error != nil {
-		return nil, status.Errorf(codes.Internal, result.Error.Error())
+		return nil, status.Error(codes.Internal, result.Error.Error())
 	}
 	return &emptypb.Empty{}, nil
 }
 
 func (s *UserServer) CheckPassWord(ctx context.Context, req *proto.PasswordCheckInfo) (*proto.CheckResponse, error) {
-	options := &password.Options{10, 100, 16, sha512.New}
 	parts := strings.Split(req.EncryptedPassword, "$")
-	check := password.Verify(req.Password, parts[2], parts[3], options)
+	check := password.Verify(req.Password, parts[2], parts[3], passwordOptions)
 	return &proto.CheckResponse{Success: check}, nil
 }
 
@@ -146,7 +166,7 @@ func Paginate(page, pageSize int) func(db *gorm.DB) *gorm.DB {
 	}
 }
 
-func ModelToResponse(user *model.User) *proto.UserInfoResponse {
+func ModelToResponse(user *User) *proto.UserInfoResponse {
 	userInfo := &proto.UserInfoResponse{
 		Id:       user.ID,
 		Password: user.Password,

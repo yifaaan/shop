@@ -1,10 +1,11 @@
-package response
+package web
 
 import (
 	"fmt"
 	"time"
 )
 
+// JsonTime is a time.Time that marshals to a "YYYY-MM-DD" JSON string.
 type JsonTime time.Time
 
 func (t JsonTime) MarshalJSON() ([]byte, error) {
@@ -12,10 +13,9 @@ func (t JsonTime) MarshalJSON() ([]byte, error) {
 }
 
 type UserResponse struct {
-	Id       int32  `json:"id"`
-	NickName string `json:"name"`
-	Mobile   string `json:"mobile"`
-	// Birthday string `json:"birthday"`
+	Id       int32    `json:"id"`
+	NickName string   `json:"name"`
+	Mobile   string   `json:"mobile"`
 	Birthday JsonTime `json:"birthday"`
 	Gender   string   `json:"gender"`
 }
