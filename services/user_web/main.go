@@ -23,13 +23,14 @@ import (
 )
 
 func main() {
-	log := newLogger()
-	defer log.Sync()
+	log := newLogger(false)
+	defer func() { _ = log.Sync() }()
 
 	cfg, err := config.Load()
 	if err != nil {
 		log.Panic("failed to load config: ", err)
 	}
+	log = newLogger(cfg.Debug)
 
 	if err := web.ConfigureTranslator("zh"); err != nil {
 		log.Panic("failed to init translator: ", err)
@@ -85,7 +86,19 @@ func main() {
 	}
 }
 
-func newLogger() *zap.SugaredLogger {
-	l, _ := zap.NewDevelopment()
+// newLogger returns a dev (console, debug-level) or prod (json, info-level) sugared logger.
+func newLogger(debug bool) *zap.SugaredLogger {
+	var (
+		l   *zap.Logger
+		err error
+	)
+	if debug {
+		l, err = zap.NewDevelopment()
+	} else {
+		l, err = zap.NewProduction()
+	}
+	if err != nil {
+		panic("failed to init logger: " + err.Error())
+	}
 	return l.Sugar()
 }

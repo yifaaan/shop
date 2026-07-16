@@ -11,6 +11,7 @@ import (
 
 type Config struct {
 	Name      string          `mapstructure:"name"`
+	Debug     bool            `mapstructure:"debug"` // from SHOP_DEBUG; selects dev logger + config_debug.yaml
 	Port      int             `mapstructure:"port"`
 	UserSrv   UserSrvConfig   `mapstructure:"user-srv"`
 	JWT       JWTConfig       `mapstructure:"jwt"`
