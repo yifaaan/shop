@@ -91,7 +91,7 @@ func openDB(cfg config.MySQLConfig, log *zap.SugaredLogger) (*gorm.DB, error) {
 		zapWriter{log: log},
 		logger.Config{
 			SlowThreshold: time.Second,
-			LogLevel:      logger.Info,
+			LogLevel:      logger.Warn, // 只记慢查询(>SlowThreshold)和错误，不打印每条 SQL
 			Colorful:      false,
 		},
 	)
