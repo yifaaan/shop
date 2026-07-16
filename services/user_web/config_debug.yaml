@@ -1,8 +1,7 @@
 name: 'user-web'
 port: 50000
 user-srv:
-  host: '127.0.0.1'
-  port: 50051
+  name: 'user-srv'
 jwt:
   signing_key: '123456'
 redis:

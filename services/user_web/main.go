@@ -45,8 +45,15 @@ func main() {
 		log.Panic("failed to register with consul: ", err)
 	}
 
+	// 从 Consul 发现 user_srv 地址
+	userSrvAddr, err := reg.Resolve(cfg.UserSrv.Name)
+	if err != nil {
+		log.Panic("resolve user_srv from consul: ", err)
+	}
+	log.Infof("discovered user_srv at %s", userSrvAddr)
+
 	userConn, err := grpc.NewClient(
-		fmt.Sprintf("%s:%d", cfg.UserSrv.Host, cfg.UserSrv.Port),
+		userSrvAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {

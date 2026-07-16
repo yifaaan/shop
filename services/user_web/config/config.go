@@ -21,8 +21,7 @@ type Config struct {
 }
 
 type UserSrvConfig struct {
-	Host string `mapstructure:"host"`
-	Port int    `mapstructure:"port"`
+	Name string `mapstructure:"name"` // Consul 中 user_srv 注册的服务名，用于服务发现
 }
 
 type JWTConfig struct {
