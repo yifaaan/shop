@@ -17,3 +17,7 @@ aliyun-sms:
   sign_name: ''
   template_code: ''
   expire: 300
+consul:
+  host: '127.0.0.1'
+  port: 18500
+  address: '127.0.0.1'

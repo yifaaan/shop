@@ -157,6 +157,11 @@ func (s *Server) GetCaptcha(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"captchaId": id, "picPath": b64s})
 }
 
+// Health is the liveness/readiness endpoint used by Consul.
+func (s *Server) Health(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
 func (s *Server) SendSms(ctx *gin.Context) {
 	var form SendSmsForm
 	if err := ctx.ShouldBind(&form); err != nil {

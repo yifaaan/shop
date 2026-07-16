@@ -13,6 +13,7 @@ import (
 	"shop/pkg/proto"
 	"shop/services/user_web/auth"
 	"shop/services/user_web/config"
+	"shop/services/user_web/registry"
 	"shop/services/user_web/sms"
 	"shop/services/user_web/web"
 
@@ -36,6 +37,12 @@ func main() {
 
 	smsSvc := sms.New(cfg)
 	defer smsSvc.Close()
+
+	// 注册到 Consul
+	reg, err := registry.New(cfg)
+	if err != nil {
+		log.Panic("failed to register with consul: ", err)
+	}
 
 	userConn, err := grpc.NewClient(
 		fmt.Sprintf("%s:%d", cfg.UserSrv.Host, cfg.UserSrv.Port),
@@ -71,6 +78,10 @@ func main() {
 	defer cancel()
 	if err := httpSrv.Shutdown(ctx); err != nil {
 		log.Error("server shutdown error: ", err)
+	}
+
+	if err := reg.Deregister(); err != nil {
+		log.Error("deregister from consul error: ", err)
 	}
 }
 

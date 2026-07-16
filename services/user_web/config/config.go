@@ -16,6 +16,7 @@ type Config struct {
 	JWT       JWTConfig       `mapstructure:"jwt"`
 	AliyunSMS AliyunSMSConfig `mapstructure:"aliyun-sms"`
 	Redis     RedisConfig     `mapstructure:"redis"`
+	Consul    ConsulConfig    `mapstructure:"consul"`
 }
 
 type UserSrvConfig struct {
@@ -41,6 +42,12 @@ type AliyunSMSConfig struct {
 	SignName        string `mapstructure:"sign_name"`
 	TemplateCode    string `mapstructure:"template_code"`
 	Expire          int    `mapstructure:"expire"`
+}
+
+type ConsulConfig struct {
+	Host    string `mapstructure:"host"`    // Consul agent 地址
+	Port    int    `mapstructure:"port"`    // Consul agent 端口
+	Address string `mapstructure:"address"` // 本服务对外宣告地址（健康检查 & 被发现用）
 }
 
 // Load reads the YAML config (debug or pro) plus SHOP_-prefixed env overrides

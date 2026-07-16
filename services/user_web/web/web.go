@@ -37,6 +37,8 @@ func (s *Server) Routers() *gin.Engine {
 	router := gin.Default()
 	router.Use(Cors())
 
+	router.GET("/health", s.Health) // Consul 健康检查
+
 	apiGroup := router.Group("/u/v1")
 	s.log.Debug("registering user router")
 	s.registerUserRoutes(apiGroup)
