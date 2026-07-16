@@ -46,23 +46,3 @@ func New(cfg *config.Config) (*Registrar, error) {
 func (r *Registrar) Deregister() error {
 	return r.client.Agent().ServiceDeregister(r.serviceID)
 }
-
-// Resolve returns the "host:port" of one healthy instance of the named
-// service from Consul. Use it to discover downstream services instead of
-// hardcoding their addresses. Only passing (healthy) instances are
-// considered; the first one is returned.
-func (r *Registrar) Resolve(name string) (string, error) {
-	entries, _, err := r.client.Health().Service(name, "", true, nil)
-	if err != nil {
-		return "", fmt.Errorf("query consul for %q: %w", name, err)
-	}
-	if len(entries) == 0 {
-		return "", fmt.Errorf("no healthy instance of %q in consul", name)
-	}
-	entry := entries[0]
-	addr := entry.Service.Address
-	if addr == "" {
-		addr = entry.Node.Address
-	}
-	return fmt.Sprintf("%s:%d", addr, entry.Service.Port), nil
-}

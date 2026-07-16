@@ -19,6 +19,7 @@ import (
 	"shop/services/user_web/web"
 
 	"go.uber.org/zap"
+	_ "github.com/mbobakov/grpc-consul-resolver" // 注册 "consul" gRPC resolver scheme
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -52,16 +53,13 @@ func main() {
 		log.Panic("failed to register with consul: ", err)
 	}
 
-	// 从 Consul 发现 user_srv 地址
-	userSrvAddr, err := reg.Resolve(cfg.UserSrv.Name)
-	if err != nil {
-		log.Panic("resolve user_srv from consul: ", err)
-	}
-	log.Infof("discovered user_srv at %s", userSrvAddr)
-
+	// 通过 Consul resolver 发现 user_srv 并按 round_robin 负载均衡。
+	// mbobakov/grpc-consul-resolver 在 import 时自动注册 "consul" scheme；
+	// ?healthy=true 让它只返回健康实例。
 	userConn, err := grpc.NewClient(
-		userSrvAddr,
+		fmt.Sprintf("consul://%s:%d/%s?healthy=true", cfg.Consul.Host, cfg.Consul.Port, cfg.UserSrv.Name),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"round_robin"}`),
 	)
 	if err != nil {
 		log.Panic("failed to connect to user service: ", err)

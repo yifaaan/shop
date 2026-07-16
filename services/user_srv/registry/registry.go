@@ -5,6 +5,7 @@ import (
 
 	"shop/services/user_srv/config"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/consul/api"
 )
 
@@ -24,18 +25,20 @@ func New(cfg *config.Config) (*Registrar, error) {
 		return nil, fmt.Errorf("create consul client: %w", err)
 	}
 
-	// 单实例用服务名作 ID；多实例时改 name + "-" + hostname 唯一化。
-	serviceID := cfg.Name
+	// 服务名相同供发现；ID 用 UUID 唯一，多实例才不会在 Consul 互相覆盖。
+	// 进程崩溃后健康检查会失败，DeregisterCriticalServiceAfter 让 Consul 自动清掉残留实例。
+	serviceID := uuid.NewString()
 	reg := &api.AgentServiceRegistration{
 		ID:      serviceID,
 		Name:    cfg.Name,
 		Address: cfg.Consul.Address,
 		Port:    cfg.Port,
 		Check: &api.AgentServiceCheck{
-			GRPC:       fmt.Sprintf("%s:%d/%s", cfg.Consul.Address, cfg.Port, cfg.Name),
-			GRPCUseTLS: false,
-			Interval:   "10s",
-			Timeout:    "5s",
+			GRPC:                           fmt.Sprintf("%s:%d/%s", cfg.Consul.Address, cfg.Port, cfg.Name),
+			GRPCUseTLS:                     false,
+			Interval:                       "10s",
+			Timeout:                        "5s",
+			DeregisterCriticalServiceAfter: "30s",
 		},
 	}
 
