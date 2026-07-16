@@ -16,3 +16,4 @@ aliyun-sms:
   access_key_secret: ''
   sign_name: ''
   template_code: ''
+  expire: 300

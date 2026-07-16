@@ -92,7 +92,7 @@ func SendSms(ctx *gin.Context) {
 		requestCtx,
 		codeKey,
 		response.Model.VerifyCode,
-		5*time.Minute,
+		time.Duration(cfg.Expire)*time.Second,
 	).Err(); err != nil {
 		rollback()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "验证码保存失败"})
