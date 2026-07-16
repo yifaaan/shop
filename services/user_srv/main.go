@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"shop/pkg/port"
 	"shop/pkg/proto"
 	"shop/services/user_srv/config"
 	"shop/services/user_srv/registry"
@@ -33,6 +34,12 @@ func main() {
 		log.Panic("failed to load config: ", err)
 	}
 	log = newLogger(cfg.Debug)
+
+	// DEBUG 用配置里的固定端口，否则用 OS 分配的动态端口
+	cfg.Port, err = port.Get(cfg.Debug, cfg.Port)
+	if err != nil {
+		log.Panic("get listen port: ", err)
+	}
 
 	db, err := openDB(cfg.MySQL, log)
 	if err != nil {
