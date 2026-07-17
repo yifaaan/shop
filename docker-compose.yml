@@ -39,12 +39,60 @@ services:
     restart: always
     volumes:
       - mysql-data:/var/lib/mysql
+      # 首次初始化时自动创建 nacos_config 库并导入表结构。
+      # 注意：该目录下的脚本仅在 MySQL 数据目录为空（首次启动）时执行；
+      # 若已有数据卷，需先 `docker compose down -v` 清空或手动执行 ./sql/00-nacos-init.sql。
+      - ./sql/00-nacos-init.sql:/docker-entrypoint-initdb.d/00-nacos-init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  nacos:
+    image: nacos/nacos-server:v2.4.3
+    container_name: nacos
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - MODE=standalone
+      - PREFER_HOST_MODE=hostname
+      # 关闭内置 Derby，使用外置 MySQL 持久化
+      - SPRING_DATASOURCE_PLATFORM=mysql
+      - MYSQL_SERVICE_HOST=mysql
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_DB_NAME=nacos_config
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=root123456
+      - MYSQL_SERVICE_DB_PARAM=characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai
+      # 鉴权（Nacos 2.4 默认开启鉴权，必须显式配置）
+      - NACOS_AUTH_ENABLE=true
+      - NACOS_AUTH_TOKEN=SecretKey012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
+      - NACOS_AUTH_IDENTITY_KEY=nacos
+      - NACOS_AUTH_IDENTITY_VALUE=nacos
+      - JVM_XMS=256m
+      - JVM_XMX=256m
+      - JVM_XMN=128m
+    ports:
+      - "8848:8848"   # Web 控制台 & HTTP API
+      - "9848:9848"   # gRPC 客户端端口（Nacos 2.x 客户端必用）
+      - "9849:9849"   # gRPC 集群内部通信（单机可不开，保留便于排错）
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8848/nacos/v1/console/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - nacos-logs:/home/nacos/logs
 
   redis:
     image: redis:7-alpine
     container_name: redis
     ports:
-      - "6379:6379"
+      # 宿主机 16379（避开 Windows 排除端口 6365-6464）→ 容器内仍 6379
+      - "16379:6379"
     restart: always
     volumes:
       - redis-data:/data
@@ -69,3 +117,4 @@ volumes:
   redis-data:
   consul-data:
   consul-config:
+  nacos-logs:
