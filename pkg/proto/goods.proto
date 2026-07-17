@@ -1,0 +1,46 @@
+syntax = "proto3";
+option go_package = ".;proto";
+
+import "google/protobuf/empty.proto";
+import "common.proto";
+
+service Goods {
+    rpc GoodsList(PageInfo) returns (GoodsListResponse);          // 商品列表
+    rpc GetGoodsDetail(IdRequest) returns (GoodsInfoResponse);   // 通过 id 查询商品
+    rpc CreateGoods(CreateGoodsInfo) returns (GoodsInfoResponse); // 新建商品
+    rpc UpdateGoods(UpdateGoodsInfo) returns (google.protobuf.Empty); // 更新商品
+    rpc DeleteGoods(DeleteGoodsInfo) returns (google.protobuf.Empty); // 删除商品
+}
+
+message DeleteGoodsInfo {
+    int32 id = 1;
+}
+
+message CreateGoodsInfo {
+    string name = 1;
+    string goodsSn = 2;     // 商品货号
+    int32 categoryId = 3;  // 分类
+    double marketPrice = 4; // 市场价
+    int32 stock = 5;        // 库存
+}
+
+message UpdateGoodsInfo {
+    int32 id = 1;
+    string name = 2;
+    double marketPrice = 3;
+    int32 stock = 4;
+}
+
+message GoodsInfoResponse {
+    int32 id = 1;
+    string name = 2;
+    string goodsSn = 3;
+    int32 categoryId = 4;
+    double marketPrice = 5;
+    int32 stock = 6;
+}
+
+message GoodsListResponse {
+    int32 total = 1;
+    repeated GoodsInfoResponse data = 2;
+}

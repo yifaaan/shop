@@ -2,6 +2,7 @@ syntax = "proto3";
 option go_package = ".;proto";
 
 import "google/protobuf/empty.proto";
+import "common.proto";
 
 service User {
     rpc GetUserList(PageInfo) returns (UserListResponse); // 用户列表
@@ -12,17 +13,8 @@ service User {
     rpc CheckPassWord(PasswordCheckInfo) returns (CheckResponse); // 检查密码
 }
 
-message PageInfo {
-    uint32 pn = 1;
-    uint32 pSize = 2;
-}
-
 message MobileRequest {
     string mobile = 1;
-}
-
-message IdRequest {
-    int32 id = 1;
 }
 
 message CreateUserInfo {

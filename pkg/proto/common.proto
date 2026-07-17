@@ -1,0 +1,14 @@
+syntax = "proto3";
+option go_package = ".;proto";
+
+// 通用消息，各服务 proto 通过 import "common.proto" 复用，
+// 避免在同一个 proto 包里重复声明同名消息。
+
+message PageInfo {
+    uint32 pn = 1;
+    uint32 pSize = 2;
+}
+
+message IdRequest {
+    int32 id = 1;
+}

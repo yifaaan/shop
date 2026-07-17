@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v7.35.0
-// source: pkg/proto/user.proto
+// source: user.proto
 
 package proto
 
@@ -22,58 +22,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type PageInfo struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Pn            uint32                 `protobuf:"varint,1,opt,name=pn,proto3" json:"pn,omitempty"`
-	PSize         uint32                 `protobuf:"varint,2,opt,name=pSize,proto3" json:"pSize,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PageInfo) Reset() {
-	*x = PageInfo{}
-	mi := &file_pkg_proto_user_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PageInfo) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PageInfo) ProtoMessage() {}
-
-func (x *PageInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_user_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PageInfo.ProtoReflect.Descriptor instead.
-func (*PageInfo) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_user_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *PageInfo) GetPn() uint32 {
-	if x != nil {
-		return x.Pn
-	}
-	return 0
-}
-
-func (x *PageInfo) GetPSize() uint32 {
-	if x != nil {
-		return x.PSize
-	}
-	return 0
-}
-
 type MobileRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Mobile        string                 `protobuf:"bytes,1,opt,name=mobile,proto3" json:"mobile,omitempty"`
@@ -83,7 +31,7 @@ type MobileRequest struct {
 
 func (x *MobileRequest) Reset() {
 	*x = MobileRequest{}
-	mi := &file_pkg_proto_user_proto_msgTypes[1]
+	mi := &file_user_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -95,7 +43,7 @@ func (x *MobileRequest) String() string {
 func (*MobileRequest) ProtoMessage() {}
 
 func (x *MobileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_user_proto_msgTypes[1]
+	mi := &file_user_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -108,7 +56,7 @@ func (x *MobileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MobileRequest.ProtoReflect.Descriptor instead.
 func (*MobileRequest) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_user_proto_rawDescGZIP(), []int{1}
+	return file_user_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *MobileRequest) GetMobile() string {
@@ -116,50 +64,6 @@ func (x *MobileRequest) GetMobile() string {
 		return x.Mobile
 	}
 	return ""
-}
-
-type IdRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *IdRequest) Reset() {
-	*x = IdRequest{}
-	mi := &file_pkg_proto_user_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *IdRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*IdRequest) ProtoMessage() {}
-
-func (x *IdRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_user_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use IdRequest.ProtoReflect.Descriptor instead.
-func (*IdRequest) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_user_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *IdRequest) GetId() int32 {
-	if x != nil {
-		return x.Id
-	}
-	return 0
 }
 
 type CreateUserInfo struct {
@@ -173,7 +77,7 @@ type CreateUserInfo struct {
 
 func (x *CreateUserInfo) Reset() {
 	*x = CreateUserInfo{}
-	mi := &file_pkg_proto_user_proto_msgTypes[3]
+	mi := &file_user_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -185,7 +89,7 @@ func (x *CreateUserInfo) String() string {
 func (*CreateUserInfo) ProtoMessage() {}
 
 func (x *CreateUserInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_user_proto_msgTypes[3]
+	mi := &file_user_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -198,7 +102,7 @@ func (x *CreateUserInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserInfo.ProtoReflect.Descriptor instead.
 func (*CreateUserInfo) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_user_proto_rawDescGZIP(), []int{3}
+	return file_user_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *CreateUserInfo) GetNickName() string {
@@ -234,7 +138,7 @@ type UpdateUserInfo struct {
 
 func (x *UpdateUserInfo) Reset() {
 	*x = UpdateUserInfo{}
-	mi := &file_pkg_proto_user_proto_msgTypes[4]
+	mi := &file_user_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -246,7 +150,7 @@ func (x *UpdateUserInfo) String() string {
 func (*UpdateUserInfo) ProtoMessage() {}
 
 func (x *UpdateUserInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_user_proto_msgTypes[4]
+	mi := &file_user_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -259,7 +163,7 @@ func (x *UpdateUserInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserInfo.ProtoReflect.Descriptor instead.
 func (*UpdateUserInfo) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_user_proto_rawDescGZIP(), []int{4}
+	return file_user_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *UpdateUserInfo) GetId() int32 {
@@ -300,7 +204,7 @@ type PasswordCheckInfo struct {
 
 func (x *PasswordCheckInfo) Reset() {
 	*x = PasswordCheckInfo{}
-	mi := &file_pkg_proto_user_proto_msgTypes[5]
+	mi := &file_user_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -312,7 +216,7 @@ func (x *PasswordCheckInfo) String() string {
 func (*PasswordCheckInfo) ProtoMessage() {}
 
 func (x *PasswordCheckInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_user_proto_msgTypes[5]
+	mi := &file_user_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -325,7 +229,7 @@ func (x *PasswordCheckInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PasswordCheckInfo.ProtoReflect.Descriptor instead.
 func (*PasswordCheckInfo) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_user_proto_rawDescGZIP(), []int{5}
+	return file_user_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *PasswordCheckInfo) GetPassword() string {
@@ -357,7 +261,7 @@ type UserInfoResponse struct {
 
 func (x *UserInfoResponse) Reset() {
 	*x = UserInfoResponse{}
-	mi := &file_pkg_proto_user_proto_msgTypes[6]
+	mi := &file_user_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -369,7 +273,7 @@ func (x *UserInfoResponse) String() string {
 func (*UserInfoResponse) ProtoMessage() {}
 
 func (x *UserInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_user_proto_msgTypes[6]
+	mi := &file_user_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -382,7 +286,7 @@ func (x *UserInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserInfoResponse.ProtoReflect.Descriptor instead.
 func (*UserInfoResponse) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_user_proto_rawDescGZIP(), []int{6}
+	return file_user_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *UserInfoResponse) GetId() int32 {
@@ -444,7 +348,7 @@ type UserListResponse struct {
 
 func (x *UserListResponse) Reset() {
 	*x = UserListResponse{}
-	mi := &file_pkg_proto_user_proto_msgTypes[7]
+	mi := &file_user_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -456,7 +360,7 @@ func (x *UserListResponse) String() string {
 func (*UserListResponse) ProtoMessage() {}
 
 func (x *UserListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_user_proto_msgTypes[7]
+	mi := &file_user_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -469,7 +373,7 @@ func (x *UserListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserListResponse.ProtoReflect.Descriptor instead.
 func (*UserListResponse) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_user_proto_rawDescGZIP(), []int{7}
+	return file_user_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *UserListResponse) GetTotal() int32 {
@@ -495,7 +399,7 @@ type CheckResponse struct {
 
 func (x *CheckResponse) Reset() {
 	*x = CheckResponse{}
-	mi := &file_pkg_proto_user_proto_msgTypes[8]
+	mi := &file_user_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -507,7 +411,7 @@ func (x *CheckResponse) String() string {
 func (*CheckResponse) ProtoMessage() {}
 
 func (x *CheckResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_user_proto_msgTypes[8]
+	mi := &file_user_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -520,7 +424,7 @@ func (x *CheckResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckResponse.ProtoReflect.Descriptor instead.
 func (*CheckResponse) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_user_proto_rawDescGZIP(), []int{8}
+	return file_user_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CheckResponse) GetSuccess() bool {
@@ -530,18 +434,14 @@ func (x *CheckResponse) GetSuccess() bool {
 	return false
 }
 
-var File_pkg_proto_user_proto protoreflect.FileDescriptor
+var File_user_proto protoreflect.FileDescriptor
 
-const file_pkg_proto_user_proto_rawDesc = "" +
+const file_user_proto_rawDesc = "" +
 	"\n" +
-	"\x14pkg/proto/user.proto\x1a\x1bgoogle/protobuf/empty.proto\"0\n" +
-	"\bPageInfo\x12\x0e\n" +
-	"\x02pn\x18\x01 \x01(\rR\x02pn\x12\x14\n" +
-	"\x05pSize\x18\x02 \x01(\rR\x05pSize\"'\n" +
+	"\n" +
+	"user.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\fcommon.proto\"'\n" +
 	"\rMobileRequest\x12\x16\n" +
-	"\x06mobile\x18\x01 \x01(\tR\x06mobile\"\x1b\n" +
-	"\tIdRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\"`\n" +
+	"\x06mobile\x18\x01 \x01(\tR\x06mobile\"`\n" +
 	"\x0eCreateUserInfo\x12\x1a\n" +
 	"\bnickName\x18\x01 \x01(\tR\bnickName\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x16\n" +
@@ -579,44 +479,44 @@ const file_pkg_proto_user_proto_rawDesc = "" +
 	"\rCheckPassWord\x12\x12.PasswordCheckInfo\x1a\x0e.CheckResponseB\tZ\a.;protob\x06proto3"
 
 var (
-	file_pkg_proto_user_proto_rawDescOnce sync.Once
-	file_pkg_proto_user_proto_rawDescData []byte
+	file_user_proto_rawDescOnce sync.Once
+	file_user_proto_rawDescData []byte
 )
 
-func file_pkg_proto_user_proto_rawDescGZIP() []byte {
-	file_pkg_proto_user_proto_rawDescOnce.Do(func() {
-		file_pkg_proto_user_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_pkg_proto_user_proto_rawDesc), len(file_pkg_proto_user_proto_rawDesc)))
+func file_user_proto_rawDescGZIP() []byte {
+	file_user_proto_rawDescOnce.Do(func() {
+		file_user_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_user_proto_rawDesc), len(file_user_proto_rawDesc)))
 	})
-	return file_pkg_proto_user_proto_rawDescData
+	return file_user_proto_rawDescData
 }
 
-var file_pkg_proto_user_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
-var file_pkg_proto_user_proto_goTypes = []any{
-	(*PageInfo)(nil),          // 0: PageInfo
-	(*MobileRequest)(nil),     // 1: MobileRequest
-	(*IdRequest)(nil),         // 2: IdRequest
-	(*CreateUserInfo)(nil),    // 3: CreateUserInfo
-	(*UpdateUserInfo)(nil),    // 4: UpdateUserInfo
-	(*PasswordCheckInfo)(nil), // 5: PasswordCheckInfo
-	(*UserInfoResponse)(nil),  // 6: UserInfoResponse
-	(*UserListResponse)(nil),  // 7: UserListResponse
-	(*CheckResponse)(nil),     // 8: CheckResponse
+var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_user_proto_goTypes = []any{
+	(*MobileRequest)(nil),     // 0: MobileRequest
+	(*CreateUserInfo)(nil),    // 1: CreateUserInfo
+	(*UpdateUserInfo)(nil),    // 2: UpdateUserInfo
+	(*PasswordCheckInfo)(nil), // 3: PasswordCheckInfo
+	(*UserInfoResponse)(nil),  // 4: UserInfoResponse
+	(*UserListResponse)(nil),  // 5: UserListResponse
+	(*CheckResponse)(nil),     // 6: CheckResponse
+	(*PageInfo)(nil),          // 7: PageInfo
+	(*IdRequest)(nil),         // 8: IdRequest
 	(*emptypb.Empty)(nil),     // 9: google.protobuf.Empty
 }
-var file_pkg_proto_user_proto_depIdxs = []int32{
-	6, // 0: UserListResponse.data:type_name -> UserInfoResponse
-	0, // 1: User.GetUserList:input_type -> PageInfo
-	1, // 2: User.GetUserByMobile:input_type -> MobileRequest
-	2, // 3: User.GetUserById:input_type -> IdRequest
-	3, // 4: User.CreateUser:input_type -> CreateUserInfo
-	4, // 5: User.UpdateUser:input_type -> UpdateUserInfo
-	5, // 6: User.CheckPassWord:input_type -> PasswordCheckInfo
-	7, // 7: User.GetUserList:output_type -> UserListResponse
-	6, // 8: User.GetUserByMobile:output_type -> UserInfoResponse
-	6, // 9: User.GetUserById:output_type -> UserInfoResponse
-	6, // 10: User.CreateUser:output_type -> UserInfoResponse
+var file_user_proto_depIdxs = []int32{
+	4, // 0: UserListResponse.data:type_name -> UserInfoResponse
+	7, // 1: User.GetUserList:input_type -> PageInfo
+	0, // 2: User.GetUserByMobile:input_type -> MobileRequest
+	8, // 3: User.GetUserById:input_type -> IdRequest
+	1, // 4: User.CreateUser:input_type -> CreateUserInfo
+	2, // 5: User.UpdateUser:input_type -> UpdateUserInfo
+	3, // 6: User.CheckPassWord:input_type -> PasswordCheckInfo
+	5, // 7: User.GetUserList:output_type -> UserListResponse
+	4, // 8: User.GetUserByMobile:output_type -> UserInfoResponse
+	4, // 9: User.GetUserById:output_type -> UserInfoResponse
+	4, // 10: User.CreateUser:output_type -> UserInfoResponse
 	9, // 11: User.UpdateUser:output_type -> google.protobuf.Empty
-	8, // 12: User.CheckPassWord:output_type -> CheckResponse
+	6, // 12: User.CheckPassWord:output_type -> CheckResponse
 	7, // [7:13] is the sub-list for method output_type
 	1, // [1:7] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -624,26 +524,27 @@ var file_pkg_proto_user_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_pkg_proto_user_proto_init() }
-func file_pkg_proto_user_proto_init() {
-	if File_pkg_proto_user_proto != nil {
+func init() { file_user_proto_init() }
+func file_user_proto_init() {
+	if File_user_proto != nil {
 		return
 	}
+	file_common_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pkg_proto_user_proto_rawDesc), len(file_pkg_proto_user_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_proto_rawDesc), len(file_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_pkg_proto_user_proto_goTypes,
-		DependencyIndexes: file_pkg_proto_user_proto_depIdxs,
-		MessageInfos:      file_pkg_proto_user_proto_msgTypes,
+		GoTypes:           file_user_proto_goTypes,
+		DependencyIndexes: file_user_proto_depIdxs,
+		MessageInfos:      file_user_proto_msgTypes,
 	}.Build()
-	File_pkg_proto_user_proto = out.File
-	file_pkg_proto_user_proto_goTypes = nil
-	file_pkg_proto_user_proto_depIdxs = nil
+	File_user_proto = out.File
+	file_user_proto_goTypes = nil
+	file_user_proto_depIdxs = nil
 }
