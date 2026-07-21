@@ -101,6 +101,8 @@ func gormConfig(log *zap.SugaredLogger) *gorm.Config {
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true,
 		},
+		// dump 已自带外键约束，禁止 AutoMigrate 再行创建，避免与既有 *_ibfk_* 产生重复外键。
+		DisableForeignKeyConstraintWhenMigrating: true,
 		Logger: logger.New(
 			zapWriter{log: log},
 			logger.Config{
