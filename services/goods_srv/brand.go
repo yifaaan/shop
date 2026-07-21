@@ -19,7 +19,20 @@ type Brands struct {
 
 // BrandList 品牌列表（分页）
 func (s *GoodsServer) BrandList(ctx context.Context, req *proto.BrandFilterRequest) (*proto.BrandListResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method BrandList not implemented")
+	var brands []Brands
+	result := s.db.Scopes(Paginate(int(req.Pages), int(req.PagePerNums))).Find(&brands)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	rsp := &proto.BrandListResponse{
+		Total: int32(result.RowsAffected),
+		Data:  make([]*proto.BrandInfoResponse, 0, result.RowsAffected),
+	}
+	for i := range brands {
+		rsp.Data = append(rsp.Data, BrandModelToResponse(&brands[i]))
+	}
+	return rsp, nil
 }
 
 // CreateBrand 新建品牌
@@ -35,4 +48,12 @@ func (s *GoodsServer) DeleteBrand(ctx context.Context, req *proto.BrandRequest) 
 // UpdateBrand 更新品牌
 func (s *GoodsServer) UpdateBrand(ctx context.Context, req *proto.BrandRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBrand not implemented")
+}
+
+func BrandModelToResponse(brand *Brands) *proto.BrandInfoResponse {
+	return &proto.BrandInfoResponse{
+		Id:   brand.ID,
+		Name: brand.Name,
+		Logo: brand.Logo,
+	}
 }

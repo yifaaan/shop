@@ -50,7 +50,7 @@ func (s *GoodsServer) GoodsList(ctx context.Context, req *proto.GoodsFilterReque
 		Data:  make([]*proto.GoodsInfoResponse, 0, result.RowsAffected),
 	}
 	for i := range goods {
-		rsp.Data = append(rsp.Data, ModelToResponse(&goods[i]))
+		rsp.Data = append(rsp.Data, GoodsModelToResponse(&goods[i]))
 	}
 	return rsp, nil
 }
@@ -75,7 +75,7 @@ func (s *GoodsServer) GetGoodsDetail(ctx context.Context, req *proto.GoodInfoReq
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return ModelToResponse(&g), nil
+	return GoodsModelToResponse(&g), nil
 }
 
 // UpdateGoods 更新商品（name / market_price / stock）
@@ -106,6 +106,39 @@ func (s *GoodsServer) DeleteGoods(ctx context.Context, req *proto.DeleteGoodsInf
 	return &emptypb.Empty{}, nil
 }
 
-func ModelToResponse(g *Goods) *proto.GoodsInfoResponse {
-	return &proto.GoodsInfoResponse{}
+func GoodsModelToResponse(g *Goods) *proto.GoodsInfoResponse {
+	rsp := &proto.GoodsInfoResponse{
+		Id:              g.ID,
+		CategoryId:      g.CategoryID,
+		Name:            g.Name,
+		GoodsSn:         g.GoodsSn,
+		ClickNum:        g.ClickNum,
+		SoldNum:         g.SoldNum,
+		FavNum:          g.FavNum,
+		MarketPrice:     g.MarketPrice,
+		ShopPrice:       g.ShopPrice,
+		GoodsBrief:      g.GoodsBrief,
+		ShipFree:        g.ShipFree,
+		Images:          []string(g.Images),
+		DescImages:      []string(g.DescImages),
+		GoodsFrontImage: g.GoodsFrontImage,
+		IsNew:           g.IsNew,
+		IsHot:           g.IsHot,
+		OnSale:          g.OnSale,
+		AddTime:         g.CreatedAt.Unix(),
+	}
+	if g.Category != nil {
+		rsp.Category = &proto.CategoryBriefInfoResponse{
+			Id:   g.Category.ID,
+			Name: g.Category.Name,
+		}
+	}
+	if g.Brand != nil {
+		rsp.Brand = &proto.BrandInfoResponse{
+			Id:   g.Brand.ID,
+			Name: g.Brand.Name,
+			Logo: g.Brand.Logo,
+		}
+	}
+	return rsp
 }
