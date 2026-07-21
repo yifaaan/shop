@@ -22,7 +22,7 @@ func (s *GoodsServer) BrandList(ctx context.Context, req *proto.BrandFilterReque
 	var brands []Brands
 	result := s.db.Scopes(Paginate(int(req.Pages), int(req.PagePerNums))).Find(&brands)
 	if result.Error != nil {
-		return nil, result.Error
+		return nil, status.Errorf(codes.Internal, "查询品牌列表失败: %v", result.Error)
 	}
 
 	rsp := &proto.BrandListResponse{
@@ -37,17 +37,37 @@ func (s *GoodsServer) BrandList(ctx context.Context, req *proto.BrandFilterReque
 
 // CreateBrand 新建品牌
 func (s *GoodsServer) CreateBrand(ctx context.Context, req *proto.BrandRequest) (*proto.BrandInfoResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateBrand not implemented")
+	brand := Brands{
+		Name: req.Name,
+		Logo: req.Logo,
+	}
+	if err := s.db.Create(&brand).Error; err != nil {
+		return nil, status.Errorf(codes.Internal, "创建品牌失败: %v", err)
+	}
+	return BrandModelToResponse(&brand), nil
 }
 
 // DeleteBrand 删除品牌
 func (s *GoodsServer) DeleteBrand(ctx context.Context, req *proto.BrandRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteBrand not implemented")
+	if err := s.db.Delete(&Brands{}, req.Id).Error; err != nil {
+		return nil, status.Errorf(codes.Internal, "删除品牌失败: %v", err)
+	}
+	return &emptypb.Empty{}, nil
 }
 
 // UpdateBrand 更新品牌
 func (s *GoodsServer) UpdateBrand(ctx context.Context, req *proto.BrandRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateBrand not implemented")
+	result := s.db.Model(&Brands{}).Where("id = ?", req.Id).Updates(map[string]any{
+		"name": req.Name,
+		"logo": req.Logo,
+	})
+	if result.RowsAffected == 0 {
+		return nil, status.Errorf(codes.NotFound, "品牌不存在")
+	}
+	if result.Error != nil {
+		return nil, status.Errorf(codes.Internal, "更新品牌失败: %v", result.Error)
+	}
+	return &emptypb.Empty{}, nil
 }
 
 func BrandModelToResponse(brand *Brands) *proto.BrandInfoResponse {
