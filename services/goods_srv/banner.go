@@ -20,20 +20,68 @@ type Banner struct {
 
 // BannerList 轮播图列表
 func (s *GoodsServer) BannerList(ctx context.Context, req *emptypb.Empty) (*proto.BannerListResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method BannerList not implemented")
+	var banners []Banner
+	result := s.db.Find(&banners)
+	if result.Error != nil {
+		return nil, status.Errorf(codes.Internal, "查询轮播图列表失败: %v", result.Error)
+	}
+
+	rsp := &proto.BannerListResponse{
+		Total: int32(result.RowsAffected),
+		Data:  make([]*proto.BannerResponse, 0, result.RowsAffected),
+	}
+	for i := range banners {
+		rsp.Data = append(rsp.Data, BannerModelToResponse(&banners[i]))
+	}
+	return rsp, nil
 }
 
 // CreateBanner 新建轮播图
 func (s *GoodsServer) CreateBanner(ctx context.Context, req *proto.BannerRequest) (*proto.BannerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateBanner not implemented")
+	banner := Banner{
+		Image: req.Image,
+		Url:   req.Url,
+		Index: req.Index,
+	}
+	if err := s.db.Create(&banner).Error; err != nil {
+		return nil, status.Errorf(codes.Internal, "创建轮播图失败: %v", err)
+	}
+	return BannerModelToResponse(&banner), nil
 }
 
 // DeleteBanner 删除轮播图
 func (s *GoodsServer) DeleteBanner(ctx context.Context, req *proto.BannerRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteBanner not implemented")
+	result := s.db.Delete(&Banner{}, req.Id)
+	if result.RowsAffected == 0 {
+		return nil, status.Errorf(codes.NotFound, "轮播图不存在")
+	}
+	if result.Error != nil {
+		return nil, status.Errorf(codes.Internal, "删除轮播图失败: %v", result.Error)
+	}
+	return &emptypb.Empty{}, nil
 }
 
 // UpdateBanner 更新轮播图
 func (s *GoodsServer) UpdateBanner(ctx context.Context, req *proto.BannerRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateBanner not implemented")
+	result := s.db.Model(&Banner{}).Where("id = ?", req.Id).Updates(map[string]any{
+		"image": req.Image,
+		"url":   req.Url,
+		"index": req.Index,
+	})
+	if result.RowsAffected == 0 {
+		return nil, status.Errorf(codes.NotFound, "轮播图不存在")
+	}
+	if result.Error != nil {
+		return nil, status.Errorf(codes.Internal, "更新轮播图失败: %v", result.Error)
+	}
+	return &emptypb.Empty{}, nil
+}
+
+func BannerModelToResponse(b *Banner) *proto.BannerResponse {
+	return &proto.BannerResponse{
+		Id:    b.ID,
+		Index: b.Index,
+		Image: b.Image,
+		Url:   b.Url,
+	}
 }
