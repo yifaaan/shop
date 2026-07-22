@@ -183,9 +183,9 @@ func (s *Server) createToken(id int32, nickname string, role int32) (string, err
 		NickName:    nickname,
 		AuthorityId: uint(role),
 		StandardClaims: jwt.StandardClaims{
-			NotBefore: time.Now().Unix(),            // Token is valid from now
-			ExpiresAt: time.Now().Unix() + 60*60*24, // 1 day
-			Issuer:    "shop",                       // Issuer
+			NotBefore: time.Now().Unix(),               // Token is valid from now
+			ExpiresAt: time.Now().Unix() + 60*60*24*30, // 30 days
+			Issuer:    "shop",                          // Issuer
 		},
 	}
 	return s.j.CreateToken(claims)

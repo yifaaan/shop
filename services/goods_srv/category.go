@@ -24,11 +24,11 @@ type Category struct {
 
 // categoryNode 是分类树的 JSON 序列化节点
 type categoryNode struct {
-	Id           int32          `json:"id"`
-	Name         string         `json:"name"`
-	Level        int32          `json:"level"`
-	IsTab        bool           `json:"is_tab"`
-	SubCategorys []categoryNode `json:"subCategorys"`
+	Id            int32          `json:"id"`
+	Name          string         `json:"name"`
+	Level         int32          `json:"level"`
+	IsTab         bool           `json:"is_tab"`
+	SubCategories []categoryNode `json:"sub_categories"`
 }
 
 // CategoryModelToNode 把 Category 模型递归转换成 JSON 节点。
@@ -40,9 +40,9 @@ func CategoryModelToNode(c *Category) categoryNode {
 		IsTab: c.IsTab,
 	}
 	if len(c.SubCategory) > 0 {
-		node.SubCategorys = make([]categoryNode, 0, len(c.SubCategory))
+		node.SubCategories = make([]categoryNode, 0, len(c.SubCategory))
 		for i := range c.SubCategory {
-			node.SubCategorys = append(node.SubCategorys, CategoryModelToNode(&c.SubCategory[i]))
+			node.SubCategories = append(node.SubCategories, CategoryModelToNode(&c.SubCategory[i]))
 		}
 	}
 	return node

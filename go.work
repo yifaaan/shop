@@ -3,6 +3,7 @@ go 1.26.5
 use (
 	./pkg
 	./services/goods_srv
+	./services/goods_web
 	./services/user_srv
 	./services/user_web
 )
