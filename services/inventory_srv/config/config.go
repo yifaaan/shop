@@ -60,7 +60,7 @@ func Load() (*Config, error) {
 	opts := nacosconf.Options{
 		Host:      envStr("SHOP_NACOS_HOST", "127.0.0.1"),
 		Port:      envInt("SHOP_NACOS_PORT", 8848),
-		Namespace: envStr("SHOP_NACOS_NAMESPACE_GOODS", ""),
+		Namespace: envStr("SHOP_NACOS_NAMESPACE_INVENTORY", ""), // inventory 命名空间 ID（未设则 public）
 		Username:  envStr("SHOP_NACOS_USERNAME", "nacos"),
 		Password:  envStr("SHOP_NACOS_PASSWORD", "nacos"),
 		DataID:    "inventory-srv",

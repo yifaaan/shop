@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Inventory 库存记录
@@ -88,12 +89,13 @@ func (s *InventoryServer) GetInvDetail(ctx context.Context, req *proto.GoodsInvI
 // StockSellDetail 订单扣减库存
 func (s *InventoryServer) StockSellDetail(ctx context.Context, req *proto.OrderStockDetail) (*emptypb.Empty, error) {
 	// 事务解决：部分扣减问题
-	// TODO:并发情况会出现超卖
+	// 并发情况会出现超卖: 悲观锁 FOR UPDATE，查询条件是索引匹配时才会锁行，否则会锁表
 	tx := s.db.Begin()
 
 	for _, goods := range req.OrderGoods {
 		var inv Inventory
-		result := tx.Where("goods_id = ?", goods.GoodsId).First(&inv)
+		// GoodsID 设置了索引
+		result := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where(&Inventory{GoodsID: goods.GoodsId}).First(&inv)
 		if result.Error != nil {
 			tx.Rollback()
 			if result.Error == gorm.ErrRecordNotFound {
@@ -126,7 +128,7 @@ func (s *InventoryServer) RebackDetail(ctx context.Context, req *proto.OrderStoc
 
 	for _, goods := range req.OrderGoods {
 		var inv Inventory
-		result := tx.Where("goods_id = ?", goods.GoodsId).First(&inv)
+		result := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where(&Inventory{GoodsID: goods.GoodsId}).First(&inv)
 		if result.Error != nil {
 			tx.Rollback()
 			if result.Error == gorm.ErrRecordNotFound {
