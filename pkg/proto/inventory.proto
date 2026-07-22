@@ -1,0 +1,38 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+
+option go_package = ".;proto";
+
+service Inventory {
+    // 库存接口
+    rpc SetInv(GoodsInvInfo) returns (google.protobuf.Empty);          // 设置库存
+    rpc GetInvDetail(GoodsInvInfo) returns (GoodsInvInfo);               // 查询库存详情
+    rpc StockSellDetail(OrderStockDetail) returns (google.protobuf.Empty); // 订单扣减库存
+    rpc RebackDetail(OrderStockDetail) returns (google.protobuf.Empty);  // 订单归还库存
+    rpc ShowInvDetail(ShowInvDetailRequest) returns (ShowInvDetailResponse); // 后台分页查询库存
+}
+
+message GoodsInvInfo {
+    int32 goodsId = 1;  // 商品ID
+    int32 stocks = 2;   // 库存数量
+}
+
+message OrderStockDetail {
+    int32 orderSn = 1;         // 订单号
+    repeated OrderGoodsDetail orderGoods = 2; // 订单商品明细
+}
+
+message OrderGoodsDetail {
+    int32 goodsId = 1;
+    int32 num = 2; // 购买数量
+}
+
+message ShowInvDetailRequest {
+    int32 pages = 1;
+    int32 pagePerNums = 2;
+}
+
+message ShowInvDetailResponse {
+    int32 total = 1;
+    repeated GoodsInvInfo data = 2;
+}
