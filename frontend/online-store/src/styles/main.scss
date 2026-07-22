@@ -1,0 +1,72 @@
+// 全局基础样式
+:root {
+  --brand-color: #c81623;
+  --brand-color-dark: #c81624;
+  --text-color: #333;
+  --text-light: #999;
+  --border-color: #eee;
+  --content-width: 1200px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  font: 14px/1.5 'Microsoft YaHei', Tahoma, Helvetica, Arial, simsun;
+  color: var(--text-color);
+  background: #fafafa;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--brand-color);
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+img {
+  border: 0;
+  vertical-align: middle;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+// 通用工具类
+.container {
+  width: var(--content-width);
+  margin: 0 auto;
+}
+
+.text-red {
+  color: var(--brand-color);
+}
+
+.price {
+  color: var(--brand-color);
+  font-weight: bold;
+}
+
+// Element Plus 主题色微调
+.el-button--primary {
+  --el-button-bg-color: var(--brand-color);
+  --el-button-border-color: var(--brand-color);
+  --el-button-hover-bg-color: var(--brand-color-dark);
+  --el-button-hover-border-color: var(--brand-color-dark);
+  --el-button-active-bg-color: var(--brand-color-dark);
+  --el-button-active-border-color: var(--brand-color-dark);
+}
