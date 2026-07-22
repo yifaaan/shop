@@ -71,7 +71,7 @@ func (s *InventoryServer) SetInv(ctx context.Context, req *proto.GoodsInvInfo) (
 // GetInvDetail 查询库存详情
 func (s *InventoryServer) GetInvDetail(ctx context.Context, req *proto.GoodsInvInfo) (*proto.GoodsInvInfo, error) {
 	var inv Inventory
-	result := s.db.Where("goods_id = ?", req.GoodsId)
+	result := s.db.Where("goods_id = ?", req.GoodsId).First(&inv)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return nil, status.Errorf(codes.NotFound, "库存记录不存在：%v", result.Error)
@@ -87,12 +87,61 @@ func (s *InventoryServer) GetInvDetail(ctx context.Context, req *proto.GoodsInvI
 
 // StockSellDetail 订单扣减库存
 func (s *InventoryServer) StockSellDetail(ctx context.Context, req *proto.OrderStockDetail) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StockSellDetail not implemented")
+	// 事务解决：部分扣减问题
+	// TODO:并发情况会出现超卖
+	tx := s.db.Begin()
+
+	for _, goods := range req.OrderGoods {
+		var inv Inventory
+		result := tx.Where("goods_id = ?", goods.GoodsId).First(&inv)
+		if result.Error != nil {
+			tx.Rollback()
+			if result.Error == gorm.ErrRecordNotFound {
+				return nil, status.Errorf(codes.NotFound, "库存记录不存在：%v", result.Error)
+			} else {
+				return nil, status.Errorf(codes.Internal, "查询库存记录失败：%v", result.Error)
+			}
+		}
+		// 判断库存是否充足
+		if inv.Stocks < goods.Num {
+			tx.Rollback()
+			return nil, status.Error(codes.ResourceExhausted, "库存不足")
+		}
+		inv.Stocks -= goods.Num
+		tx.Save(&inv)
+	}
+
+	tx.Commit()
+
+	return &emptypb.Empty{}, nil
 }
 
 // RebackDetail 订单归还库存
+//
+//	1.订单超时后需要归还
+//	2.订单创建失败时，需要归还之前扣减的库存
+//	3.用户手动归还
 func (s *InventoryServer) RebackDetail(ctx context.Context, req *proto.OrderStockDetail) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RebackDetail not implemented")
+	tx := s.db.Begin()
+
+	for _, goods := range req.OrderGoods {
+		var inv Inventory
+		result := tx.Where("goods_id = ?", goods.GoodsId).First(&inv)
+		if result.Error != nil {
+			tx.Rollback()
+			if result.Error == gorm.ErrRecordNotFound {
+				return nil, status.Errorf(codes.NotFound, "库存记录不存在：%v", result.Error)
+			} else {
+				return nil, status.Errorf(codes.Internal, "查询库存记录失败：%v", result.Error)
+			}
+		}
+		inv.Stocks += goods.Num
+		tx.Save(&inv)
+	}
+
+	tx.Commit()
+
+	return &emptypb.Empty{}, nil
 }
 
 // ShowInvDetail 后台分页查询库存
