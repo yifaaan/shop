@@ -86,31 +86,69 @@ func (s *InventoryServer) GetInvDetail(ctx context.Context, req *proto.GoodsInvI
 	}, nil
 }
 
+// // StockSellDetail 订单扣减库存
+// func (s *InventoryServer) StockSellDetail(ctx context.Context, req *proto.OrderStockDetail) (*emptypb.Empty, error) {
+// 	// 事务解决：部分扣减问题
+// 	// 并发情况会出现超卖: 悲观锁 FOR UPDATE，查询条件是索引匹配时才会锁行，否则会锁表
+// 	tx := s.db.Begin()
+
+// 	for _, goods := range req.OrderGoods {
+// 		var inv Inventory
+// 		// GoodsID 设置了索引
+// 		result := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where(&Inventory{GoodsID: goods.GoodsId}).First(&inv)
+// 		if result.Error != nil {
+// 			tx.Rollback()
+// 			if result.Error == gorm.ErrRecordNotFound {
+// 				return nil, status.Errorf(codes.NotFound, "库存记录不存在：%v", result.Error)
+// 			} else {
+// 				return nil, status.Errorf(codes.Internal, "查询库存记录失败：%v", result.Error)
+// 			}
+// 		}
+// 		// 判断库存是否充足
+// 		if inv.Stocks < goods.Num {
+// 			tx.Rollback()
+// 			return nil, status.Error(codes.ResourceExhausted, "库存不足")
+// 		}
+// 		inv.Stocks -= goods.Num
+// 		tx.Save(&inv)
+// 	}
+
+// 	tx.Commit()
+
+// 	return &emptypb.Empty{}, nil
+// }
+
 // StockSellDetail 订单扣减库存
 func (s *InventoryServer) StockSellDetail(ctx context.Context, req *proto.OrderStockDetail) (*emptypb.Empty, error) {
 	// 事务解决：部分扣减问题
-	// 并发情况会出现超卖: 悲观锁 FOR UPDATE，查询条件是索引匹配时才会锁行，否则会锁表
+	// 并发情况会出现超卖: 乐观锁
 	tx := s.db.Begin()
 
 	for _, goods := range req.OrderGoods {
 		var inv Inventory
-		// GoodsID 设置了索引
-		result := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where(&Inventory{GoodsID: goods.GoodsId}).First(&inv)
-		if result.Error != nil {
-			tx.Rollback()
-			if result.Error == gorm.ErrRecordNotFound {
-				return nil, status.Errorf(codes.NotFound, "库存记录不存在：%v", result.Error)
-			} else {
-				return nil, status.Errorf(codes.Internal, "查询库存记录失败：%v", result.Error)
+
+		for {
+			result := tx.Where(&Inventory{GoodsID: goods.GoodsId}).First(&inv)
+			if result.Error != nil {
+				tx.Rollback()
+				if result.Error == gorm.ErrRecordNotFound {
+					return nil, status.Errorf(codes.NotFound, "库存记录不存在：%v", result.Error)
+				} else {
+					return nil, status.Errorf(codes.Internal, "查询库存记录失败：%v", result.Error)
+				}
 			}
+			// 判断库存是否充足
+			if inv.Stocks < goods.Num {
+				tx.Rollback()
+				return nil, status.Error(codes.ResourceExhausted, "库存不足")
+			}
+			inv.Stocks -= goods.Num
+			result = tx.Model(&Inventory{}).Where(&Inventory{GoodsID: inv.GoodsID, Version: inv.Version}).Select("stocks", "version").Updates(&Inventory{Stocks: inv.Stocks, Version: inv.Version + 1})
+			if result.RowsAffected == 0 {
+				continue
+			}
+			break
 		}
-		// 判断库存是否充足
-		if inv.Stocks < goods.Num {
-			tx.Rollback()
-			return nil, status.Error(codes.ResourceExhausted, "库存不足")
-		}
-		inv.Stocks -= goods.Num
-		tx.Save(&inv)
 	}
 
 	tx.Commit()
