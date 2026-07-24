@@ -12,14 +12,13 @@ import (
 
 	"shop/pkg/port"
 	"shop/pkg/proto"
-	"shop/services/inventory_srv/config"
-	"shop/services/inventory_srv/registry"
+	"shop/services/order_srv/config"
+	"shop/services/order_srv/registry"
 
-	"github.com/go-redsync/redsync/v4"
-	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
-	"github.com/redis/go-redis/v9"
+	_ "github.com/mbobakov/grpc-consul-resolver" // 注册 "consul" gRPC resolver scheme
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"gorm.io/driver/mysql"
@@ -50,17 +49,29 @@ func main() {
 	}
 	log.Info("DB init done")
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port),
-		Password: cfg.Redis.Password,
-		DB:       cfg.Redis.DB,
-		PoolSize: cfg.Redis.PoolSize,
-	})
-	pool := goredis.NewPool(rdb)
-	rs := redsync.New(pool)
+	// 通过 Consul resolver 发现下游服务，round_robin 负载均衡。
+	goodsConn, err := grpc.NewClient(
+		fmt.Sprintf("consul://%s:%d/%s?healthy=true", cfg.Consul.Host, cfg.Consul.Port, cfg.GoodsSrv.Name),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"round_robin"}`),
+	)
+	if err != nil {
+		log.Panic("failed to connect to goods service: ", err)
+	}
+	defer goodsConn.Close()
+
+	inventoryConn, err := grpc.NewClient(
+		fmt.Sprintf("consul://%s:%d/%s?healthy=true", cfg.Consul.Host, cfg.Consul.Port, cfg.InventorySrv.Name),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"round_robin"}`),
+	)
+	if err != nil {
+		log.Panic("failed to connect to inventory service: ", err)
+	}
+	defer inventoryConn.Close()
 
 	server := grpc.NewServer()
-	proto.RegisterInventoryServer(server, NewInventoryServer(db, rs, log))
+	proto.RegisterOrderServer(server, NewOrderServer(db, proto.NewGoodsClient(goodsConn), proto.NewInventoryClient(inventoryConn), log))
 
 	// gRPC 标准健康检查服务
 	healthSrv := health.NewServer()
@@ -103,7 +114,7 @@ func main() {
 }
 
 var migrateModels = []any{
-	&Inventory{},
+	&ShoppingCart{}, &OrderInfo{}, &OrderGoods{},
 }
 
 // gormConfig 是建库连接与业务库连接共用的 GORM 配置。
@@ -117,7 +128,7 @@ func gormConfig(log *zap.SugaredLogger) *gorm.Config {
 			zapWriter{log: log},
 			logger.Config{
 				SlowThreshold: time.Second,
-				LogLevel:      logger.Warn,
+				LogLevel:      logger.Warn, // 只记慢查询(>SlowThreshold)和错误，不打印每条 SQL
 				Colorful:      false,
 			},
 		),
@@ -145,7 +156,7 @@ func ensureDatabase(cfg config.MySQLConfig, log *zap.SugaredLogger) error {
 	return nil
 }
 
-// openDB 连接到 MySQL，确保业务库存在后，自动迁移 inventory 服务所需的表。
+// openDB 连接到 MySQL，确保业务库存在后，自动迁移 order 服务所需的表。
 func openDB(cfg config.MySQLConfig, log *zap.SugaredLogger) (*gorm.DB, error) {
 	if err := ensureDatabase(cfg, log); err != nil {
 		return nil, err

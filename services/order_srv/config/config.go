@@ -12,13 +12,14 @@ import (
 )
 
 type Config struct {
-	Name   string       `mapstructure:"name"`
-	Debug  bool         `mapstructure:"debug"` // from SHOP_DEBUG; selects dev logger + debug group
-	Host   string       `mapstructure:"host"`  // gRPC 监听地址
-	Port   int          `mapstructure:"port"`  // gRPC 监听端口
-	MySQL  MySQLConfig  `mapstructure:"mysql"`
-	Consul ConsulConfig `mapstructure:"consul"`
-	Redis  RedisConfig  `mapstructure:"redis"`
+	Name         string            `mapstructure:"name"`
+	Debug        bool              `mapstructure:"debug"` // from SHOP_DEBUG; selects dev logger + debug group
+	Host         string            `mapstructure:"host"`  // gRPC 监听地址
+	Port         int               `mapstructure:"port"`  // gRPC 监听端口
+	MySQL        MySQLConfig       `mapstructure:"mysql"`
+	Consul       ConsulConfig      `mapstructure:"consul"`
+	GoodsSrv     ServiceSrvConfig  `mapstructure:"goods-srv"`     // 商品服务（下单时查价/快照）
+	InventorySrv ServiceSrvConfig  `mapstructure:"inventory-srv"` // 库存服务（下单时扣减库存）
 }
 
 type MySQLConfig struct {
@@ -38,12 +39,9 @@ type ConsulConfig struct {
 	Address string `mapstructure:"address"`
 }
 
-type RedisConfig struct {
-	Host     string `mapstructure:"host"`
-	Port     int    `mapstructure:"port"`
-	Password string `mapstructure:"password"`
-	DB       int    `mapstructure:"db"`
-	PoolSize int    `mapstructure:"pool_size"`
+// ServiceSrvConfig 描述一个需经 Consul 发现的下游 gRPC 服务。
+type ServiceSrvConfig struct {
+	Name string `mapstructure:"name"` // Consul 中注册的服务名
 }
 
 func (m *MySQLConfig) DSN() string {
@@ -58,8 +56,8 @@ func (m *MySQLConfig) DSNWithoutDB() string {
 		m.User, m.Password, m.Host, m.Port, m.Charset, m.ParseTime, m.Loc)
 }
 
-// Load fetches the service config from Nacos (DataID "inventory-srv", Group
-// "debug" or "pro" per SHOP_DEBUG) in the goods namespace, applies SHOP_-
+// Load fetches the service config from Nacos (DataID "order-srv", Group
+// "debug" or "pro" per SHOP_DEBUG) in the order namespace, applies SHOP_-
 // prefixed env overrides, and returns a populated Config.
 func Load() (*Config, error) {
 	_ = godotenv.Load(".env.local")
@@ -69,10 +67,10 @@ func Load() (*Config, error) {
 	opts := nacosconf.Options{
 		Host:      envStr("SHOP_NACOS_HOST", "127.0.0.1"),
 		Port:      envInt("SHOP_NACOS_PORT", 8848),
-		Namespace: envStr("SHOP_NACOS_NAMESPACE_INVENTORY", ""), // inventory 命名空间 ID（未设则 public）
+		Namespace: envStr("SHOP_NACOS_NAMESPACE_ORDER", ""),
 		Username:  envStr("SHOP_NACOS_USERNAME", "nacos"),
 		Password:  envStr("SHOP_NACOS_PASSWORD", "nacos"),
-		DataID:    "inventory-srv",
+		DataID:    "order-srv",
 		Group:     groupFor(debug),
 	}
 

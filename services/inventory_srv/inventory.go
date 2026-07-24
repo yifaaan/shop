@@ -2,10 +2,14 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	basemodel "shop/pkg/model"
 	"shop/pkg/proto"
 
+	"github.com/go-redsync/redsync/v4"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -33,12 +37,14 @@ type Inventory struct {
 // InventoryServer implements proto.InventoryServer over an injected *gorm.DB.
 type InventoryServer struct {
 	proto.UnimplementedInventoryServer
-	db *gorm.DB
+	db  *gorm.DB
+	rs  *redsync.Redsync
+	log *zap.SugaredLogger
 }
 
 // NewInventoryServer wires a InventoryServer to its data store.
-func NewInventoryServer(db *gorm.DB) *InventoryServer {
-	return &InventoryServer{db: db}
+func NewInventoryServer(db *gorm.DB, rs *redsync.Redsync, log *zap.SugaredLogger) *InventoryServer {
+	return &InventoryServer{db: db, rs: rs, log: log}
 }
 
 // SetInv 设置库存
@@ -118,37 +124,89 @@ func (s *InventoryServer) GetInvDetail(ctx context.Context, req *proto.GoodsInvI
 // 	return &emptypb.Empty{}, nil
 // }
 
+// // StockSellDetail 订单扣减库存
+// func (s *InventoryServer) StockSellDetail(ctx context.Context, req *proto.OrderStockDetail) (*emptypb.Empty, error) {
+// 	// 事务解决：部分扣减问题
+// 	// 并发情况会出现超卖: 乐观锁
+// 	tx := s.db.Begin()
+
+// 	for _, goods := range req.OrderGoods {
+// 		var inv Inventory
+
+// 		for {
+// 			result := tx.Where(&Inventory{GoodsID: goods.GoodsId}).First(&inv)
+// 			if result.Error != nil {
+// 				tx.Rollback()
+// 				if result.Error == gorm.ErrRecordNotFound {
+// 					return nil, status.Errorf(codes.NotFound, "库存记录不存在：%v", result.Error)
+// 				} else {
+// 					return nil, status.Errorf(codes.Internal, "查询库存记录失败：%v", result.Error)
+// 				}
+// 			}
+// 			// 判断库存是否充足
+// 			if inv.Stocks < goods.Num {
+// 				tx.Rollback()
+// 				return nil, status.Error(codes.ResourceExhausted, "库存不足")
+// 			}
+// 			inv.Stocks -= goods.Num
+// 			result = tx.Model(&Inventory{}).Where(&Inventory{GoodsID: inv.GoodsID, Version: inv.Version}).Select("stocks", "version").Updates(&Inventory{Stocks: inv.Stocks, Version: inv.Version + 1})
+// 			if result.RowsAffected == 0 {
+// 				continue
+// 			}
+// 			break
+// 		}
+// 	}
+
+// 	tx.Commit()
+
+// 	return &emptypb.Empty{}, nil
+// }
+
 // StockSellDetail 订单扣减库存
 func (s *InventoryServer) StockSellDetail(ctx context.Context, req *proto.OrderStockDetail) (*emptypb.Empty, error) {
 	// 事务解决：部分扣减问题
-	// 并发情况会出现超卖: 乐观锁
+	// 并发情况会出现超卖: 分布式锁
 	tx := s.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
 	for _, goods := range req.OrderGoods {
-		var inv Inventory
+		lockKey := fmt.Sprintf("lock:inventory:%d", goods.GoodsId)
+		mutex := s.rs.NewMutex(lockKey, redsync.WithExpiry(10*time.Second), redsync.WithTries(20), redsync.WithRetryDelay(100*time.Millisecond))
 
-		for {
-			result := tx.Where(&Inventory{GoodsID: goods.GoodsId}).First(&inv)
-			if result.Error != nil {
-				tx.Rollback()
-				if result.Error == gorm.ErrRecordNotFound {
-					return nil, status.Errorf(codes.NotFound, "库存记录不存在：%v", result.Error)
-				} else {
-					return nil, status.Errorf(codes.Internal, "查询库存记录失败：%v", result.Error)
-				}
-			}
-			// 判断库存是否充足
-			if inv.Stocks < goods.Num {
-				tx.Rollback()
-				return nil, status.Error(codes.ResourceExhausted, "库存不足")
-			}
-			inv.Stocks -= goods.Num
-			result = tx.Model(&Inventory{}).Where(&Inventory{GoodsID: inv.GoodsID, Version: inv.Version}).Select("stocks", "version").Updates(&Inventory{Stocks: inv.Stocks, Version: inv.Version + 1})
-			if result.RowsAffected == 0 {
-				continue
-			}
-			break
+		if err := mutex.LockContext(ctx); err != nil {
+			tx.Rollback()
+			return nil, status.Errorf(codes.Aborted, "获取库存锁失败： %v", err)
 		}
+
+		var inv Inventory
+		err := tx.Where(&Inventory{GoodsID: goods.GoodsId}).First(&inv).Error
+		if err != nil {
+			mutex.Unlock()
+			tx.Rollback()
+			if err == gorm.ErrRecordNotFound {
+				return nil, status.Errorf(codes.NotFound, "库存记录不存在")
+			}
+			return nil, status.Errorf(codes.Internal, "查询库存失败: %v", err)
+		}
+
+		if inv.Stocks < goods.Num {
+			mutex.Unlock()
+			tx.Rollback()
+			return nil, status.Error(codes.ResourceExhausted, "库存不足")
+		}
+
+		inv.Stocks -= goods.Num
+		if err := tx.Save(&inv).Error; err != nil {
+			mutex.Unlock()
+			tx.Rollback()
+			return nil, status.Errorf(codes.Internal, "更新库存失败: %v", err)
+		}
+
+		mutex.Unlock()
 	}
 
 	tx.Commit()
