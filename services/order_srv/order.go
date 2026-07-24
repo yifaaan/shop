@@ -2,10 +2,9 @@ package main
 
 import (
 	"context"
-	"strings"
+	"fmt"
+	"math/rand/v2"
 	"time"
-
-	"github.com/google/uuid"
 
 	basemodel "shop/pkg/model"
 	"shop/pkg/proto"
@@ -43,8 +42,8 @@ type OrderInfo struct {
 
 	Status  int32  `gorm:"type:int;not null;default:1;comment '1-待支付 2-已支付 3-已取消/超时关闭 4-交易创建 5-交易结束'"` // 1-待支付 2-已支付 3-已取消/超时关闭 4-交易创建 5-交易结束
 	PayType int32  `gorm:"column:pay_type;type:int;not null;default:1; comment '1-微信 2-支付宝'"`          // 1-微信 2-支付宝
-	TradeNo string `gorm:"column:trade_no;type:varchar(100); comment '交易号/支付宝(微信)订单号'"`
-	PayTime time.Time
+	TradeNo string     `gorm:"column:trade_no;type:varchar(100); comment '交易号/支付宝(微信)订单号'"`
+	PayTime *time.Time `gorm:"column:pay_time;comment '支付时间，未支付为 NULL'"`
 	Total   float32 `gorm:"type:float;not null"`                           // 商品总金额（不含运费）
 	PostFee float32 `gorm:"column:post_fee;type:float;not null;default:0"` // 运费
 
@@ -142,7 +141,7 @@ func (s *OrderServer) CreateOrder(ctx context.Context, req *proto.OrderInfoReque
 
 	// 5. 本地事务：写订单 + 商品快照 + 删除购物车中已购买的商品
 	order := OrderInfo{
-		OrderSn: newOrderSn(),
+		OrderSn: newOrderSn(req.UserId),
 		UserID:  req.UserId,
 		Address: req.Address,
 		Name:    req.Name,
@@ -173,7 +172,7 @@ func (s *OrderServer) CreateOrder(ctx context.Context, req *proto.OrderInfoReque
 		return nil
 	})
 	if err != nil {
-		// 本地事务失败：归还已扣减的库存（尽力而为，失败则告警人工介入）
+		// 本地事务失败：归还已扣减的库存
 		s.log.Errorf("创建订单失败，尝试归还库存: %v", err)
 		if _, rerr := s.invSrv.RebackDetail(ctx, &proto.OrderStockDetail{
 			OrderSn:    0,
@@ -233,12 +232,12 @@ func (s *OrderServer) GetOrderDetail(ctx context.Context, req *proto.OrderInfoRe
 	return orderModelToResponse(&order, items), nil
 }
 
-// UpdateOrderStatus 更新订单状态（支付 / 取消）
+// UpdateOrderStatus 更新订单状态（支付 / 取消），按订单号定位。
 func (s *OrderServer) UpdateOrderStatus(ctx context.Context, req *proto.UpdateOrderStatusInfo) (*emptypb.Empty, error) {
 	if req.Status < StatusPending || req.Status > StatusTradeFinished {
 		return nil, status.Errorf(codes.InvalidArgument, "非法的订单状态: %d", req.Status)
 	}
-	result := s.db.Model(&OrderInfo{}).Where("id = ?", req.Id).Update("status", req.Status)
+	result := s.db.Model(&OrderInfo{}).Where("order_sn = ?", req.OrderSn).Update("status", req.Status)
 	if result.RowsAffected == 0 {
 		return nil, status.Errorf(codes.NotFound, "订单不存在")
 	}
@@ -355,9 +354,12 @@ func Paginate(page, pageSize int) func(db *gorm.DB) *gorm.DB {
 	}
 }
 
-// newOrderSn 生成全局唯一的订单号：od + 去横线的 uuid。
-func newOrderSn() string {
-	return "od" + strings.ReplaceAll(uuid.NewString(), "-", "")
+// newOrderSn 生成订单号：年月日时分秒 + 用户ID + 2位随机数。
+// 例：20260724153045 + 1001 + 37 -> "20260724153045100137"。
+func newOrderSn(userID int32) string {
+	return time.Now().Format("20060102150405") +
+		fmt.Sprintf("%d", userID) +
+		fmt.Sprintf("%02d", rand.IntN(100))
 }
 
 func orderModelToResponse(o *OrderInfo, items []OrderGoods) *proto.OrderInfoResponse {

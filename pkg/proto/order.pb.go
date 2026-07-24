@@ -22,84 +22,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// 订单商品快照：下单时由 order_srv 从 goods_srv 拉取后写入，
-// 保证订单记录的是下单时刻的商品信息，后续商品改动不影响历史订单。
-type OrderItemRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	GoodsId       int32                  `protobuf:"varint,1,opt,name=goodsId,proto3" json:"goodsId,omitempty"`
-	Num           int32                  `protobuf:"varint,2,opt,name=num,proto3" json:"num,omitempty"`                // 购买数量
-	GoodsName     string                 `protobuf:"bytes,3,opt,name=goodsName,proto3" json:"goodsName,omitempty"`     // 商品名快照
-	GoodsImage    string                 `protobuf:"bytes,4,opt,name=goodsImage,proto3" json:"goodsImage,omitempty"`   // 商品封面图快照
-	GoodsPrice    float32                `protobuf:"fixed32,5,opt,name=goodsPrice,proto3" json:"goodsPrice,omitempty"` // 商品单价快照
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *OrderItemRequest) Reset() {
-	*x = OrderItemRequest{}
-	mi := &file_order_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OrderItemRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OrderItemRequest) ProtoMessage() {}
-
-func (x *OrderItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OrderItemRequest.ProtoReflect.Descriptor instead.
-func (*OrderItemRequest) Descriptor() ([]byte, []int) {
-	return file_order_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *OrderItemRequest) GetGoodsId() int32 {
-	if x != nil {
-		return x.GoodsId
-	}
-	return 0
-}
-
-func (x *OrderItemRequest) GetNum() int32 {
-	if x != nil {
-		return x.Num
-	}
-	return 0
-}
-
-func (x *OrderItemRequest) GetGoodsName() string {
-	if x != nil {
-		return x.GoodsName
-	}
-	return ""
-}
-
-func (x *OrderItemRequest) GetGoodsImage() string {
-	if x != nil {
-		return x.GoodsImage
-	}
-	return ""
-}
-
-func (x *OrderItemRequest) GetGoodsPrice() float32 {
-	if x != nil {
-		return x.GoodsPrice
-	}
-	return 0
-}
-
 // 订单请求：复用于创建与查询。
 // 创建订单时填 userId + 收货信息（商品来自购物车已选项，id 留空）；
 // 查询详情时填 id（+可选 userId 校验归属）。
@@ -119,7 +41,7 @@ type OrderInfoRequest struct {
 
 func (x *OrderInfoRequest) Reset() {
 	*x = OrderInfoRequest{}
-	mi := &file_order_proto_msgTypes[1]
+	mi := &file_order_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -131,7 +53,7 @@ func (x *OrderInfoRequest) String() string {
 func (*OrderInfoRequest) ProtoMessage() {}
 
 func (x *OrderInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_proto_msgTypes[1]
+	mi := &file_order_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -144,7 +66,7 @@ func (x *OrderInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderInfoRequest.ProtoReflect.Descriptor instead.
 func (*OrderInfoRequest) Descriptor() ([]byte, []int) {
-	return file_order_proto_rawDescGZIP(), []int{1}
+	return file_order_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *OrderInfoRequest) GetId() int32 {
@@ -218,7 +140,7 @@ type OrderItemInfoResponse struct {
 
 func (x *OrderItemInfoResponse) Reset() {
 	*x = OrderItemInfoResponse{}
-	mi := &file_order_proto_msgTypes[2]
+	mi := &file_order_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -230,7 +152,7 @@ func (x *OrderItemInfoResponse) String() string {
 func (*OrderItemInfoResponse) ProtoMessage() {}
 
 func (x *OrderItemInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_proto_msgTypes[2]
+	mi := &file_order_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -243,7 +165,7 @@ func (x *OrderItemInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderItemInfoResponse.ProtoReflect.Descriptor instead.
 func (*OrderItemInfoResponse) Descriptor() ([]byte, []int) {
-	return file_order_proto_rawDescGZIP(), []int{2}
+	return file_order_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *OrderItemInfoResponse) GetId() int32 {
@@ -316,7 +238,7 @@ type OrderInfoResponse struct {
 
 func (x *OrderInfoResponse) Reset() {
 	*x = OrderInfoResponse{}
-	mi := &file_order_proto_msgTypes[3]
+	mi := &file_order_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -328,7 +250,7 @@ func (x *OrderInfoResponse) String() string {
 func (*OrderInfoResponse) ProtoMessage() {}
 
 func (x *OrderInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_proto_msgTypes[3]
+	mi := &file_order_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -341,7 +263,7 @@ func (x *OrderInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderInfoResponse.ProtoReflect.Descriptor instead.
 func (*OrderInfoResponse) Descriptor() ([]byte, []int) {
-	return file_order_proto_rawDescGZIP(), []int{3}
+	return file_order_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *OrderInfoResponse) GetId() int32 {
@@ -444,7 +366,7 @@ type DeleteOrderInfo struct {
 
 func (x *DeleteOrderInfo) Reset() {
 	*x = DeleteOrderInfo{}
-	mi := &file_order_proto_msgTypes[4]
+	mi := &file_order_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -456,7 +378,7 @@ func (x *DeleteOrderInfo) String() string {
 func (*DeleteOrderInfo) ProtoMessage() {}
 
 func (x *DeleteOrderInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_order_proto_msgTypes[4]
+	mi := &file_order_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -469,7 +391,7 @@ func (x *DeleteOrderInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteOrderInfo.ProtoReflect.Descriptor instead.
 func (*DeleteOrderInfo) Descriptor() ([]byte, []int) {
-	return file_order_proto_rawDescGZIP(), []int{4}
+	return file_order_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *DeleteOrderInfo) GetId() int32 {
@@ -481,15 +403,15 @@ func (x *DeleteOrderInfo) GetId() int32 {
 
 type UpdateOrderStatusInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Status        int32                  `protobuf:"varint,2,opt,name=status,proto3" json:"status,omitempty"` // 目标状态：1-待支付 2-已支付 3-已取消
+	OrderSn       string                 `protobuf:"bytes,1,opt,name=orderSn,proto3" json:"orderSn,omitempty"` // 订单号
+	Status        int32                  `protobuf:"varint,2,opt,name=status,proto3" json:"status,omitempty"`  // 目标状态：1-待支付 2-已支付 3-已取消
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateOrderStatusInfo) Reset() {
 	*x = UpdateOrderStatusInfo{}
-	mi := &file_order_proto_msgTypes[5]
+	mi := &file_order_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -501,7 +423,7 @@ func (x *UpdateOrderStatusInfo) String() string {
 func (*UpdateOrderStatusInfo) ProtoMessage() {}
 
 func (x *UpdateOrderStatusInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_order_proto_msgTypes[5]
+	mi := &file_order_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -514,14 +436,14 @@ func (x *UpdateOrderStatusInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrderStatusInfo.ProtoReflect.Descriptor instead.
 func (*UpdateOrderStatusInfo) Descriptor() ([]byte, []int) {
-	return file_order_proto_rawDescGZIP(), []int{5}
+	return file_order_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *UpdateOrderStatusInfo) GetId() int32 {
+func (x *UpdateOrderStatusInfo) GetOrderSn() string {
 	if x != nil {
-		return x.Id
+		return x.OrderSn
 	}
-	return 0
+	return ""
 }
 
 func (x *UpdateOrderStatusInfo) GetStatus() int32 {
@@ -543,7 +465,7 @@ type OrderFilterRequest struct {
 
 func (x *OrderFilterRequest) Reset() {
 	*x = OrderFilterRequest{}
-	mi := &file_order_proto_msgTypes[6]
+	mi := &file_order_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -555,7 +477,7 @@ func (x *OrderFilterRequest) String() string {
 func (*OrderFilterRequest) ProtoMessage() {}
 
 func (x *OrderFilterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_proto_msgTypes[6]
+	mi := &file_order_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -568,7 +490,7 @@ func (x *OrderFilterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderFilterRequest.ProtoReflect.Descriptor instead.
 func (*OrderFilterRequest) Descriptor() ([]byte, []int) {
-	return file_order_proto_rawDescGZIP(), []int{6}
+	return file_order_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *OrderFilterRequest) GetUserId() int32 {
@@ -609,7 +531,7 @@ type OrderListResponse struct {
 
 func (x *OrderListResponse) Reset() {
 	*x = OrderListResponse{}
-	mi := &file_order_proto_msgTypes[7]
+	mi := &file_order_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -621,7 +543,7 @@ func (x *OrderListResponse) String() string {
 func (*OrderListResponse) ProtoMessage() {}
 
 func (x *OrderListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_proto_msgTypes[7]
+	mi := &file_order_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -634,7 +556,7 @@ func (x *OrderListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderListResponse.ProtoReflect.Descriptor instead.
 func (*OrderListResponse) Descriptor() ([]byte, []int) {
-	return file_order_proto_rawDescGZIP(), []int{7}
+	return file_order_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *OrderListResponse) GetTotal() int32 {
@@ -661,7 +583,7 @@ type CartItemListRequest struct {
 
 func (x *CartItemListRequest) Reset() {
 	*x = CartItemListRequest{}
-	mi := &file_order_proto_msgTypes[8]
+	mi := &file_order_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -673,7 +595,7 @@ func (x *CartItemListRequest) String() string {
 func (*CartItemListRequest) ProtoMessage() {}
 
 func (x *CartItemListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_proto_msgTypes[8]
+	mi := &file_order_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -686,7 +608,7 @@ func (x *CartItemListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CartItemListRequest.ProtoReflect.Descriptor instead.
 func (*CartItemListRequest) Descriptor() ([]byte, []int) {
-	return file_order_proto_rawDescGZIP(), []int{8}
+	return file_order_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CartItemListRequest) GetUserId() int32 {
@@ -708,7 +630,7 @@ type AddCartItemRequest struct {
 
 func (x *AddCartItemRequest) Reset() {
 	*x = AddCartItemRequest{}
-	mi := &file_order_proto_msgTypes[9]
+	mi := &file_order_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -720,7 +642,7 @@ func (x *AddCartItemRequest) String() string {
 func (*AddCartItemRequest) ProtoMessage() {}
 
 func (x *AddCartItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_proto_msgTypes[9]
+	mi := &file_order_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -733,7 +655,7 @@ func (x *AddCartItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddCartItemRequest.ProtoReflect.Descriptor instead.
 func (*AddCartItemRequest) Descriptor() ([]byte, []int) {
-	return file_order_proto_rawDescGZIP(), []int{9}
+	return file_order_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *AddCartItemRequest) GetUserId() int32 {
@@ -775,7 +697,7 @@ type UpdateCartItemRequest struct {
 
 func (x *UpdateCartItemRequest) Reset() {
 	*x = UpdateCartItemRequest{}
-	mi := &file_order_proto_msgTypes[10]
+	mi := &file_order_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -787,7 +709,7 @@ func (x *UpdateCartItemRequest) String() string {
 func (*UpdateCartItemRequest) ProtoMessage() {}
 
 func (x *UpdateCartItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_proto_msgTypes[10]
+	mi := &file_order_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -800,7 +722,7 @@ func (x *UpdateCartItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCartItemRequest.ProtoReflect.Descriptor instead.
 func (*UpdateCartItemRequest) Descriptor() ([]byte, []int) {
-	return file_order_proto_rawDescGZIP(), []int{10}
+	return file_order_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *UpdateCartItemRequest) GetId() int32 {
@@ -833,7 +755,7 @@ type DeleteCartItemRequest struct {
 
 func (x *DeleteCartItemRequest) Reset() {
 	*x = DeleteCartItemRequest{}
-	mi := &file_order_proto_msgTypes[11]
+	mi := &file_order_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -845,7 +767,7 @@ func (x *DeleteCartItemRequest) String() string {
 func (*DeleteCartItemRequest) ProtoMessage() {}
 
 func (x *DeleteCartItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_proto_msgTypes[11]
+	mi := &file_order_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -858,7 +780,7 @@ func (x *DeleteCartItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteCartItemRequest.ProtoReflect.Descriptor instead.
 func (*DeleteCartItemRequest) Descriptor() ([]byte, []int) {
-	return file_order_proto_rawDescGZIP(), []int{11}
+	return file_order_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *DeleteCartItemRequest) GetId() int32 {
@@ -881,7 +803,7 @@ type CartItemInfoResponse struct {
 
 func (x *CartItemInfoResponse) Reset() {
 	*x = CartItemInfoResponse{}
-	mi := &file_order_proto_msgTypes[12]
+	mi := &file_order_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -893,7 +815,7 @@ func (x *CartItemInfoResponse) String() string {
 func (*CartItemInfoResponse) ProtoMessage() {}
 
 func (x *CartItemInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_proto_msgTypes[12]
+	mi := &file_order_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -906,7 +828,7 @@ func (x *CartItemInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CartItemInfoResponse.ProtoReflect.Descriptor instead.
 func (*CartItemInfoResponse) Descriptor() ([]byte, []int) {
-	return file_order_proto_rawDescGZIP(), []int{12}
+	return file_order_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CartItemInfoResponse) GetId() int32 {
@@ -954,7 +876,7 @@ type CartItemListResponse struct {
 
 func (x *CartItemListResponse) Reset() {
 	*x = CartItemListResponse{}
-	mi := &file_order_proto_msgTypes[13]
+	mi := &file_order_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -966,7 +888,7 @@ func (x *CartItemListResponse) String() string {
 func (*CartItemListResponse) ProtoMessage() {}
 
 func (x *CartItemListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_proto_msgTypes[13]
+	mi := &file_order_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -979,7 +901,7 @@ func (x *CartItemListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CartItemListResponse.ProtoReflect.Descriptor instead.
 func (*CartItemListResponse) Descriptor() ([]byte, []int) {
-	return file_order_proto_rawDescGZIP(), []int{13}
+	return file_order_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CartItemListResponse) GetTotal() int32 {
@@ -1000,17 +922,7 @@ var File_order_proto protoreflect.FileDescriptor
 
 const file_order_proto_rawDesc = "" +
 	"\n" +
-	"\vorder.proto\x1a\x1bgoogle/protobuf/empty.proto\"\x9c\x01\n" +
-	"\x10OrderItemRequest\x12\x18\n" +
-	"\agoodsId\x18\x01 \x01(\x05R\agoodsId\x12\x10\n" +
-	"\x03num\x18\x02 \x01(\x05R\x03num\x12\x1c\n" +
-	"\tgoodsName\x18\x03 \x01(\tR\tgoodsName\x12\x1e\n" +
-	"\n" +
-	"goodsImage\x18\x04 \x01(\tR\n" +
-	"goodsImage\x12\x1e\n" +
-	"\n" +
-	"goodsPrice\x18\x05 \x01(\x02R\n" +
-	"goodsPrice\"\xc8\x01\n" +
+	"\vorder.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xc8\x01\n" +
 	"\x10OrderInfoRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x16\n" +
 	"\x06userId\x18\x02 \x01(\x05R\x06userId\x12\x18\n" +
@@ -1050,9 +962,9 @@ const file_order_proto_rawDesc = "" +
 	"orderGoods\x18\r \x03(\v2\x16.OrderItemInfoResponseR\n" +
 	"orderGoods\"!\n" +
 	"\x0fDeleteOrderInfo\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\"?\n" +
-	"\x15UpdateOrderStatusInfo\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x16\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\"I\n" +
+	"\x15UpdateOrderStatusInfo\x12\x18\n" +
+	"\aorderSn\x18\x01 \x01(\tR\aorderSn\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\x05R\x06status\"|\n" +
 	"\x12OrderFilterRequest\x12\x16\n" +
 	"\x06userId\x18\x01 \x01(\x05R\x06userId\x12\x16\n" +
@@ -1107,46 +1019,45 @@ func file_order_proto_rawDescGZIP() []byte {
 	return file_order_proto_rawDescData
 }
 
-var file_order_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_order_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_order_proto_goTypes = []any{
-	(*OrderItemRequest)(nil),      // 0: OrderItemRequest
-	(*OrderInfoRequest)(nil),      // 1: OrderInfoRequest
-	(*OrderItemInfoResponse)(nil), // 2: OrderItemInfoResponse
-	(*OrderInfoResponse)(nil),     // 3: OrderInfoResponse
-	(*DeleteOrderInfo)(nil),       // 4: DeleteOrderInfo
-	(*UpdateOrderStatusInfo)(nil), // 5: UpdateOrderStatusInfo
-	(*OrderFilterRequest)(nil),    // 6: OrderFilterRequest
-	(*OrderListResponse)(nil),     // 7: OrderListResponse
-	(*CartItemListRequest)(nil),   // 8: CartItemListRequest
-	(*AddCartItemRequest)(nil),    // 9: AddCartItemRequest
-	(*UpdateCartItemRequest)(nil), // 10: UpdateCartItemRequest
-	(*DeleteCartItemRequest)(nil), // 11: DeleteCartItemRequest
-	(*CartItemInfoResponse)(nil),  // 12: CartItemInfoResponse
-	(*CartItemListResponse)(nil),  // 13: CartItemListResponse
-	(*emptypb.Empty)(nil),         // 14: google.protobuf.Empty
+	(*OrderInfoRequest)(nil),      // 0: OrderInfoRequest
+	(*OrderItemInfoResponse)(nil), // 1: OrderItemInfoResponse
+	(*OrderInfoResponse)(nil),     // 2: OrderInfoResponse
+	(*DeleteOrderInfo)(nil),       // 3: DeleteOrderInfo
+	(*UpdateOrderStatusInfo)(nil), // 4: UpdateOrderStatusInfo
+	(*OrderFilterRequest)(nil),    // 5: OrderFilterRequest
+	(*OrderListResponse)(nil),     // 6: OrderListResponse
+	(*CartItemListRequest)(nil),   // 7: CartItemListRequest
+	(*AddCartItemRequest)(nil),    // 8: AddCartItemRequest
+	(*UpdateCartItemRequest)(nil), // 9: UpdateCartItemRequest
+	(*DeleteCartItemRequest)(nil), // 10: DeleteCartItemRequest
+	(*CartItemInfoResponse)(nil),  // 11: CartItemInfoResponse
+	(*CartItemListResponse)(nil),  // 12: CartItemListResponse
+	(*emptypb.Empty)(nil),         // 13: google.protobuf.Empty
 }
 var file_order_proto_depIdxs = []int32{
-	2,  // 0: OrderInfoResponse.orderGoods:type_name -> OrderItemInfoResponse
-	3,  // 1: OrderListResponse.data:type_name -> OrderInfoResponse
-	12, // 2: CartItemListResponse.data:type_name -> CartItemInfoResponse
-	1,  // 3: Order.CreateOrder:input_type -> OrderInfoRequest
-	6,  // 4: Order.OrderList:input_type -> OrderFilterRequest
-	1,  // 5: Order.GetOrderDetail:input_type -> OrderInfoRequest
-	5,  // 6: Order.UpdateOrderStatus:input_type -> UpdateOrderStatusInfo
-	4,  // 7: Order.DeleteOrder:input_type -> DeleteOrderInfo
-	8,  // 8: Order.CartItemList:input_type -> CartItemListRequest
-	9,  // 9: Order.AddCartItem:input_type -> AddCartItemRequest
-	10, // 10: Order.UpdateCartItem:input_type -> UpdateCartItemRequest
-	11, // 11: Order.DeleteCartItem:input_type -> DeleteCartItemRequest
-	3,  // 12: Order.CreateOrder:output_type -> OrderInfoResponse
-	7,  // 13: Order.OrderList:output_type -> OrderListResponse
-	3,  // 14: Order.GetOrderDetail:output_type -> OrderInfoResponse
-	14, // 15: Order.UpdateOrderStatus:output_type -> google.protobuf.Empty
-	14, // 16: Order.DeleteOrder:output_type -> google.protobuf.Empty
-	13, // 17: Order.CartItemList:output_type -> CartItemListResponse
-	14, // 18: Order.AddCartItem:output_type -> google.protobuf.Empty
-	14, // 19: Order.UpdateCartItem:output_type -> google.protobuf.Empty
-	14, // 20: Order.DeleteCartItem:output_type -> google.protobuf.Empty
+	1,  // 0: OrderInfoResponse.orderGoods:type_name -> OrderItemInfoResponse
+	2,  // 1: OrderListResponse.data:type_name -> OrderInfoResponse
+	11, // 2: CartItemListResponse.data:type_name -> CartItemInfoResponse
+	0,  // 3: Order.CreateOrder:input_type -> OrderInfoRequest
+	5,  // 4: Order.OrderList:input_type -> OrderFilterRequest
+	0,  // 5: Order.GetOrderDetail:input_type -> OrderInfoRequest
+	4,  // 6: Order.UpdateOrderStatus:input_type -> UpdateOrderStatusInfo
+	3,  // 7: Order.DeleteOrder:input_type -> DeleteOrderInfo
+	7,  // 8: Order.CartItemList:input_type -> CartItemListRequest
+	8,  // 9: Order.AddCartItem:input_type -> AddCartItemRequest
+	9,  // 10: Order.UpdateCartItem:input_type -> UpdateCartItemRequest
+	10, // 11: Order.DeleteCartItem:input_type -> DeleteCartItemRequest
+	2,  // 12: Order.CreateOrder:output_type -> OrderInfoResponse
+	6,  // 13: Order.OrderList:output_type -> OrderListResponse
+	2,  // 14: Order.GetOrderDetail:output_type -> OrderInfoResponse
+	13, // 15: Order.UpdateOrderStatus:output_type -> google.protobuf.Empty
+	13, // 16: Order.DeleteOrder:output_type -> google.protobuf.Empty
+	12, // 17: Order.CartItemList:output_type -> CartItemListResponse
+	13, // 18: Order.AddCartItem:output_type -> google.protobuf.Empty
+	13, // 19: Order.UpdateCartItem:output_type -> google.protobuf.Empty
+	13, // 20: Order.DeleteCartItem:output_type -> google.protobuf.Empty
 	12, // [12:21] is the sub-list for method output_type
 	3,  // [3:12] is the sub-list for method input_type
 	3,  // [3:3] is the sub-list for extension type_name
@@ -1165,7 +1076,7 @@ func file_order_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_proto_rawDesc), len(file_order_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
