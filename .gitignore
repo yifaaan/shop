@@ -4,3 +4,7 @@ node_modules
 .env.*
 !.env.example
 *.exe
+
+# Planning/spec artifacts (kept local, not committed)
+docs/superpowers/
+.superpowers/
