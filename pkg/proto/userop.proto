@@ -1,0 +1,72 @@
+syntax = "proto3";
+option go_package = ".;proto";
+
+import "google/protobuf/empty.proto";
+
+service UserOp {
+    // 收藏
+    rpc GetUserFavList(UserFavListRequest)  returns (UserFavListResponse);
+    rpc GetUserFav(UserFavRequest)          returns (UserFavInfoResponse);
+    rpc CreateUserFav(UserFavRequest)       returns (UserFavInfoResponse);
+    rpc DeleteUserFav(UserFavRequest)       returns (google.protobuf.Empty);
+
+    // 收货地址
+    rpc GetAddressList(AddressListRequest) returns (AddressListResponse);
+    rpc CreateAddress(AddressRequest)       returns (AddressInfoResponse);
+    rpc UpdateAddress(AddressRequest)       returns (google.protobuf.Empty);
+    rpc DeleteAddress(DeleteAddressRequest) returns (google.protobuf.Empty);
+
+    // 留言
+    rpc GetMessageList(MessageListRequest)  returns (MessageListResponse);
+    rpc CreateMessage(MessageRequest)       returns (MessageInfoResponse);
+    rpc DeleteMessage(DeleteMessageRequest) returns (google.protobuf.Empty);
+}
+
+message UserFavListRequest  { int32 userId = 1; }
+message UserFavRequest      { int32 userId = 1; int32 goodsId = 2; }
+message UserFavInfoResponse { int32 id = 1; int32 userId = 2; int32 goodsId = 3; }
+message UserFavListResponse { int32 total = 1; repeated UserFavInfoResponse data = 2; }
+
+message AddressListRequest { int32 userId = 1; }
+message AddressRequest {
+    int32  id = 1;
+    int32  userId = 2;
+    string province = 3;
+    string city = 4;
+    string district = 5;
+    string address = 6;
+    string signerName = 7;
+    string signerMobile = 8;
+}
+message DeleteAddressRequest { int32 userId = 1; int32 id = 2; }
+message AddressInfoResponse {
+    int32  id = 1;
+    int32  userId = 2;
+    string province = 3;
+    string city = 4;
+    string district = 5;
+    string address = 6;
+    string signerName = 7;
+    string signerMobile = 8;
+}
+message AddressListResponse { int32 total = 1; repeated AddressInfoResponse data = 2; }
+
+message MessageListRequest { int32 userId = 1; }
+message MessageRequest {
+    int32  userId = 1;
+    string subject = 2;
+    string message = 3;
+    int32  type = 4;
+    string file = 5;
+}
+message DeleteMessageRequest { int32 userId = 1; int32 id = 2; }
+message MessageInfoResponse {
+    int32  id = 1;
+    int32  userId = 2;
+    string subject = 3;
+    string message = 4;
+    int32  type = 5;
+    string file = 6;
+    int64  addTime = 7;
+}
+message MessageListResponse { int32 total = 1; repeated MessageInfoResponse data = 2; }

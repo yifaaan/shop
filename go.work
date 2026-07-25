@@ -9,4 +9,5 @@ use (
 	./services/order_web
 	./services/user_srv
 	./services/user_web
+	./services/userop_srv
 )
