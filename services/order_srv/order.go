@@ -310,9 +310,10 @@ func (s *OrderServer) AddCartItem(ctx context.Context, req *proto.AddCartItemReq
 	return &emptypb.Empty{}, nil
 }
 
-// UpdateCartItem 更新购物车商品的数量与选中状态（按购物车记录 id 定位）。
+// UpdateCartItem 更新购物车商品的数量与选中状态（按 id + userId 定位，
+// 确保用户只能改自己的购物车项，避免越权）。
 func (s *OrderServer) UpdateCartItem(ctx context.Context, req *proto.UpdateCartItemRequest) (*emptypb.Empty, error) {
-	result := s.db.Model(&ShoppingCart{}).Where("id = ?", req.Id).Updates(map[string]any{
+	result := s.db.Model(&ShoppingCart{}).Where("id = ? AND user_id = ?", req.Id, req.UserId).Updates(map[string]any{
 		"num":     req.Num,
 		"checked": req.Checked,
 	})
@@ -326,8 +327,10 @@ func (s *OrderServer) UpdateCartItem(ctx context.Context, req *proto.UpdateCartI
 }
 
 // DeleteCartItem 删除购物车商品
+// DeleteCartItem 删除购物车商品（软删除）。按 id + userId 定位，
+// 确保用户只能删除自己的购物车项，避免越权。
 func (s *OrderServer) DeleteCartItem(ctx context.Context, req *proto.DeleteCartItemRequest) (*emptypb.Empty, error) {
-	result := s.db.Delete(&ShoppingCart{}, req.Id)
+	result := s.db.Where("user_id = ?", req.UserId).Delete(&ShoppingCart{}, req.Id)
 	if result.RowsAffected == 0 {
 		return nil, status.Errorf(codes.NotFound, "购物车商品不存在")
 	}

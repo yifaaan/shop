@@ -6,6 +6,7 @@ use (
 	./services/goods_web
 	./services/inventory_srv
 	./services/order_srv
+	./services/order_web
 	./services/user_srv
 	./services/user_web
 )

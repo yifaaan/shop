@@ -95,10 +95,12 @@ message UpdateCartItemRequest {
     int32 id = 1;              // 购物车记录ID
     int32 num = 2;             // 新数量
     bool checked = 3;          // 是否选中
+    int32 userId = 4;          // 用户ID（校验归属，只能改自己的）
 }
 
 message DeleteCartItemRequest {
     int32 id = 1;              // 购物车记录ID
+    int32 userId = 2;          // 用户ID（校验归属，只能删自己的）
 }
 
 message CartItemInfoResponse {

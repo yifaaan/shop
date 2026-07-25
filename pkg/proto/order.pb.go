@@ -691,6 +691,7 @@ type UpdateCartItemRequest struct {
 	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`           // 购物车记录ID
 	Num           int32                  `protobuf:"varint,2,opt,name=num,proto3" json:"num,omitempty"`         // 新数量
 	Checked       bool                   `protobuf:"varint,3,opt,name=checked,proto3" json:"checked,omitempty"` // 是否选中
+	UserId        int32                  `protobuf:"varint,4,opt,name=userId,proto3" json:"userId,omitempty"`   // 用户ID（校验归属，只能改自己的）
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -746,9 +747,17 @@ func (x *UpdateCartItemRequest) GetChecked() bool {
 	return false
 }
 
+func (x *UpdateCartItemRequest) GetUserId() int32 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
 type DeleteCartItemRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"` // 购物车记录ID
+	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`         // 购物车记录ID
+	UserId        int32                  `protobuf:"varint,2,opt,name=userId,proto3" json:"userId,omitempty"` // 用户ID（校验归属，只能删自己的）
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -786,6 +795,13 @@ func (*DeleteCartItemRequest) Descriptor() ([]byte, []int) {
 func (x *DeleteCartItemRequest) GetId() int32 {
 	if x != nil {
 		return x.Id
+	}
+	return 0
+}
+
+func (x *DeleteCartItemRequest) GetUserId() int32 {
+	if x != nil {
+		return x.UserId
 	}
 	return 0
 }
@@ -980,13 +996,15 @@ const file_order_proto_rawDesc = "" +
 	"\x06userId\x18\x01 \x01(\x05R\x06userId\x12\x18\n" +
 	"\agoodsId\x18\x02 \x01(\x05R\agoodsId\x12\x10\n" +
 	"\x03num\x18\x03 \x01(\x05R\x03num\x12\x18\n" +
-	"\achecked\x18\x04 \x01(\bR\achecked\"S\n" +
+	"\achecked\x18\x04 \x01(\bR\achecked\"k\n" +
 	"\x15UpdateCartItemRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x10\n" +
 	"\x03num\x18\x02 \x01(\x05R\x03num\x12\x18\n" +
-	"\achecked\x18\x03 \x01(\bR\achecked\"'\n" +
+	"\achecked\x18\x03 \x01(\bR\achecked\x12\x16\n" +
+	"\x06userId\x18\x04 \x01(\x05R\x06userId\"?\n" +
 	"\x15DeleteCartItemRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\"\x84\x01\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x16\n" +
+	"\x06userId\x18\x02 \x01(\x05R\x06userId\"\x84\x01\n" +
 	"\x14CartItemInfoResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x16\n" +
 	"\x06userId\x18\x02 \x01(\x05R\x06userId\x12\x18\n" +

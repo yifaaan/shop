@@ -191,7 +191,7 @@ func TestCartItemCRUD(t *testing.T) {
 	}
 
 	// 更新（数量 + 取消选中）
-	must(t, errOf(srv.UpdateCartItem(ctx, &proto.UpdateCartItemRequest{Id: list.Data[0].Id, Num: 1, Checked: false})))
+	must(t, errOf(srv.UpdateCartItem(ctx, &proto.UpdateCartItemRequest{Id: list.Data[0].Id, Num: 1, Checked: false, UserId: 1})))
 	list, err = srv.CartItemList(ctx, &proto.CartItemListRequest{UserId: 1})
 	must(t, err)
 	if list.Data[0].Num != 1 || list.Data[0].Checked {
@@ -199,7 +199,7 @@ func TestCartItemCRUD(t *testing.T) {
 	}
 
 	// 删除
-	must(t, errOf(srv.DeleteCartItem(ctx, &proto.DeleteCartItemRequest{Id: list.Data[0].Id})))
+	must(t, errOf(srv.DeleteCartItem(ctx, &proto.DeleteCartItemRequest{Id: list.Data[0].Id, UserId: 1})))
 	list, err = srv.CartItemList(ctx, &proto.CartItemListRequest{UserId: 1})
 	must(t, err)
 	if len(list.Data) != 0 {
@@ -207,8 +207,23 @@ func TestCartItemCRUD(t *testing.T) {
 	}
 
 	// 删除不存在的记录 -> NotFound
-	if _, err := srv.DeleteCartItem(ctx, &proto.DeleteCartItemRequest{Id: 9999}); status.Code(err) != codes.NotFound {
+	if _, err := srv.DeleteCartItem(ctx, &proto.DeleteCartItemRequest{Id: 9999, UserId: 1}); status.Code(err) != codes.NotFound {
 		t.Fatalf("删除不存在期望 NotFound, got %v", err)
+	}
+
+	// 越权：用户 2 删除用户 1 的购物车项应失败 -> NotFound
+	must(t, errOf(srv.AddCartItem(ctx, &proto.AddCartItemRequest{UserId: 1, GoodsId: 101, Num: 1, Checked: true})))
+	u1list, err := srv.CartItemList(ctx, &proto.CartItemListRequest{UserId: 1})
+	must(t, err)
+	if len(u1list.Data) == 0 {
+		t.Fatal("前置：用户 1 购物车应有记录")
+	}
+	if _, err := srv.DeleteCartItem(ctx, &proto.DeleteCartItemRequest{Id: u1list.Data[0].Id, UserId: 2}); status.Code(err) != codes.NotFound {
+		t.Fatalf("越权删除期望 NotFound, got %v", err)
+	}
+	// 用户 1 的购物车项应仍然存在
+	if c := count(db, &ShoppingCart{}); c != 1 {
+		t.Fatalf("越权删除不应影响数据, 期望 1 条, got %d", c)
 	}
 }
 
