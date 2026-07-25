@@ -1,7 +1,9 @@
 package main
 
 import (
-	"strings"
+	"errors"
+
+	"github.com/go-sql-driver/mysql"
 
 	"shop/pkg/proto"
 
@@ -22,12 +24,15 @@ func NewUserOpServer(db *gorm.DB, log *zap.SugaredLogger) *UserOpServer {
 	return &UserOpServer{db: db, log: log}
 }
 
-// isDuplicateKeyErr 判定 gorm 错误是否为唯一索引冲突（MySQL error 1062）。
+// isDuplicateKeyErr 判定 gorm 错误是否为 MySQL 唯一索引冲突（error 1062）。
 // 用于收藏等"重复视为已存在"的语义。
 func isDuplicateKeyErr(err error) bool {
 	if err == nil {
 		return false
 	}
-	msg := err.Error()
-	return strings.Contains(msg, "1062") || strings.Contains(msg, "Duplicate entry")
+	var me *mysql.MySQLError
+	if errors.As(err, &me) {
+		return me.Number == 1062
+	}
+	return false
 }
