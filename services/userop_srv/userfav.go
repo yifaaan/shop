@@ -64,7 +64,9 @@ func (s *UserOpServer) CreateUserFav(ctx context.Context, req *proto.UserFavRequ
 
 // DeleteUserFav 按 user_id+goods_id 删除（防越权），不存在 NotFound。
 func (s *UserOpServer) DeleteUserFav(ctx context.Context, req *proto.UserFavRequest) (*emptypb.Empty, error) {
-	result := s.db.Where("user_id = ? AND goods_id = ?", req.UserId, req.GoodsId).Delete(&UserFav{})
+	// 硬删除：UserFav 是纯收藏标记、无需审计；软删会令 (user_id,goods_id) 唯一索引仍被占用，
+	// 导致"取消后再收藏"命中 AlreadyExists。Unscoped 物理删除以释放唯一索引。
+	result := s.db.Unscoped().Where("user_id = ? AND goods_id = ?", req.UserId, req.GoodsId).Delete(&UserFav{})
 	if result.Error != nil {
 		return nil, status.Errorf(codes.Internal, "删除收藏失败: %v", result.Error)
 	}

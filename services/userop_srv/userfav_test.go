@@ -68,3 +68,26 @@ func TestUserFav_GetNotFound(t *testing.T) {
 		t.Fatalf("用户 2 列表应为空, got %+v", list)
 	}
 }
+
+func TestUserFav_ReFavAfterUnfav(t *testing.T) {
+	db := setupTestDB(t)
+	srv := newTestServer(t, db)
+	ctx := context.Background()
+
+	// 收藏 -> 取消 -> 再收藏应成功（硬删释放唯一索引，不残留软删行）
+	must(t, errOf(srv.CreateUserFav(ctx, &proto.UserFavRequest{UserId: 1, GoodsId: 101})))
+	must(t, errOf(srv.DeleteUserFav(ctx, &proto.UserFavRequest{UserId: 1, GoodsId: 101})))
+	if _, err := srv.CreateUserFav(ctx, &proto.UserFavRequest{UserId: 1, GoodsId: 101}); err != nil {
+		t.Fatalf("取消后再收藏应成功, got %v", err)
+	}
+	// 活跃收藏 1 条
+	if c := count(db, &UserFav{}); c != 1 {
+		t.Fatalf("活跃收藏应 1 条, got %d", c)
+	}
+	// 含软删的总数也应为 1（验证硬删、无残留）
+	var total int64
+	db.Unscoped().Model(&UserFav{}).Count(&total)
+	if total != 1 {
+		t.Fatalf("Unscoped 总数应为 1（硬删无残留）, got %d", total)
+	}
+}
