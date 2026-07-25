@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"go.uber.org/zap"
-	"google.golang.org/protobuf/types/known/emptypb"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -95,8 +94,8 @@ func must(t *testing.T, err error) {
 	}
 }
 
-// errOf 取 (*emptypb.Empty, error) 中的 error，配合 must 使用。
-func errOf(_ *emptypb.Empty, err error) error { return err }
+// errOf 取 (T, error) 中的 error，配合 must 使用；T 任意（*emptypb.Empty / *UserFavInfoResponse …）。
+func errOf[T any](_ T, err error) error { return err }
 
 func count(db *gorm.DB, model any) int64 {
 	var n int64

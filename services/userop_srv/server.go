@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	"shop/pkg/proto"
 
 	"go.uber.org/zap"
@@ -18,4 +20,14 @@ type UserOpServer struct {
 // NewUserOpServer 装配 server。
 func NewUserOpServer(db *gorm.DB, log *zap.SugaredLogger) *UserOpServer {
 	return &UserOpServer{db: db, log: log}
+}
+
+// isDuplicateKeyErr 判定 gorm 错误是否为唯一索引冲突（MySQL error 1062）。
+// 用于收藏等"重复视为已存在"的语义。
+func isDuplicateKeyErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := err.Error()
+	return strings.Contains(msg, "1062") || strings.Contains(msg, "Duplicate entry")
 }
