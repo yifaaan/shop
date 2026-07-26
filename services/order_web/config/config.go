@@ -12,14 +12,15 @@ import (
 )
 
 type Config struct {
-	Name        string           `mapstructure:"name"`
-	Debug       bool             `mapstructure:"debug"` // from SHOP_DEBUG; selects dev logger + debug group
-	Port        int              `mapstructure:"port"`
-	OrderSrv    OrderSrvConfig   `mapstructure:"order-srv"`
-	GoodsSrv    GoodsSrvConfig   `mapstructure:"goods-srv"`
+	Name         string             `mapstructure:"name"`
+	Debug        bool               `mapstructure:"debug"` // from SHOP_DEBUG; selects dev logger + debug group
+	Port         int                `mapstructure:"port"`
+	OrderSrv     OrderSrvConfig     `mapstructure:"order-srv"`
+	GoodsSrv     GoodsSrvConfig     `mapstructure:"goods-srv"`
 	InventorySrv InventorySrvConfig `mapstructure:"inventory-srv"`
-	JWT         JWTConfig        `mapstructure:"jwt"`
-	Consul      ConsulConfig     `mapstructure:"consul"`
+	JWT          JWTConfig          `mapstructure:"jwt"`
+	Consul       ConsulConfig       `mapstructure:"consul"`
+	AliPay       AliPayConfig       `mapstructure:"alipay"`
 }
 
 // OrderSrvConfig 描述 order_srv 在 Consul 注册的服务名，用于服务发现。
@@ -45,6 +46,15 @@ type ConsulConfig struct {
 	Host    string `mapstructure:"host"`    // Consul agent 地址
 	Port    int    `mapstructure:"port"`    // Consul agent 端口
 	Address string `mapstructure:"address"` // 本服务对外宣告地址（健康检查 & 被发现用）
+}
+
+type AliPayConfig struct {
+	AppId        string `mapstructure:"app_id"`
+	PrivateKey   string `mapstructure:"private_key"`
+	PublicKey    string `mapstructure:"public_key"`
+	IsProduction bool   `mapstructure:"is_production"`
+	NotifyUrl    string `mapstructure:"notify_url"`
+	ReturnUrl    string `mapstructure:"return_url"`
 }
 
 // Load fetches the service config from Nacos (DataID "order-web", Group

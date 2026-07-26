@@ -43,6 +43,9 @@ func (s *Server) Routers() *gin.Engine {
 	s.log.Debug("registering order router")
 	s.registerCartRoutes(apiGroup)
 	s.registerOrderRoutes(apiGroup)
+	// 支付宝回调（notify 异步 / return 同步）为公开端点，不走用户鉴权，
+	// 由支付宝服务器或用户浏览器直接调用，签名校验在 handler 内完成。
+	s.registerAlipayRoutes(apiGroup)
 
 	return router
 }
@@ -64,6 +67,12 @@ func (s *Server) registerOrderRoutes(g *gin.RouterGroup) {
 	og.GET("/", s.OrderList)
 	og.GET("/:id", s.GetOrderDetail)
 	og.PUT("/status", s.UpdateOrderStatus)
+}
+
+func (s *Server) registerAlipayRoutes(g *gin.RouterGroup) {
+	ag := g.Group("pay")
+	ag.POST("alipay/notify", s.AlipayNotify)
+	ag.GET("alipay/return", s.AlipayReturn)
 }
 
 // Health is the liveness/readiness endpoint used by Consul.

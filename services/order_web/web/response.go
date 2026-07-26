@@ -65,6 +65,8 @@ type orderResponse struct {
 	PostFee    float32              `json:"post_fee"`
 	AddTime    int64                `json:"add_time"`
 	OrderGoods []*orderItemResponse `json:"order_goods"`
+	// AlipayUrl 仅在订单详情接口生成支付宝支付链接时填充，列表接口留空省略。
+	AlipayUrl  string               `json:"alipay_url,omitempty"`
 }
 
 // orderListResponse 订单列表的 snake_case JSON。

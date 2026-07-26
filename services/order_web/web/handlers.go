@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
@@ -8,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/smartwalle/alipay/v3"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -205,7 +207,35 @@ func (s *Server) CreateOrder(ctx *gin.Context) {
 		HandleGrpcErrorToHttp(err, ctx)
 		return
 	}
-	ctx.JSON(http.StatusOK, orderToResponse(rsp))
+
+	// 生成支付宝url
+	client, err := alipay.New(s.cfg.AliPay.AppId, s.cfg.AliPay.PrivateKey, s.cfg.AliPay.IsProduction)
+	if err != nil {
+		s.log.Error("alipay.New error: ", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "支付服务初始化失败"})
+		return
+	}
+	err = client.LoadAliPayPublicKey(s.cfg.AliPay.PublicKey)
+	if err != nil {
+		s.log.Error("client.LoadAliPayPublicKey error: ", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "支付公钥加载失败"})
+		return
+	}
+
+	var p = alipay.TradePagePay{}
+	p.NotifyURL = s.cfg.AliPay.NotifyUrl
+	p.ReturnURL = s.cfg.AliPay.ReturnUrl
+	p.Subject = "shop订单支付-" + rsp.OrderSn
+	p.OutTradeNo = rsp.OrderSn
+	p.TotalAmount = strconv.FormatFloat(float64(rsp.Total), 'f', 2, 64)
+	p.ProductCode = "FAST_INSTANT_TRADE_PAY"
+	url, err := client.TradePagePay(p)
+	if err != nil {
+		s.log.Error("client.TradePagePay error: ", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "支付请求url生成失败"})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"id": rsp.Id, "alipay_url": url.String()})
 }
 
 // OrderList 订单列表（角色感知）：
@@ -259,7 +289,38 @@ func (s *Server) GetOrderDetail(ctx *gin.Context) {
 		HandleGrpcErrorToHttp(err, ctx)
 		return
 	}
-	ctx.JSON(http.StatusOK, orderToResponse(rsp))
+
+	// 生成支付宝url
+	client, err := alipay.New(s.cfg.AliPay.AppId, s.cfg.AliPay.PrivateKey, s.cfg.AliPay.IsProduction)
+	if err != nil {
+		s.log.Error("alipay.New error: ", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "支付服务初始化失败"})
+		return
+	}
+	err = client.LoadAliPayPublicKey(s.cfg.AliPay.PublicKey)
+	if err != nil {
+		s.log.Error("client.LoadAliPayPublicKey error: ", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "支付公钥加载失败"})
+		return
+	}
+
+	var p = alipay.TradePagePay{}
+	p.NotifyURL = s.cfg.AliPay.NotifyUrl
+	p.ReturnURL = s.cfg.AliPay.ReturnUrl
+	p.Subject = "shop订单支付-" + rsp.OrderSn
+	p.OutTradeNo = rsp.OrderSn
+	p.TotalAmount = strconv.FormatFloat(float64(rsp.Total), 'f', 2, 64)
+	p.ProductCode = "FAST_INSTANT_TRADE_PAY"
+	url, err := client.TradePagePay(p)
+	if err != nil {
+		s.log.Error("client.TradePagePay error: ", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "支付请求url生成失败"})
+		return
+	}
+	// 单次响应：订单详情 + 支付宝支付链接
+	resp := orderToResponse(rsp)
+	resp.AlipayUrl = url.String()
+	ctx.JSON(http.StatusOK, resp)
 }
 
 // UpdateOrderStatus 更新订单状态（支付 / 取消）
@@ -279,4 +340,97 @@ func (s *Server) UpdateOrderStatus(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"msg": "更新成功"})
+}
+
+// alipayClient 按配置构造并加载公钥的支付宝客户端，notify / return 回调共用。
+func (s *Server) alipayClient() (*alipay.Client, error) {
+	client, err := alipay.New(s.cfg.AliPay.AppId, s.cfg.AliPay.PrivateKey, s.cfg.AliPay.IsProduction)
+	if err != nil {
+		return nil, err
+	}
+	if err := client.LoadAliPayPublicKey(s.cfg.AliPay.PublicKey); err != nil {
+		return nil, err
+	}
+	return client, nil
+}
+
+// AlipayNotify 支付宝支付结果异步通知（POST），由支付宝服务器主动回调。
+func (s *Server) AlipayNotify(ctx *gin.Context) {
+	client, err := s.alipayClient()
+	if err != nil {
+		s.log.Error("alipayClient error: ", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "支付服务初始化失败"})
+		return
+	}
+
+	ctx.Request.ParseForm()
+
+	noti, err := client.DecodeNotification(context.Background(), ctx.Request.Form)
+	if err != nil {
+		s.log.Error("AlipayNotify DecodeNotification error: ", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "支付通知解析失败"})
+		return
+	}
+	// 将支付宝交易状态映射为订单状态码：1-待支付 2-已支付 3-已取消
+	// WAIT_BUYER_PAY 仍属待支付，无需更新，直接回 success 让支付宝停止重试。
+	status, ok := alipayTradeStatusToOrderStatus(noti.TradeStatus)
+	if !ok {
+		s.log.Infof("AlipayNotify 忽略状态 %q，订单 %s 无需更新", noti.TradeStatus, noti.OutTradeNo)
+		ctx.String(http.StatusOK, "success")
+		return
+	}
+	_, err = s.orderSrv.UpdateOrderStatus(ctx.Request.Context(), &proto.UpdateOrderStatusInfo{
+		OrderSn: noti.OutTradeNo,
+		Status:  status,
+	})
+	if err != nil {
+		s.log.Error("AlipayNotify UpdateOrderStatus error: ", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "订单状态更新失败"})
+		return
+	}
+	ctx.String(http.StatusOK, "success")
+}
+
+// AlipayReturn 支付宝支付完成后的同步跳转（GET），用户浏览器回到此端点。
+// 仅校验签名并展示结果，订单状态以 AlipayNotify 异步通知为准。
+func (s *Server) AlipayReturn(ctx *gin.Context) {
+	client, err := s.alipayClient()
+	if err != nil {
+		s.log.Error("alipayClient error: ", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "支付服务初始化失败"})
+		return
+	}
+
+	// GET 回调参数在 query string，ParseForm 后 ctx.Request.Form 即可读取。
+	ctx.Request.ParseForm()
+
+	noti, err := client.DecodeNotification(context.Background(), ctx.Request.Form)
+	if err != nil {
+		s.log.Error("AlipayReturn DecodeNotification error: ", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "支付回跳校验失败"})
+		return
+	}
+
+	ctx.Header("Content-Type", "text/html; charset=utf-8")
+	ctx.String(http.StatusOK, `<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>支付结果</title></head>
+<body>
+  <h2>支付完成</h2>
+  <p>订单号：%s</p>
+  <p>交易状态：%s</p>
+  <p><a href="/">返回首页</a></p>
+</body></html>`, noti.OutTradeNo, noti.TradeStatus)
+}
+
+// alipayTradeStatusToOrderStatus 把支付宝异步通知的交易状态映射为订单状态码。
+// 返回 ok=false 表示该状态无需推进订单（如待付款），调用方应直接回 success。
+func alipayTradeStatusToOrderStatus(ts alipay.TradeStatus) (int32, bool) {
+	switch ts {
+	case alipay.TradeStatusSuccess, alipay.TradeStatusFinished:
+		return 2, true // 已支付
+	case alipay.TradeStatusClosed:
+		return 3, true // 已取消（超时关闭 / 全额退款）
+	default:
+		return 0, false // WAIT_BUYER_PAY 等无需更新
+	}
 }
