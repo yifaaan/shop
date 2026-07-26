@@ -38,7 +38,7 @@ func (s *UserOpServer) GetMessageList(ctx context.Context, req *proto.MessageLis
 	return rsp, nil
 }
 
-// CreateMessage 新建留言；type 必须 ∈ 1..5。
+// CreateMessage 新建留言
 func (s *UserOpServer) CreateMessage(ctx context.Context, req *proto.MessageRequest) (*proto.MessageInfoResponse, error) {
 	if req.Type < 1 || req.Type > 5 {
 		return nil, status.Errorf(codes.InvalidArgument, "非法留言类型: %d", req.Type)
@@ -53,7 +53,7 @@ func (s *UserOpServer) CreateMessage(ctx context.Context, req *proto.MessageRequ
 	return messageModelToResp(&m), nil
 }
 
-// DeleteMessage 按 id+userId 删除（非本人 NotFound）。
+// DeleteMessage 按 id+userId 删除
 func (s *UserOpServer) DeleteMessage(ctx context.Context, req *proto.DeleteMessageRequest) (*emptypb.Empty, error) {
 	result := s.db.Where("id = ? AND user_id = ?", req.Id, req.UserId).Delete(&Message{})
 	if result.Error != nil {
