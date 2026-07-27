@@ -111,6 +111,50 @@ services:
       - consul-data:/consul/data
       - consul-config:/consul/config
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - cluster.name=shop-es
+      # “关闭防火墙”：禁用 xpack 安全层（认证 + TLS），开发环境免密直连 9200。
+      # 生产务必重新开启并配置 TLS/密码。
+      - xpack.security.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"   # HTTP API（无认证）
+      - "9300:9300"   # 节点间 transport（单机可不暴露，保留便于排错）
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:9200/_cluster/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    container_name: kibana
+    restart: always
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      # 直连 ES（ES 侧已关安全层，这里用 http 明文 + 免密）
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - XPACK_SECURITY_ENABLED=false
+      - I18N_LOCALE=zh-CN
+    ports:
+      - "5601:5601"   # Kibana Web UI（免登录）
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:5601/api/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
 volumes:
   mongo-data:
   mysql-data:
@@ -118,3 +162,4 @@ volumes:
   consul-data:
   consul-config:
   nacos-logs:
+  es-data:

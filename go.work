@@ -10,4 +10,5 @@ use (
 	./services/user_srv
 	./services/user_web
 	./services/userop_srv
+	./services/userop_web
 )

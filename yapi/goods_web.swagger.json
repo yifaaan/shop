@@ -1,0 +1,692 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "goods-web 商品/分类/品牌/轮播图接口",
+    "description": "goods_web HTTP 接口。\n- 浏览类接口（GET）公开，无需 x-token\n- 管理类接口（POST/PUT/DELETE）需 x-token 且为管理员（AuthorityId==2），否则 401/403\n- 响应字段大小写按代码原样：商品列表/详情、分类列表为 snake_case；新建商品、品牌、轮播图、分类品牌为 proto 生成 camelCase",
+    "version": "1.0.0"
+  },
+  "host": "localhost:8082",
+  "basePath": "/g/v1",
+  "schemes": ["http"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "parameters": {
+    "XToken": {
+      "name": "x-token",
+      "in": "header",
+      "required": true,
+      "type": "string",
+      "description": "管理员令牌（user_web 登录，AuthorityId==2）"
+    }
+  },
+  "paths": {
+    "/goods": {
+      "get": {
+        "tags": ["商品"],
+        "summary": "商品列表",
+        "description": "分页+多条件筛选商品列表。",
+        "parameters": [
+          { "name": "pmin", "in": "query", "required": false, "type": "integer", "default": 0, "description": "最低价" },
+          { "name": "pmax", "in": "query", "required": false, "type": "integer", "default": 0, "description": "最高价" },
+          { "name": "ih", "in": "query", "required": false, "type": "integer", "default": 0, "enum": [0, 1], "description": "是否热门，1=true" },
+          { "name": "in", "in": "query", "required": false, "type": "integer", "default": 0, "enum": [0, 1], "description": "是否新品，1=true" },
+          { "name": "it", "in": "query", "required": false, "type": "integer", "default": 0, "enum": [0, 1], "description": "是否 tab，1=true" },
+          { "name": "c", "in": "query", "required": false, "type": "integer", "default": 0, "description": "顶级分类ID" },
+          { "name": "p", "in": "query", "required": false, "type": "integer", "default": 1, "description": "页码" },
+          { "name": "pnum", "in": "query", "required": false, "type": "integer", "default": 10, "description": "每页数量" },
+          { "name": "q", "in": "query", "required": false, "type": "string", "default": "", "description": "关键词" },
+          { "name": "b", "in": "query", "required": false, "type": "integer", "default": 0, "description": "品牌ID" }
+        ],
+        "responses": {
+          "200": { "description": "商品列表", "schema": { "$ref": "#/definitions/GoodsList" } },
+          "400": { "description": "参数错误", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "未找到", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "post": {
+        "tags": ["商品"],
+        "summary": "新建商品（管理员）",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/CreateGoodsForm" } }
+        ],
+        "responses": {
+          "200": { "description": "新建的商品（camelCase）", "schema": { "$ref": "#/definitions/CreateGoodsResponse" } },
+          "400": { "description": "参数错误", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } },
+          "403": { "description": "无管理权限", "schema": { "$ref": "#/definitions/Message" } },
+          "409": { "description": "已存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
+    "/goods/{id}": {
+      "get": {
+        "tags": ["商品"],
+        "summary": "商品详情",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "商品ID" }
+        ],
+        "responses": {
+          "200": { "description": "商品详情（snake_case）", "schema": { "$ref": "#/definitions/Goods" } },
+          "400": { "description": "invalid id", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "商品不存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "put": {
+        "tags": ["商品"],
+        "summary": "更新商品（管理员）",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "商品ID" },
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/UpdateGoodsForm" } }
+        ],
+        "responses": {
+          "200": { "description": "更新成功", "schema": { "$ref": "#/definitions/Message" } },
+          "400": { "description": "invalid id/参数错误", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } },
+          "403": { "description": "无管理权限", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "商品不存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "delete": {
+        "tags": ["商品"],
+        "summary": "删除商品（管理员）",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "商品ID" }
+        ],
+        "responses": {
+          "200": { "description": "删除成功", "schema": { "$ref": "#/definitions/Message" } },
+          "400": { "description": "invalid id", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } },
+          "403": { "description": "无管理权限", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "商品不存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
+    "/category": {
+      "get": {
+        "tags": ["分类"],
+        "summary": "全部分类（树）",
+        "description": "返回完整分类树。data 为后端原样回传的 JSON 树字符串。",
+        "responses": {
+          "200": { "description": "分类树", "schema": { "$ref": "#/definitions/AllCategoryList" } },
+          "404": { "description": "未找到", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "post": {
+        "tags": ["分类"],
+        "summary": "新建分类（管理员）",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/CreateCategoryForm" } }
+        ],
+        "responses": {
+          "200": { "description": "新建的分类（snake_case）", "schema": { "$ref": "#/definitions/CategoryInfo" } },
+          "400": { "description": "参数错误", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } },
+          "403": { "description": "无管理权限", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "父分类不存在", "schema": { "$ref": "#/definitions/Message" } },
+          "409": { "description": "已存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
+    "/category/{id}": {
+      "get": {
+        "tags": ["分类"],
+        "summary": "子分类列表",
+        "description": "返回某父分类的子分类列表及父分类信息。",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "父分类ID" }
+        ],
+        "responses": {
+          "200": { "description": "子分类列表", "schema": { "$ref": "#/definitions/SubCategoryList" } },
+          "400": { "description": "invalid id", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "分类不存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "put": {
+        "tags": ["分类"],
+        "summary": "更新分类（管理员）",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "分类ID" },
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/UpdateCategoryForm" } }
+        ],
+        "responses": {
+          "200": { "description": "更新成功", "schema": { "$ref": "#/definitions/Message" } },
+          "400": { "description": "invalid id/参数错误", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } },
+          "403": { "description": "无管理权限", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "分类不存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "delete": {
+        "tags": ["分类"],
+        "summary": "删除分类（管理员）",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "分类ID" }
+        ],
+        "responses": {
+          "200": { "description": "删除成功", "schema": { "$ref": "#/definitions/Message" } },
+          "400": { "description": "invalid id", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } },
+          "403": { "description": "无管理权限", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "分类不存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
+    "/brand": {
+      "get": {
+        "tags": ["品牌"],
+        "summary": "品牌列表",
+        "description": "分页品牌列表。注意 pages 当前实现仅支持个位数页码。",
+        "parameters": [
+          { "name": "pages", "in": "query", "required": false, "type": "integer", "default": 1, "description": "页码" },
+          { "name": "page_per_nums", "in": "query", "required": false, "type": "integer", "default": 10, "description": "每页数量" }
+        ],
+        "responses": {
+          "200": { "description": "品牌列表（camelCase）", "schema": { "$ref": "#/definitions/BrandList" } },
+          "404": { "description": "未找到", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "post": {
+        "tags": ["品牌"],
+        "summary": "新建品牌（管理员）",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/CreateBrandForm" } }
+        ],
+        "responses": {
+          "200": { "description": "新建的品牌（camelCase）", "schema": { "$ref": "#/definitions/BrandInfo" } },
+          "400": { "description": "参数错误", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } },
+          "403": { "description": "无管理权限", "schema": { "$ref": "#/definitions/Message" } },
+          "409": { "description": "已存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
+    "/brand/{id}": {
+      "get": {
+        "tags": ["品牌"],
+        "summary": "品牌详情",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "品牌ID" }
+        ],
+        "responses": {
+          "200": { "description": "品牌详情（camelCase）", "schema": { "$ref": "#/definitions/BrandInfo" } },
+          "400": { "description": "invalid id", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "品牌不存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "put": {
+        "tags": ["品牌"],
+        "summary": "更新品牌（管理员）",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "品牌ID" },
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/UpdateBrandForm" } }
+        ],
+        "responses": {
+          "200": { "description": "更新成功", "schema": { "$ref": "#/definitions/Message" } },
+          "400": { "description": "invalid id/参数错误", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } },
+          "403": { "description": "无管理权限", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "品牌不存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "delete": {
+        "tags": ["品牌"],
+        "summary": "删除品牌（管理员）",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "品牌ID" }
+        ],
+        "responses": {
+          "200": { "description": "删除成功", "schema": { "$ref": "#/definitions/Message" } },
+          "400": { "description": "invalid id", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } },
+          "403": { "description": "无管理权限", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "品牌不存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
+    "/banner": {
+      "get": {
+        "tags": ["轮播图"],
+        "summary": "轮播图列表",
+        "responses": {
+          "200": { "description": "轮播图列表（camelCase）", "schema": { "$ref": "#/definitions/BannerList" } },
+          "404": { "description": "未找到", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "post": {
+        "tags": ["轮播图"],
+        "summary": "新建轮播图（管理员）",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/CreateBannerForm" } }
+        ],
+        "responses": {
+          "200": { "description": "新建的轮播图（camelCase）", "schema": { "$ref": "#/definitions/BannerInfo" } },
+          "400": { "description": "参数错误", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } },
+          "403": { "description": "无管理权限", "schema": { "$ref": "#/definitions/Message" } },
+          "409": { "description": "已存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
+    "/banner/{id}": {
+      "put": {
+        "tags": ["轮播图"],
+        "summary": "更新轮播图（管理员）",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "轮播图ID" },
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/UpdateBannerForm" } }
+        ],
+        "responses": {
+          "200": { "description": "更新成功", "schema": { "$ref": "#/definitions/Message" } },
+          "400": { "description": "invalid id/参数错误", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } },
+          "403": { "description": "无管理权限", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "轮播图不存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "delete": {
+        "tags": ["轮播图"],
+        "summary": "删除轮播图（管理员）",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "轮播图ID" }
+        ],
+        "responses": {
+          "200": { "description": "删除成功", "schema": { "$ref": "#/definitions/Message" } },
+          "400": { "description": "invalid id", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } },
+          "403": { "description": "无管理权限", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "轮播图不存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
+    "/category_brand": {
+      "get": {
+        "tags": ["分类品牌"],
+        "summary": "分类品牌关系列表",
+        "parameters": [
+          { "name": "pages", "in": "query", "required": false, "type": "integer", "default": 1, "description": "页码" },
+          { "name": "page_per_nums", "in": "query", "required": false, "type": "integer", "default": 10, "description": "每页数量" }
+        ],
+        "responses": {
+          "200": { "description": "分类品牌列表（camelCase）", "schema": { "$ref": "#/definitions/CategoryBrandList" } },
+          "404": { "description": "未找到", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "post": {
+        "tags": ["分类品牌"],
+        "summary": "新建分类品牌关系（管理员）",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/CreateCategoryBrandForm" } }
+        ],
+        "responses": {
+          "200": { "description": "新建的关系（camelCase）", "schema": { "$ref": "#/definitions/CategoryBrandResponse" } },
+          "400": { "description": "参数错误", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } },
+          "403": { "description": "无管理权限", "schema": { "$ref": "#/definitions/Message" } },
+          "409": { "description": "已存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
+    "/category_brand/{category_id}": {
+      "get": {
+        "tags": ["分类品牌"],
+        "summary": "按分类查关联品牌",
+        "parameters": [
+          { "name": "category_id", "in": "path", "required": true, "type": "integer", "description": "分类ID" }
+        ],
+        "responses": {
+          "200": { "description": "分类品牌列表（camelCase）", "schema": { "$ref": "#/definitions/CategoryBrandList" } },
+          "400": { "description": "invalid category_id", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "未找到", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
+    "/category_brand/{id}": {
+      "put": {
+        "tags": ["分类品牌"],
+        "summary": "更新分类品牌关系（管理员）",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "关系ID" },
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/UpdateCategoryBrandForm" } }
+        ],
+        "responses": {
+          "200": { "description": "更新成功", "schema": { "$ref": "#/definitions/Message" } },
+          "400": { "description": "invalid id/参数错误", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } },
+          "403": { "description": "无管理权限", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "关系不存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "delete": {
+        "tags": ["分类品牌"],
+        "summary": "删除分类品牌关系（管理员）",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "关系ID" }
+        ],
+        "responses": {
+          "200": { "description": "删除成功", "schema": { "$ref": "#/definitions/Message" } },
+          "400": { "description": "invalid id", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } },
+          "403": { "description": "无管理权限", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "关系不存在", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Message": {
+      "type": "object",
+      "properties": {
+        "msg": { "type": "string" }
+      }
+    },
+    "GoodsBrand": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "logo": { "type": "string" }
+      }
+    },
+    "GoodsCategory": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "title": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    },
+    "Goods": {
+      "type": "object",
+      "description": "商品列表/详情响应（snake_case）",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string", "description": "商品名" },
+        "title": { "type": "string", "description": "商品名（列表用）" },
+        "description": { "type": "string", "description": "商品简介" },
+        "goods_brief": { "type": "string" },
+        "desc": { "type": "string", "description": "商品详细描述" },
+        "shop_price": { "type": "number", "format": "float" },
+        "ship_free": { "type": "boolean" },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "desc_images": { "type": "array", "items": { "type": "string" } },
+        "front_image": { "type": "string", "description": "封面图" },
+        "is_hot": { "type": "boolean" },
+        "is_new": { "type": "boolean" },
+        "is_tab": { "type": "boolean", "description": "预留，恒 false" },
+        "brand": { "$ref": "#/definitions/GoodsBrand" },
+        "category": { "$ref": "#/definitions/GoodsCategory" }
+      }
+    },
+    "GoodsList": {
+      "type": "object",
+      "properties": {
+        "total": { "type": "integer" },
+        "data": { "type": "array", "items": { "$ref": "#/definitions/Goods" } }
+      }
+    },
+    "CreateGoodsForm": {
+      "type": "object",
+      "required": ["name", "goods_sn", "market_price", "shop_price", "front_image", "category", "brand"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "goods_sn": { "type": "string", "minLength": 1, "maxLength": 50 },
+        "stocks": { "type": "integer" },
+        "market_price": { "type": "number", "format": "float" },
+        "shop_price": { "type": "number", "format": "float" },
+        "goods_brief": { "type": "string", "maxLength": 200 },
+        "ship_free": { "type": "boolean" },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "desc_images": { "type": "array", "items": { "type": "string" } },
+        "front_image": { "type": "string" },
+        "is_new": { "type": "boolean" },
+        "is_hot": { "type": "boolean" },
+        "on_sale": { "type": "boolean" },
+        "category": { "type": "integer", "description": "分类ID" },
+        "brand": { "type": "integer", "description": "品牌ID" }
+      }
+    },
+    "UpdateGoodsForm": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "integer", "description": "由路径 id 覆盖" },
+        "name": { "type": "string" },
+        "goods_sn": { "type": "string" },
+        "stocks": { "type": "integer" },
+        "market_price": { "type": "number", "format": "float" },
+        "shop_price": { "type": "number", "format": "float" },
+        "goods_brief": { "type": "string" },
+        "ship_free": { "type": "boolean" },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "desc_images": { "type": "array", "items": { "type": "string" } },
+        "front_image": { "type": "string" },
+        "is_new": { "type": "boolean" },
+        "is_hot": { "type": "boolean" },
+        "on_sale": { "type": "boolean" },
+        "category": { "type": "integer" },
+        "brand": { "type": "integer" }
+      }
+    },
+    "CreateGoodsResponse": {
+      "type": "object",
+      "description": "新建商品响应（proto camelCase）",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "goodsSn": { "type": "string" },
+        "stocks": { "type": "integer" },
+        "marketPrice": { "type": "number", "format": "float" },
+        "shopPrice": { "type": "number", "format": "float" },
+        "goodsBrief": { "type": "string" },
+        "goodsDesc": { "type": "string" },
+        "shipFree": { "type": "boolean" },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "descImages": { "type": "array", "items": { "type": "string" } },
+        "goodsFrontImage": { "type": "string" },
+        "isNew": { "type": "boolean" },
+        "isHot": { "type": "boolean" },
+        "onSale": { "type": "boolean" },
+        "categoryId": { "type": "integer" },
+        "brandId": { "type": "integer" }
+      }
+    },
+    "CategoryInfo": {
+      "type": "object",
+      "description": "分类信息（snake_case）",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "parent": { "type": "integer", "description": "父分类ID" },
+        "level": { "type": "integer", "description": "1/2/3" },
+        "is_tab": { "type": "boolean" }
+      }
+    },
+    "SubCategoryList": {
+      "type": "object",
+      "properties": {
+        "total": { "type": "integer" },
+        "info": { "$ref": "#/definitions/CategoryInfo", "description": "父分类信息" },
+        "sub_categories": { "type": "array", "items": { "$ref": "#/definitions/CategoryInfo" } }
+      }
+    },
+    "AllCategoryList": {
+      "type": "object",
+      "properties": {
+        "total": { "type": "integer" },
+        "data": { "type": "object", "description": "分类树原始 JSON（后端原样回传）" }
+      }
+    },
+    "CreateCategoryForm": {
+      "type": "object",
+      "required": ["name", "level"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 20 },
+        "parent_category": { "type": "integer", "description": "父分类ID" },
+        "level": { "type": "integer", "enum": [1, 2, 3], "description": "分类层级" },
+        "is_tab": { "type": "boolean" }
+      }
+    },
+    "UpdateCategoryForm": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "integer", "description": "由路径 id 覆盖" },
+        "name": { "type": "string" },
+        "is_tab": { "type": "boolean" }
+      }
+    },
+    "BrandInfo": {
+      "type": "object",
+      "description": "品牌信息（proto camelCase）",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "logo": { "type": "string" }
+      }
+    },
+    "BrandList": {
+      "type": "object",
+      "properties": {
+        "total": { "type": "integer" },
+        "data": { "type": "array", "items": { "$ref": "#/definitions/BrandInfo" } }
+      }
+    },
+    "CreateBrandForm": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 50 },
+        "logo": { "type": "string" }
+      }
+    },
+    "UpdateBrandForm": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "integer", "description": "由路径 id 覆盖" },
+        "name": { "type": "string" },
+        "logo": { "type": "string" }
+      }
+    },
+    "BannerInfo": {
+      "type": "object",
+      "description": "轮播图（proto camelCase）",
+      "properties": {
+        "id": { "type": "integer" },
+        "index": { "type": "integer" },
+        "image": { "type": "string" },
+        "url": { "type": "string" }
+      }
+    },
+    "BannerList": {
+      "type": "object",
+      "properties": {
+        "total": { "type": "integer" },
+        "data": { "type": "array", "items": { "$ref": "#/definitions/BannerInfo" } }
+      }
+    },
+    "CreateBannerForm": {
+      "type": "object",
+      "required": ["image", "url"],
+      "properties": {
+        "image": { "type": "string" },
+        "url": { "type": "string" },
+        "index": { "type": "integer" }
+      }
+    },
+    "UpdateBannerForm": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "integer", "description": "由路径 id 覆盖" },
+        "image": { "type": "string" },
+        "url": { "type": "string" },
+        "index": { "type": "integer" }
+      }
+    },
+    "CategoryBrandCategory": {
+      "type": "object",
+      "description": "分类品牌关系中的分类（proto camelCase）",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "parentCategory": { "type": "integer" },
+        "level": { "type": "integer" },
+        "isTab": { "type": "boolean" }
+      }
+    },
+    "CategoryBrandResponse": {
+      "type": "object",
+      "description": "分类品牌关系（proto camelCase）",
+      "properties": {
+        "id": { "type": "integer" },
+        "brand": { "$ref": "#/definitions/BrandInfo" },
+        "category": { "$ref": "#/definitions/CategoryBrandCategory" }
+      }
+    },
+    "CategoryBrandList": {
+      "type": "object",
+      "properties": {
+        "total": { "type": "integer" },
+        "data": { "type": "array", "items": { "$ref": "#/definitions/CategoryBrandResponse" } }
+      }
+    },
+    "CreateCategoryBrandForm": {
+      "type": "object",
+      "required": ["category", "brand"],
+      "properties": {
+        "category": { "type": "integer", "description": "分类ID" },
+        "brand": { "type": "integer", "description": "品牌ID" }
+      }
+    },
+    "UpdateCategoryBrandForm": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "integer", "description": "由路径 id 覆盖" },
+        "category": { "type": "integer" },
+        "brand": { "type": "integer" }
+      }
+    }
+  }
+}

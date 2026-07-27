@@ -1,0 +1,294 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "userop-web 收藏/地址/留言接口",
+    "description": "userop_web HTTP 接口。所有接口需在请求头携带 x-token（由 user_web 登录签发）。\n收藏/地址/留言均为登录用户私有数据，全部按当前登录用户归属，无管理员越权分支。\n- 收藏以 goodsId 标识（(userId, goodsId) 唯一）\n- 地址按 id 标识，非本人返回 404\n- 留言 type：1-留言 2-投诉 3-询问 4-售后 5-求购",
+    "version": "1.0.0"
+  },
+  "host": "localhost:8084",
+  "basePath": "/uo/v1",
+  "schemes": ["http"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "parameters": {
+    "XToken": {
+      "name": "x-token",
+      "in": "header",
+      "required": true,
+      "type": "string",
+      "description": "登录令牌（user_web 登录返回）"
+    }
+  },
+  "paths": {
+    "/favs": {
+      "get": {
+        "tags": ["收藏"],
+        "summary": "收藏列表",
+        "description": "获取当前登录用户的收藏列表，并通过 goods_srv 批量补全商品名/图/价。",
+        "parameters": [{ "$ref": "#/parameters/XToken" }],
+        "responses": {
+          "200": { "description": "收藏列表", "schema": { "$ref": "#/definitions/UserFavList" } },
+          "401": { "description": "未登录", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "post": {
+        "tags": ["收藏"],
+        "summary": "收藏商品",
+        "description": "(userId, goodsId) 唯一，重复收藏返回 409。",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": { "$ref": "#/definitions/UserFavRequest" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "收藏记录", "schema": { "$ref": "#/definitions/UserFav" } },
+          "400": { "description": "参数错误（缺少 goods_id）", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录", "schema": { "$ref": "#/definitions/Message" } },
+          "409": { "description": "已收藏", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
+    "/favs/{goods_id}": {
+      "get": {
+        "tags": ["收藏"],
+        "summary": "查询是否已收藏",
+        "description": "按 goodsId 查是否已收藏；未收藏返回 404。返回的 goods_name/image/price 为空（仅收藏列表接口补全商品信息）。",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "goods_id", "in": "path", "required": true, "type": "integer", "description": "商品ID" }
+        ],
+        "responses": {
+          "200": { "description": "已收藏", "schema": { "$ref": "#/definitions/UserFav" } },
+          "401": { "description": "未登录", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "未收藏", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "delete": {
+        "tags": ["收藏"],
+        "summary": "取消收藏",
+        "description": "按 goodsId 取消收藏；未收藏返回 404。",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "goods_id", "in": "path", "required": true, "type": "integer", "description": "商品ID" }
+        ],
+        "responses": {
+          "200": { "description": "取消收藏成功", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "未收藏", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
+    "/addresses": {
+      "get": {
+        "tags": ["地址"],
+        "summary": "收货地址列表",
+        "description": "获取当前登录用户的收货地址列表。",
+        "parameters": [{ "$ref": "#/parameters/XToken" }],
+        "responses": {
+          "200": { "description": "地址列表", "schema": { "$ref": "#/definitions/AddressList" } },
+          "401": { "description": "未登录", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "post": {
+        "tags": ["地址"],
+        "summary": "新建收货地址",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": { "$ref": "#/definitions/AddressRequest" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "新建的地址", "schema": { "$ref": "#/definitions/Address" } },
+          "400": { "description": "参数错误（必填缺失/手机号非法）", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
+    "/addresses/{id}": {
+      "put": {
+        "tags": ["地址"],
+        "summary": "更新收货地址",
+        "description": "按 id 更新，带 userId 归属校验：非本人返回 404。",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "地址ID" },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": { "$ref": "#/definitions/AddressRequest" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "更新成功", "schema": { "$ref": "#/definitions/Message" } },
+          "400": { "description": "参数错误（必填缺失/手机号非法）", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "地址不存在/非本人", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "delete": {
+        "tags": ["地址"],
+        "summary": "删除收货地址",
+        "description": "按 id 删除，带 userId 归属校验：非本人返回 404。",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "地址ID" }
+        ],
+        "responses": {
+          "200": { "description": "删除成功", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "地址不存在/非本人", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
+    "/messages": {
+      "get": {
+        "tags": ["留言"],
+        "summary": "留言列表",
+        "description": "获取当前登录用户的留言列表。",
+        "parameters": [{ "$ref": "#/parameters/XToken" }],
+        "responses": {
+          "200": { "description": "留言列表", "schema": { "$ref": "#/definitions/MessageList" } },
+          "401": { "description": "未登录", "schema": { "$ref": "#/definitions/Message" } },
+          "500": { "description": "服务器错误", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      },
+      "post": {
+        "tags": ["留言"],
+        "summary": "新建留言",
+        "description": "type 必须 ∈ 1..5，否则 400。",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": { "$ref": "#/definitions/CreateMessageRequest" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "新建的留言", "schema": { "$ref": "#/definitions/MessageItem" } },
+          "400": { "description": "参数错误（必填缺失/非法留言类型）", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
+    "/messages/{id}": {
+      "delete": {
+        "tags": ["留言"],
+        "summary": "删除留言",
+        "description": "按 id 删除，带 userId 归属校验：非本人返回 404。",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "留言ID" }
+        ],
+        "responses": {
+          "200": { "description": "删除成功", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "留言不存在/非本人", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Message": {
+      "type": "object",
+      "properties": {
+        "msg": { "type": "string" }
+      }
+    },
+    "UserFav": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer", "description": "收藏记录ID" },
+        "user_id": { "type": "integer" },
+        "goods_id": { "type": "integer", "description": "商品ID" },
+        "goods_name": { "type": "string", "description": "商品名（goods_srv 补全；详情接口为空）" },
+        "goods_image": { "type": "string", "description": "商品封面图（goods_srv 补全；详情接口为空）" },
+        "goods_price": { "type": "number", "format": "float", "description": "本店价（goods_srv 补全；详情接口为 0）" }
+      }
+    },
+    "UserFavList": {
+      "type": "object",
+      "properties": {
+        "total": { "type": "integer" },
+        "data": { "type": "array", "items": { "$ref": "#/definitions/UserFav" } }
+      }
+    },
+    "UserFavRequest": {
+      "type": "object",
+      "required": ["goods_id"],
+      "properties": {
+        "goods_id": { "type": "integer", "description": "商品ID" }
+      }
+    },
+    "Address": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer", "description": "地址ID" },
+        "user_id": { "type": "integer" },
+        "province": { "type": "string", "description": "省" },
+        "city": { "type": "string", "description": "市" },
+        "district": { "type": "string", "description": "区" },
+        "address": { "type": "string", "description": "详细地址" },
+        "signer_name": { "type": "string", "description": "收货人" },
+        "signer_mobile": { "type": "string", "description": "收货人手机号" }
+      }
+    },
+    "AddressList": {
+      "type": "object",
+      "properties": {
+        "total": { "type": "integer" },
+        "data": { "type": "array", "items": { "$ref": "#/definitions/Address" } }
+      }
+    },
+    "AddressRequest": {
+      "type": "object",
+      "required": ["province", "city", "district", "address", "signer_name", "signer_mobile"],
+      "properties": {
+        "province": { "type": "string", "description": "省" },
+        "city": { "type": "string", "description": "市" },
+        "district": { "type": "string", "description": "区" },
+        "address": { "type": "string", "description": "详细地址" },
+        "signer_name": { "type": "string", "description": "收货人" },
+        "signer_mobile": { "type": "string", "description": "11位手机号" }
+      }
+    },
+    "MessageItem": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer", "description": "留言ID" },
+        "user_id": { "type": "integer" },
+        "subject": { "type": "string", "description": "主题" },
+        "message": { "type": "string", "description": "内容" },
+        "type": { "type": "integer", "description": "1-留言 2-投诉 3-询问 4-售后 5-求购" },
+        "file": { "type": "string", "description": "附件" },
+        "add_time": { "type": "integer", "format": "int64", "description": "创建时间(unix)" }
+      }
+    },
+    "MessageList": {
+      "type": "object",
+      "properties": {
+        "total": { "type": "integer" },
+        "data": { "type": "array", "items": { "$ref": "#/definitions/MessageItem" } }
+      }
+    },
+    "CreateMessageRequest": {
+      "type": "object",
+      "required": ["subject", "message", "type"],
+      "properties": {
+        "subject": { "type": "string", "description": "主题" },
+        "message": { "type": "string", "description": "内容" },
+        "type": { "type": "integer", "enum": [1, 2, 3, 4, 5], "description": "1-留言 2-投诉 3-询问 4-售后 5-求购" },
+        "file": { "type": "string", "description": "附件" }
+      }
+    }
+  }
+}
