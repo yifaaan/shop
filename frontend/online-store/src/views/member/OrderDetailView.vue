@@ -7,7 +7,7 @@
         <el-descriptions-item label="订单状态">
           <el-tag :type="statusType(orderInfo.status)" size="small">{{ statusText(orderInfo.status) }}</el-tag>
           <el-button
-            v-if="orderInfo.status !== 'TRADE_SUCCESS' && orderInfo.status !== 'TRADE_CLOSED' && orderInfo.alipay_url"
+            v-if="![2, 3].includes(Number(orderInfo.status)) && orderInfo.alipay_url"
             type="primary"
             size="small"
             class="pay-btn"
@@ -19,23 +19,23 @@
       </el-descriptions>
 
       <h3 class="sub-title">商品列表</h3>
-      <el-table :data="orderInfo.goods ?? []" border stripe>
+      <el-table :data="orderInfo.order_goods ?? []" border stripe>
         <el-table-column label="商品名称" min-width="220">
           <template #default="{ row }">
             <router-link
-              :to="{ name: 'productDetail', params: { productId: row.id } }"
+              :to="{ name: 'productDetail', params: { productId: row.goods_id } }"
               class="link"
-              >{{ row.name }}</router-link
+              >{{ row.goods_name }}</router-link
             >
           </template>
         </el-table-column>
         <el-table-column label="商品价格" width="140" align="center">
-          <template #default="{ row }">￥{{ row.price }}</template>
+          <template #default="{ row }">￥{{ row.goods_price }}</template>
         </el-table-column>
-        <el-table-column label="购买数量" prop="nums" width="120" align="center" />
+        <el-table-column label="购买数量" prop="num" width="120" align="center" />
         <el-table-column label="小计" width="140" align="center">
           <template #default="{ row }">
-            <span class="price">￥{{ row.price * row.nums }}</span>
+            <span class="price">￥{{ row.goods_price * row.num }}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -64,25 +64,26 @@ const loading = ref(false)
 const orderInfo = ref<Partial<OrderItem>>({})
 
 const totalPrice = computed(() =>
-  (orderInfo.value.goods ?? []).reduce((sum, g) => sum + g.price * g.nums, 0),
+  (orderInfo.value.order_goods ?? []).reduce((sum, g) => sum + g.goods_price * g.num, 0),
 )
 
-function statusText(status?: string) {
-  switch (status) {
-    case 'TRADE_SUCCESS':
+// 后端订单状态为数字：1-待支付 2-已支付 3-已取消
+function statusText(status?: number | string) {
+  switch (Number(status)) {
+    case 2:
       return '已支付'
-    case 'TRADE_CLOSED':
-      return '已关闭'
+    case 3:
+      return '已取消'
     default:
       return '待支付'
   }
 }
 
-function statusType(status?: string) {
-  switch (status) {
-    case 'TRADE_SUCCESS':
+function statusType(status?: number | string) {
+  switch (Number(status)) {
+    case 2:
       return 'success'
-    case 'TRADE_CLOSED':
+    case 3:
       return 'info'
     default:
       return 'warning'

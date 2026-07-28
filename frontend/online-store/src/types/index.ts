@@ -24,7 +24,7 @@ export interface AuthResult {
 }
 
 export interface CaptchaResult {
-  captchaId: string
+  captcha_id: string
   picPath: string
 }
 
@@ -110,13 +110,14 @@ export interface Banner {
 }
 
 // ===== 购物车相关 =====
+// 与 order_web cartItemResponse 对齐：id 为购物车记录ID（更新/删除按此id）
 export interface CartItem {
+  id: number
   goods_id: number
-  good_name?: string
-  good_image?: string
-  good_price: number
-  goods_price?: number
-  nums: number
+  goods_name?: string
+  goods_image?: string
+  goods_price: number
+  num: number
   checked?: boolean
 }
 
@@ -126,42 +127,50 @@ export interface CartListResult {
 }
 
 export interface AddCartParams {
-  goods: number
-  nums: number
+  goods_id: number
+  num: number
+  checked?: boolean
 }
 
 export interface UpdateCartParams {
-  nums?: number
+  num?: number
   checked?: boolean
 }
 
 // ===== 订单相关 =====
+// 与 order_web CreateOrderForm 对齐：pay_type 必填（1微信 2支付宝）
 export interface CreateOrderParams {
-  post: string
   address: string
   name: string
   mobile: string
-  order_mount: number | string
+  post?: string
+  pay_type: 1 | 2
+  post_fee?: number | string
 }
 
 export interface OrderItem {
   id: number
   order_sn?: string
-  add_time?: string
+  add_time?: number | string
   total?: number | string
-  status?: string // paying | TRADE_SUCCESS | TRADE_CLOSED | ''
+  status?: number | string // 1待支付 2已支付 3已取消
+  pay_type?: number
+  post_fee?: number | string
   alipay_url?: string
   name?: string
   address?: string
   mobile?: string
-  goods?: OrderGoods[]
+  order_goods?: OrderGoods[]
 }
 
 export interface OrderGoods {
   id: number
-  name: string
-  price: number
-  nums: number
+  order_id?: number
+  goods_id: number
+  goods_name: string
+  goods_image?: string
+  goods_price: number
+  num: number
 }
 
 // ===== 收货地址相关 =====
@@ -176,8 +185,20 @@ export interface Address {
 }
 
 // ===== 收藏 =====
+// userop_web UserFavForm 以 goods_id 标识
 export interface FavParams {
-  goods: number
+  goods_id: number
+}
+
+// userop_web 收藏列表项：id 为收藏记录ID（取消收藏按此），goods_id 指向商品；
+// goods_name/image/price 由 userop_web 调 goods_srv 补全。
+export interface FavItem {
+  id: number
+  user_id?: number
+  goods_id: number
+  goods_name?: string
+  goods_image?: string
+  goods_price?: number
 }
 
 // ===== 留言 =====

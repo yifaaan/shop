@@ -3,31 +3,31 @@
     <h1 class="page-title">我的购物车</h1>
 
     <div v-loading="loading" class="cart-table">
-      <el-table :data="cartList" border row-key="goods_id" @selection-change="onSelectionChange">
+      <el-table :data="cartList" border row-key="id" @selection-change="onSelectionChange">
         <el-table-column type="selection" width="50" reserve-selection />
         <el-table-column label="商品" min-width="320">
           <template #default="{ row }">
             <div class="goods-cell">
               <router-link :to="{ name: 'productDetail', params: { productId: row.goods_id } }">
-                <el-image :src="row.good_image" fit="cover" class="thumb" />
+                <el-image :src="row.goods_image" fit="cover" class="thumb" />
               </router-link>
               <router-link
                 :to="{ name: 'productDetail', params: { productId: row.goods_id } }"
                 class="g-name"
-                >{{ row.good_name }}</router-link
+                >{{ row.goods_name }}</router-link
               >
             </div>
           </template>
         </el-table-column>
         <el-table-column label="单价" width="120" align="center">
           <template #default="{ row }">
-            <span class="price">￥{{ row.good_price }}</span>
+            <span class="price">￥{{ row.goods_price }}</span>
           </template>
         </el-table-column>
         <el-table-column label="数量" width="180" align="center">
           <template #default="{ row }">
             <el-input-number
-              v-model="row.nums"
+              v-model="row.num"
               :min="1"
               :max="999"
               size="small"
@@ -37,12 +37,12 @@
         </el-table-column>
         <el-table-column label="小计" width="120" align="center">
           <template #default="{ row }">
-            <span class="price">￥{{ (row.good_price * row.nums).toFixed(2) }}</span>
+            <span class="price">￥{{ (row.goods_price * row.num).toFixed(2) }}</span>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="100" align="center">
           <template #default="{ row, $index }">
-            <el-button link type="danger" @click="removeGoods($index, row.goods_id)">删除</el-button>
+            <el-button link type="danger" @click="removeGoods($index, row.id)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -115,9 +115,9 @@ const selectedAddrId = ref<number>()
 const selectedAddr = ref<Address | null>(null)
 const postScript = ref('')
 
-const selectedCount = computed(() => selected.value.reduce((s, i) => s + i.nums, 0))
+const selectedCount = computed(() => selected.value.reduce((s, i) => s + i.num, 0))
 const selectedTotal = computed(() =>
-  selected.value.reduce((s, i) => s + i.good_price * i.nums, 0),
+  selected.value.reduce((s, i) => s + i.goods_price * i.num, 0),
 )
 
 function onSelectionChange(rows: CartItem[]) {
@@ -150,21 +150,21 @@ function onAddrChange(id: number) {
 
 async function updateQty(row: CartItem, val: number | undefined) {
   try {
-    await updateShopCart(row.goods_id, { nums: val ?? 1, checked: row.checked })
+    await updateShopCart(row.id, { num: val ?? 1, checked: row.checked })
     cartStore.refresh()
   } catch {
     loadCart()
   }
 }
 
-async function removeGoods(index: number, goodsId: number) {
+async function removeGoods(index: number, id: number) {
   try {
     await ElMessageBox.confirm('确定把该商品移除购物车吗？', '提示', { type: 'warning' })
   } catch {
     return
   }
   try {
-    await deleteShopCart(goodsId)
+    await deleteShopCart(id)
     cartList.value.splice(index, 1)
     cartStore.refresh()
     ElMessage.success('已删除')
@@ -189,7 +189,7 @@ async function balance() {
       address: `${a.province}${a.city}${a.district}${a.address}`,
       name: a.signer_name,
       mobile: a.signer_mobile,
-      order_mount: selectedTotal.value.toFixed(2),
+      pay_type: 2, // 支付宝
     })
     ElMessage.success('订单创建成功')
     if (res.alipay_url) {

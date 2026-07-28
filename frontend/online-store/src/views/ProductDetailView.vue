@@ -153,7 +153,7 @@ async function checkFav() {
 
 async function addToCart() {
   try {
-    await addShopCart({ goods: Number(route.params.productId), nums: buyNum.value })
+    await addShopCart({ goods_id: Number(route.params.productId), num: buyNum.value })
     ElMessage.success('已加入购物车')
     cartStore.refresh()
   } catch {
@@ -173,7 +173,7 @@ async function toggleFav() {
     }
   } else {
     try {
-      await addFav({ goods: Number(id) })
+      await addFav({ goods_id: Number(id) })
       hasFav.value = true
       ElMessage.success('已加入收藏')
     } catch {

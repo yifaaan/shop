@@ -20,7 +20,7 @@
       </el-table-column>
       <el-table-column label="操作" width="120" align="center">
         <template #default="{ row }">
-          <el-button link type="danger" @click="cancelOrder(row.id)">取消订单</el-button>
+          <el-button link type="danger" @click="cancelOrder(row)">取消订单</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -32,29 +32,30 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getOrders, deleteOrder } from '@/api'
+import { getOrders, updateOrderStatus } from '@/api'
 import type { OrderItem } from '@/types'
 
 const router = useRouter()
 const loading = ref(false)
 const orders = ref<OrderItem[]>([])
 
-function statusText(status?: string) {
-  switch (status) {
-    case 'TRADE_SUCCESS':
+// 后端订单状态为数字：1-待支付 2-已支付 3-已取消
+function statusText(status?: number | string) {
+  switch (Number(status)) {
+    case 2:
       return '已支付'
-    case 'TRADE_CLOSED':
-      return '已关闭'
+    case 3:
+      return '已取消'
     default:
       return '待支付'
   }
 }
 
-function statusType(status?: string) {
-  switch (status) {
-    case 'TRADE_SUCCESS':
+function statusType(status?: number | string) {
+  switch (Number(status)) {
+    case 2:
       return 'success'
-    case 'TRADE_CLOSED':
+    case 3:
       return 'info'
     default:
       return 'warning'
@@ -65,14 +66,15 @@ function goDetail(id: number) {
   router.push({ name: 'orderDetail', params: { orderId: id } })
 }
 
-async function cancelOrder(id: number) {
+async function cancelOrder(row: { order_sn?: string }) {
+  if (!row.order_sn) return
   try {
     await ElMessageBox.confirm('确认要取消该订单吗？', '提示', { type: 'warning' })
   } catch {
     return
   }
   try {
-    await deleteOrder(id)
+    await updateOrderStatus({ order_sn: row.order_sn, status: 3 })
     ElMessage.success('订单已取消')
     loadOrders()
   } catch {

@@ -72,18 +72,18 @@
                 class="cart-item"
               >
                 <router-link :to="{ name: 'productDetail', params: { productId: item.goods_id } }">
-                  <el-image :src="item.good_image" class="cart-thumb" fit="cover" />
+                  <el-image :src="item.goods_image" class="cart-thumb" fit="cover" />
                 </router-link>
                 <div class="cart-info">
                   <router-link
                     :to="{ name: 'productDetail', params: { productId: item.goods_id } }"
                     class="cart-name"
-                    >{{ item.good_name }}</router-link
+                    >{{ item.goods_name }}</router-link
                   >
                   <div class="cart-meta">
-                    <span class="price">￥{{ item.good_price }}</span>
-                    <span class="nums">×{{ item.nums }}</span>
-                    <el-button link type="danger" size="small" @click="removeCart(index, item.goods_id)"
+                    <span class="price">￥{{ item.goods_price }}</span>
+                    <span class="nums">×{{ item.num }}</span>
+                    <el-button link type="danger" size="small" @click="removeCart(index, item.id)"
                       >删除</el-button
                     >
                   </div>
@@ -198,14 +198,14 @@ function onCartVisible(v: boolean) {
   if (v && userStore.isLoggedIn()) cartStore.refresh()
 }
 
-async function removeCart(index: number, goodsId: number) {
+async function removeCart(index: number, id: number) {
   try {
     await ElMessageBox.confirm('确定将该商品移出购物车吗？', '提示', { type: 'warning' })
   } catch {
     return
   }
   try {
-    await deleteShopCart(goodsId)
+    await deleteShopCart(id)
     cartStore.goodsList.splice(index, 1)
     ElMessage.success('已删除')
   } catch {

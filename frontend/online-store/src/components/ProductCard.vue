@@ -1,7 +1,7 @@
 <template>
   <router-link :to="{ name: 'productDetail', params: { productId: goods.id } }" class="product-card">
     <div class="img-box">
-      <el-image :src="goods.front_image || goods.goods_front_image" fit="cover" lazy />
+      <el-image :src="goods.front_image" fit="cover" lazy />
       <span v-if="goods.is_hot" class="tag tag-hot">热卖</span>
       <span v-else-if="goods.is_new" class="tag tag-new">新品</span>
     </div>

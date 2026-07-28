@@ -13,7 +13,7 @@ export const useCartStore = defineStore('cart', () => {
     try {
       const res = await getShopCarts()
       goodsList.value = res.data ?? []
-      totalPrice.value = goodsList.value.reduce((sum, item) => sum + item.good_price * item.nums, 0)
+      totalPrice.value = goodsList.value.reduce((sum, item) => sum + item.goods_price * item.num, 0)
     } catch (e) {
       goodsList.value = []
       totalPrice.value = 0

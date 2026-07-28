@@ -5,20 +5,20 @@
       <el-table-column label="商品名称" min-width="280">
         <template #default="{ row }">
           <router-link
-            :to="{ name: 'productDetail', params: { productId: row.id } }"
+            :to="{ name: 'productDetail', params: { productId: row.goods_id } }"
             class="link"
-            >{{ row.name }}</router-link
+            >{{ row.goods_name }}</router-link
           >
         </template>
       </el-table-column>
       <el-table-column label="价格" width="160" align="center">
         <template #default="{ row }">
-          <span class="price">￥{{ row.shop_price }}</span>
+          <span class="price">￥{{ row.goods_price }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="120" align="center">
         <template #default="{ row, $index }">
-          <el-button link type="danger" @click="remove($index, row.id)">删除</el-button>
+          <el-button link type="danger" @click="remove($index, row.goods_id)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -30,10 +30,10 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAllFavs, delFav } from '@/api'
-import type { Goods } from '@/types'
+import type { FavItem } from '@/types'
 
 const loading = ref(false)
-const collections = ref<Goods[]>([])
+const collections = ref<FavItem[]>([])
 
 async function load() {
   loading.value = true
@@ -45,14 +45,14 @@ async function load() {
   }
 }
 
-async function remove(index: number, id: number) {
+async function remove(index: number, goodsId: number) {
   try {
     await ElMessageBox.confirm('确定要从收藏夹中删除该商品吗？', '提示', { type: 'warning' })
   } catch {
     return
   }
   try {
-    await delFav(id)
+    await delFav(goodsId)
     collections.value.splice(index, 1)
     ElMessage.success('已删除')
   } catch {

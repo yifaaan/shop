@@ -37,14 +37,14 @@ export default defineConfig({
         target: 'http://127.0.0.1:8022',
         changeOrigin: true,
       },
-      // order_web (:8023) — shopcarts, orders (reference deployment)
+      // order_web (local :8023) — cart, orders, alipay
       '/o': {
-        target: 'http://124.223.201.78:8023',
+        target: 'http://127.0.0.1:8023',
         changeOrigin: true,
       },
-      // user_op_web (:8027) — favorites, address, messages (reference deployment)
-      '/up': {
-        target: 'http://124.223.201.78:8027',
+      // userop_web (local :8027) — favs, addresses, messages
+      '/uo': {
+        target: 'http://127.0.0.1:8027',
         changeOrigin: true,
       },
       // external legacy host — index goods grouping & hot search keywords
