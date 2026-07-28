@@ -342,6 +342,29 @@ func (s *Server) UpdateOrderStatus(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"msg": "更新成功"})
 }
 
+// DeleteOrder 删除订单（先做归属校验，非本人 404，不泄露存在性）
+func (s *Server) DeleteOrder(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "invalid id"})
+		return
+	}
+	// 归属校验：GetOrderDetail 带 userId，非本人订单返回 NotFound
+	if _, err := s.orderSrv.GetOrderDetail(ctx.Request.Context(), &proto.OrderInfoRequest{
+		Id:     int32(id),
+		UserId: currentUserID(ctx),
+	}); err != nil {
+		HandleGrpcErrorToHttp(err, ctx)
+		return
+	}
+	if _, err := s.orderSrv.DeleteOrder(ctx.Request.Context(), &proto.DeleteOrderInfo{Id: int32(id)}); err != nil {
+		s.log.Error("DeleteOrder grpc error: ", err)
+		HandleGrpcErrorToHttp(err, ctx)
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"msg": "删除成功"})
+}
+
 // alipayClient 按配置构造并加载公钥的支付宝客户端，notify / return 回调共用。
 func (s *Server) alipayClient() (*alipay.Client, error) {
 	client, err := alipay.New(s.cfg.AliPay.AppId, s.cfg.AliPay.PrivateKey, s.cfg.AliPay.IsProduction)

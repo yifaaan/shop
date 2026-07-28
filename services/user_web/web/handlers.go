@@ -54,6 +54,57 @@ func (s *Server) GetUserList(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, result)
 }
 
+// GetUserDetail 当前登录用户的个人资料（按 token 中的 userId 查询）。
+func (s *Server) GetUserDetail(ctx *gin.Context) {
+	rsp, err := s.userSrv.GetUserById(ctx.Request.Context(), &proto.IdRequest{
+		Id: int32(ctx.GetUint("userId")),
+	})
+	if err != nil {
+		s.log.Error("GetUserById grpc error: ", err)
+		HandleGrpcErrorToHttp(err, ctx)
+		return
+	}
+	ctx.JSON(http.StatusOK, UserResponse{
+		Id:       rsp.Id,
+		NickName: rsp.NickName,
+		Mobile:   rsp.Mobile,
+		Gender:   rsp.Gender,
+		Birthday: JsonTime(time.Unix(int64(rsp.BirthDay), 0)),
+	})
+}
+
+// UpdateUser 更新当前登录用户的资料（昵称/性别/生日）。
+// 注：后端 UpdateUser RPC 不支持改 mobile，故忽略入参中的 mobile。
+func (s *Server) UpdateUser(ctx *gin.Context) {
+	var form UpdateUserForm
+	if err := ctx.ShouldBind(&form); err != nil {
+		s.log.Error("UpdateUser form binding error: ", err)
+		handleValidatorError(err, ctx)
+		return
+	}
+	var birthDay uint64
+	if form.Birthday != "" {
+		t, err := time.Parse("2006-01-02", form.Birthday)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"msg": "生日格式应为 YYYY-MM-DD"})
+			return
+		}
+		birthDay = uint64(t.Unix())
+	}
+	_, err := s.userSrv.UpdateUser(ctx.Request.Context(), &proto.UpdateUserInfo{
+		Id:       int32(ctx.GetUint("userId")),
+		NickName: form.NickName,
+		Gender:   form.Gender,
+		BirthDay: birthDay,
+	})
+	if err != nil {
+		s.log.Error("UpdateUser grpc error: ", err)
+		HandleGrpcErrorToHttp(err, ctx)
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"msg": "更新成功"})
+}
+
 func (s *Server) PasswordLogin(ctx *gin.Context) {
 	var loginForm PasswordLoginForm
 	if err := ctx.ShouldBind(&loginForm); err != nil {

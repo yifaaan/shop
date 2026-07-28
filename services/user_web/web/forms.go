@@ -17,3 +17,10 @@ type RegisterForm struct {
 	Password string `form:"password" json:"password" binding:"required,min=6,max=15"`
 	Code     string `form:"code" json:"code" binding:"required,min=5"`
 }
+
+// UpdateUserForm 更新个人资料（mobile 由后端 UpdateUser RPC 不支持修改，忽略）。
+type UpdateUserForm struct {
+	NickName string `form:"name" json:"name" binding:"required"`
+	Gender   string `form:"gender" json:"gender"`
+	Birthday string `form:"birthday" json:"birthday"` // YYYY-MM-DD
+}

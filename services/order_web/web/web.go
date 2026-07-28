@@ -67,6 +67,7 @@ func (s *Server) registerOrderRoutes(g *gin.RouterGroup) {
 	og.GET("/", s.OrderList)
 	og.GET("/:id", s.GetOrderDetail)
 	og.PUT("/status", s.UpdateOrderStatus)
+	og.DELETE("/:id", s.DeleteOrder)
 }
 
 func (s *Server) registerAlipayRoutes(g *gin.RouterGroup) {

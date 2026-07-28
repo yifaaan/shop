@@ -50,6 +50,9 @@ func (s *Server) Routers() *gin.Engine {
 func (s *Server) registerUserRoutes(g *gin.RouterGroup) {
 	ug := g.Group("user")
 	ug.GET("/list", auth.JWTAuth(s.j), auth.IsAdminAuth(), s.GetUserList)
+	// 个人资料：登录即可（无需管理员），按当前登录用户归属
+	ug.GET("/detail", auth.JWTAuth(s.j), s.GetUserDetail)
+	ug.PATCH("/update", auth.JWTAuth(s.j), s.UpdateUser)
 	ug.POST("/pwd_login", s.PasswordLogin)
 	ug.POST("/register", s.Register)
 }
