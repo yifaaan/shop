@@ -13,6 +13,7 @@ import (
 	"shop/pkg/port"
 	"shop/pkg/proto"
 	"shop/services/goods_srv/config"
+	"shop/services/goods_srv/esearch"
 	"shop/services/goods_srv/registry"
 
 	"go.uber.org/zap"
@@ -47,8 +48,29 @@ func main() {
 	}
 	log.Info("DB init done")
 
+	// Elasticsearch：建索引 + 可选启动全量重建（保证 ES 与 MySQL 一致）
+	esSvc, err := esearch.New(esearch.Config{
+		Addr:           fmt.Sprintf("http://%s:%d", cfg.ES.Host, cfg.ES.Port),
+		Index:          cfg.ES.Index,
+		ReindexOnStart: cfg.ES.ReindexOnStart,
+	})
+	if err != nil {
+		log.Panic("failed to init elasticsearch: ", err)
+	}
+	if err := esSvc.EnsureIndex(context.Background()); err != nil {
+		log.Panic("failed to ensure es index: ", err)
+	}
+	if cfg.ES.ReindexOnStart {
+		if n, err := reindexAll(context.Background(), db, esSvc); err != nil {
+			log.Errorf("reindex on start failed: %v", err)
+		} else {
+			log.Infof("reindexed %d goods into elasticsearch", n)
+		}
+	}
+	log.Info("ES init done")
+
 	server := grpc.NewServer()
-	proto.RegisterGoodsServer(server, NewGoodsServer(db))
+	proto.RegisterGoodsServer(server, NewGoodsServer(db, esSvc))
 
 	// gRPC 标准健康检查服务
 	healthSrv := health.NewServer()
@@ -150,6 +172,26 @@ func openDB(cfg config.MySQLConfig, log *zap.SugaredLogger) (*gorm.DB, error) {
 		return nil, fmt.Errorf("auto migrate: %w", err)
 	}
 	return db, nil
+}
+
+// reindexAll 从 MySQL 全量读取存活商品，清空 ES 索引后批量写入。
+// 幂等：每次启动重建使 ES == 存活 MySQL（含剔除已软删的陈旧文档）。
+func reindexAll(ctx context.Context, db *gorm.DB, esSvc *esearch.Service) (int, error) {
+	var goods []Goods
+	if err := db.Find(&goods).Error; err != nil {
+		return 0, fmt.Errorf("load goods: %w", err)
+	}
+	docs := make([]esearch.GoodsDoc, 0, len(goods))
+	for i := range goods {
+		docs = append(docs, goodsToDoc(&goods[i]))
+	}
+	if err := esSvc.Clear(ctx); err != nil {
+		return 0, fmt.Errorf("clear index: %w", err)
+	}
+	if err := esSvc.BulkIndex(ctx, docs); err != nil {
+		return 0, fmt.Errorf("bulk index: %w", err)
+	}
+	return len(docs), nil
 }
 
 // newLogger returns a dev (console, debug-level) or prod (json, info-level) sugared logger.

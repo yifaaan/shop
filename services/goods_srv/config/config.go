@@ -18,6 +18,7 @@ type Config struct {
 	Port   int          `mapstructure:"port"`  // gRPC 监听端口
 	MySQL  MySQLConfig  `mapstructure:"mysql"`
 	Consul ConsulConfig `mapstructure:"consul"`
+	ES     ESConfig     `mapstructure:"es"`
 }
 
 type MySQLConfig struct {
@@ -35,6 +36,14 @@ type ConsulConfig struct {
 	Host    string `mapstructure:"host"`
 	Port    int    `mapstructure:"port"`
 	Address string `mapstructure:"address"`
+}
+
+// ESConfig 描述 Elasticsearch 连接与索引参数。
+type ESConfig struct {
+	Host           string `mapstructure:"host"`
+	Port           int    `mapstructure:"port"`
+	Index          string `mapstructure:"index"`
+	ReindexOnStart bool   `mapstructure:"reindex_on_start"` // 启动时按 MySQL 全量重建索引
 }
 
 func (m *MySQLConfig) DSN() string {

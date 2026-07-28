@@ -5,6 +5,7 @@ import (
 
 	basemodel "shop/pkg/model"
 	"shop/pkg/proto"
+	"shop/services/goods_srv/esearch"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -37,8 +38,80 @@ type Goods struct {
 	GoodsFrontImage string             `gorm:"column:goods_front_image;type:varchar(200);not null"` // 商品封面图
 }
 
-// GoodsList 商品列表（分页 + 过滤）
+// GoodsList 商品列表（分页 + 过滤）。
+// 带关键词时走 Elasticsearch IK 检索（按相关性返回 ID，MySQL 按 ID 补全全字段）；
+// 无关键词或 ES 不可用时回退 MySQL 过滤分页。
 func (s *GoodsServer) GoodsList(ctx context.Context, req *proto.GoodsFilterRequest) (*proto.GoodsListResponse, error) {
+	if req.KeyWords != "" && s.es != nil {
+		rsp, err := s.goodsListFromES(ctx, req)
+		if err == nil {
+			return rsp, nil
+		}
+		// ES 失败则降级到 MySQL 路径，保证可用性
+	}
+	return s.goodsListFromMySQL(ctx, req)
+}
+
+// goodsListFromES 关键词路径：ES bool query（关键词 must + 结构化 filter + 分页）。
+func (s *GoodsServer) goodsListFromES(ctx context.Context, req *proto.GoodsFilterRequest) (*proto.GoodsListResponse, error) {
+	// 顶级分类：复用 MySQL 子分类查询解析允许的 category_id 集合
+	var categoryIDs []int32
+	if req.TopCategory > 0 {
+		if err := s.db.Model(&Category{}).
+			Where("id = ? OR parent_category_id = ?", req.TopCategory, req.TopCategory).
+			Pluck("id", &categoryIDs).Error; err != nil {
+			return nil, status.Errorf(codes.Internal, "查询分类失败: %v", err)
+		}
+	}
+	// 分页参数与 Paginate 同口径
+	page := int(req.Pages)
+	if page <= 0 {
+		page = 1
+	}
+	size := int(req.PagePerNums)
+	switch {
+	case size > 100:
+		size = 100
+	case size <= 0:
+		size = 10
+	}
+	from := (page - 1) * size
+
+	ids, total, err := s.es.SearchIDs(ctx,
+		req.KeyWords,
+		float64(req.PriceMin), float64(req.PriceMax),
+		req.IsHot, req.IsNew, req.Brand,
+		categoryIDs, from, size,
+	)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "搜索商品失败: %v", err)
+	}
+	if len(ids) == 0 {
+		return &proto.GoodsListResponse{Total: total, Data: []*proto.GoodsInfoResponse{}}, nil
+	}
+
+	var goods []Goods
+	if err := s.db.Preload("Category").Preload("Brand").Where("id IN ?", ids).Find(&goods).Error; err != nil {
+		return nil, status.Errorf(codes.Internal, "查询商品失败: %v", err)
+	}
+	// 按 ES 相关性顺序（ids）重排
+	byID := make(map[int32]*Goods, len(goods))
+	for i := range goods {
+		byID[goods[i].ID] = &goods[i]
+	}
+	data := make([]*proto.GoodsInfoResponse, 0, len(ids))
+	for _, id := range ids {
+		if g := byID[id]; g != nil {
+			data = append(data, GoodsModelToResponse(g))
+		}
+	}
+	return &proto.GoodsListResponse{Total: total, Data: data}, nil
+}
+
+// goodsListFromMySQL 无关键词路径：纯 MySQL 过滤分页（ES 不参与）。
+// 注意：Total 取 result.RowsAffected，在 Limit/Offset 下实为当前页条数，
+// 属既有行为，本次保持不变。
+func (s *GoodsServer) goodsListFromMySQL(ctx context.Context, req *proto.GoodsFilterRequest) (*proto.GoodsListResponse, error) {
 	var goods []Goods
 	q := s.db.Model(&Goods{}).Preload("Category").Preload("Brand")
 	// 价格区间过滤
@@ -55,7 +128,7 @@ func (s *GoodsServer) GoodsList(ctx context.Context, req *proto.GoodsFilterReque
 	if req.IsNew {
 		q = q.Where("is_new = ?", true)
 	}
-	// 关键词模糊匹配商品名
+	// 关键词模糊匹配商品名（降级路径的兜底）
 	if req.KeyWords != "" {
 		q = q.Where("name LIKE ?", "%"+req.KeyWords+"%")
 	}
@@ -82,6 +155,26 @@ func (s *GoodsServer) GoodsList(ctx context.Context, req *proto.GoodsFilterReque
 		rsp.Data = append(rsp.Data, GoodsModelToResponse(&goods[i]))
 	}
 	return rsp, nil
+}
+
+// goodsToDoc 把 Goods 模型转为 ES 文档（仅检索所需字段）。
+func goodsToDoc(g *Goods) esearch.GoodsDoc {
+	return esearch.GoodsDoc{
+		ID:          g.ID,
+		Name:        g.Name,
+		GoodsBrief:  g.GoodsBrief,
+		ShopPrice:   float64(g.ShopPrice),
+		MarketPrice: float64(g.MarketPrice),
+		ShipFree:    g.ShipFree,
+		IsHot:       g.IsHot,
+		IsNew:       g.IsNew,
+		OnSale:      g.OnSale,
+		ClickNum:    g.ClickNum,
+		SoldNum:     g.SoldNum,
+		FavNum:      g.FavNum,
+		BrandsID:    g.BrandID,
+		CategoryID:  g.CategoryID,
+	}
 }
 
 // BatchGetGoods 批量查询商品信息（用户下单时一次性拉取多个商品）
@@ -132,6 +225,8 @@ func (s *GoodsServer) CreateGoods(ctx context.Context, req *proto.CreateGoodsInf
 	s.db.First(&brand, g.BrandID)
 	g.Category = &category
 	g.Brand = &brand
+	// 同步写入 ES 索引（失败不阻断主流程，下次启动重建会修正）
+	_ = s.es.IndexGoods(ctx, goodsToDoc(&g))
 	return GoodsModelToResponse(&g), nil
 }
 
@@ -173,6 +268,13 @@ func (s *GoodsServer) UpdateGoods(ctx context.Context, req *proto.CreateGoodsInf
 	if result.Error != nil {
 		return nil, status.Errorf(codes.Internal, "更新商品失败: %v", result.Error)
 	}
+	// 同步覆盖 ES 文档：req 不含 click_num/sold_num/fav_num 等服务端计数字段，
+	// 故从 MySQL 重取整条，避免用 req 构造时把计数清零。
+	var g Goods
+	if err := s.db.First(&g, req.Id).Error; err != nil {
+		return nil, status.Errorf(codes.Internal, "重取商品失败: %v", err)
+	}
+	_ = s.es.IndexGoods(ctx, goodsToDoc(&g))
 	return &emptypb.Empty{}, nil
 }
 
@@ -185,6 +287,8 @@ func (s *GoodsServer) DeleteGoods(ctx context.Context, req *proto.DeleteGoodsInf
 	if result.Error != nil {
 		return nil, result.Error
 	}
+	// 从 ES 索引移除，避免搜到已软删商品
+	_ = s.es.DeleteGoodsDoc(ctx, req.Id)
 	return &emptypb.Empty{}, nil
 }
 
