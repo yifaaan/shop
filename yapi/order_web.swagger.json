@@ -140,6 +140,21 @@
           "200": { "description": "订单详情", "schema": { "$ref": "#/definitions/Order" } },
           "404": { "description": "订单不存在/非本人", "schema": { "$ref": "#/definitions/Message" } }
         }
+      },
+      "delete": {
+        "tags": ["订单"],
+        "summary": "删除订单",
+        "description": "按 id 删除订单。先做 userId 归属校验，非本人订单返回 404（不泄露存在性）。",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "id", "in": "path", "required": true, "type": "integer", "description": "订单ID" }
+        ],
+        "responses": {
+          "200": { "description": "删除成功", "schema": { "$ref": "#/definitions/Message" } },
+          "400": { "description": "invalid id", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "订单不存在/非本人", "schema": { "$ref": "#/definitions/Message" } }
+        }
       }
     },
     "/orders/status": {

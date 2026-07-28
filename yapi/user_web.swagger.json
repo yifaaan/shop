@@ -40,6 +40,35 @@
         }
       }
     },
+    "/user/detail": {
+      "get": {
+        "tags": ["用户"],
+        "summary": "个人资料",
+        "description": "获取当前登录用户的个人资料（按 token 中的 userId 查询，无需管理员）。",
+        "parameters": [{ "$ref": "#/parameters/XToken" }],
+        "responses": {
+          "200": { "description": "个人资料", "schema": { "$ref": "#/definitions/UserResponse" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } },
+          "404": { "description": "用户不存在", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
+    "/user/update": {
+      "patch": {
+        "tags": ["用户"],
+        "summary": "更新个人资料",
+        "description": "更新当前登录用户的昵称/性别/生日。后端不支持改 mobile，入参中的 mobile 会被忽略。",
+        "parameters": [
+          { "$ref": "#/parameters/XToken" },
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/UpdateUserRequest" } }
+        ],
+        "responses": {
+          "200": { "description": "更新成功", "schema": { "$ref": "#/definitions/Message" } },
+          "400": { "description": "参数错误/生日格式非法", "schema": { "$ref": "#/definitions/Message" } },
+          "401": { "description": "未登录/登录已过期", "schema": { "$ref": "#/definitions/Message" } }
+        }
+      }
+    },
     "/user/pwd_login": {
       "post": {
         "tags": ["用户"],
@@ -165,6 +194,15 @@
       "properties": {
         "captcha_id": { "type": "string", "description": "登录时回传的验证码ID" },
         "picPath": { "type": "string", "description": "base64 图片（data URI）" }
+      }
+    },
+    "UpdateUserRequest": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "description": "昵称" },
+        "gender": { "type": "string", "description": "性别" },
+        "birthday": { "type": "string", "description": "生日，格式 YYYY-MM-DD" }
       }
     },
     "SendSmsForm": {
