@@ -102,11 +102,12 @@ services:
     container_name: rocketmq-init
     user: "0:0"
     entrypoint: ["sh", "-c"]
-    command: ["chown 3000:3000 /namesrv-logs /broker-logs /broker-store"]
+    command: ["chown 3000:3000 /namesrv-logs /broker-logs /broker-store /proxy-logs"]
     volumes:
       - rocketmq-namesrv-logs:/namesrv-logs
       - rocketmq-broker-logs:/broker-logs
       - rocketmq-broker-store:/broker-store
+      - rocketmq-proxy-logs:/proxy-logs
     restart: "no"
 
   rocketmq-namesrv:
@@ -151,6 +152,31 @@ services:
       - rocketmq-broker-store:/home/rocketmq/store
     healthcheck:
       test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/11011'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  rocketmq-proxy:
+    image: apache/rocketmq:5.3.2
+    container_name: rocketmq-proxy
+    restart: always
+    depends_on:
+      rocketmq-broker:
+        condition: service_healthy
+    command: sh mqproxy -n rocketmq-namesrv:9876 -pm cluster -pc /home/rocketmq/conf/proxy.json
+    environment:
+      NAMESRV_ADDR: rocketmq-namesrv:9876
+      JAVA_OPT_EXT: -server -Xms256m -Xmx512m -Xmn128m
+    ports:
+      # Windows reserves the default 8080/8081 ports on this development machine.
+      - "18080:18080"
+      - "18081:18081"
+    volumes:
+      - ./docker/rocketmq:/home/rocketmq/conf:ro
+      - rocketmq-proxy-logs:/home/rocketmq/logs
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/18081'"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -224,6 +250,7 @@ volumes:
   rocketmq-namesrv-logs:
   rocketmq-broker-logs:
   rocketmq-broker-store:
+  rocketmq-proxy-logs:
   consul-data:
   consul-config:
   nacos-logs:
