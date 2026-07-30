@@ -70,8 +70,14 @@ func main() {
 	}
 	defer inventoryConn.Close()
 
+	// 初始化事务消息生产者（订单超时归还库存）
+	txProducer, err := newRocketMQProducer(cfg.RocketMQ, db, log)
+	if err != nil {
+		log.Panic("failed to init rocketmq producer: ", err)
+	}
+
 	server := grpc.NewServer()
-	proto.RegisterOrderServer(server, NewOrderServer(db, proto.NewGoodsClient(goodsConn), proto.NewInventoryClient(inventoryConn), log))
+	proto.RegisterOrderServer(server, NewOrderServer(db, proto.NewGoodsClient(goodsConn), proto.NewInventoryClient(inventoryConn), log, txProducer))
 
 	// gRPC 标准健康检查服务
 	healthSrv := health.NewServer()
@@ -107,6 +113,9 @@ func main() {
 		log.Info("shutting down grpc server")
 		healthSrv.SetServingStatus(cfg.Name, grpc_health_v1.HealthCheckResponse_NOT_SERVING)
 		server.GracefulStop()
+		if err := txProducer.Close(); err != nil {
+			log.Error("close rocketmq producer error: ", err)
+		}
 		if err := reg.Deregister(); err != nil {
 			log.Error("deregister from consul error: ", err)
 		}

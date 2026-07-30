@@ -12,14 +12,15 @@ import (
 )
 
 type Config struct {
-	Name         string            `mapstructure:"name"`
-	Debug        bool              `mapstructure:"debug"` // from SHOP_DEBUG; selects dev logger + debug group
-	Host         string            `mapstructure:"host"`  // gRPC 监听地址
-	Port         int               `mapstructure:"port"`  // gRPC 监听端口
-	MySQL        MySQLConfig       `mapstructure:"mysql"`
-	Consul       ConsulConfig      `mapstructure:"consul"`
-	GoodsSrv     ServiceSrvConfig  `mapstructure:"goods-srv"`     // 商品服务（下单时查价/快照）
-	InventorySrv ServiceSrvConfig  `mapstructure:"inventory-srv"` // 库存服务（下单时扣减库存）
+	Name         string           `mapstructure:"name"`
+	Debug        bool             `mapstructure:"debug"` // from SHOP_DEBUG; selects dev logger + debug group
+	Host         string           `mapstructure:"host"`  // gRPC 监听地址
+	Port         int              `mapstructure:"port"`  // gRPC 监听端口
+	MySQL        MySQLConfig      `mapstructure:"mysql"`
+	Consul       ConsulConfig     `mapstructure:"consul"`
+	RocketMQ     RocketMQConfig   `mapstructure:"rocketmq"`
+	GoodsSrv     ServiceSrvConfig `mapstructure:"goods-srv"`     // 商品服务（下单时查价/快照）
+	InventorySrv ServiceSrvConfig `mapstructure:"inventory-srv"` // 库存服务（下单时扣减库存）
 }
 
 type MySQLConfig struct {
@@ -42,6 +43,14 @@ type ConsulConfig struct {
 // ServiceSrvConfig 描述一个需经 Consul 发现的下游 gRPC 服务。
 type ServiceSrvConfig struct {
 	Name string `mapstructure:"name"` // Consul 中注册的服务名
+}
+
+// RocketMQConfig 描述 order_srv 连接 RocketMQ 所需的配置。
+type RocketMQConfig struct {
+	Endpoint     string `mapstructure:"endpoint"`       // proxy gRPC 地址，如 127.0.0.1:18081
+	Topic        string `mapstructure:"topic"`          // 事务消息 Topic，如 order_reback
+	AccessKey    string `mapstructure:"access_key"`     // ACL AccessKey（未开启鉴权时留空）
+	AccessSecret string `mapstructure:"access_secret"`  // ACL AccessSecret（未开启鉴权时留空）
 }
 
 func (m *MySQLConfig) DSN() string {

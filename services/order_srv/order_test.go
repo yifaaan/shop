@@ -9,6 +9,7 @@ import (
 
 	"shop/pkg/proto"
 
+	rmq "github.com/apache/rocketmq-clients/golang/v5"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -36,6 +37,20 @@ func (c *stubGoodsClient) BatchGetGoods(ctx context.Context, in *proto.BatchGood
 		}
 	}
 	return rsp, nil
+}
+
+// noopTransaction 是测试用的事务桩，Commit/RollBack 均为空操作。
+type noopTransaction struct{}
+
+func (noopTransaction) Commit() error   { return nil }
+func (noopTransaction) RollBack() error { return nil }
+
+// noopProducer 是测试用的事务消息生产者桩，不发任何 MQ 消息。
+type noopProducer struct{}
+
+func (noopProducer) BeginTransaction() rmq.Transaction { return noopTransaction{} }
+func (noopProducer) SendWithTransaction(ctx context.Context, msg *rmq.Message, tx rmq.Transaction) ([]*rmq.SendReceipt, error) {
+	return []*rmq.SendReceipt{{}}, nil
 }
 
 // stubInventoryClient 记录扣减/归还调用，可注入错误以测试失败路径。
@@ -134,7 +149,7 @@ func newTestServer(t *testing.T, db *gorm.DB, goods map[int32]*proto.GoodsInfoRe
 	if inv == nil {
 		inv = &stubInventoryClient{}
 	}
-	return NewOrderServer(db, &stubGoodsClient{goods: goods}, inv, zap.NewNop().Sugar())
+	return NewOrderServer(db, &stubGoodsClient{goods: goods}, inv, zap.NewNop().Sugar(), noopProducer{})
 }
 
 func envOr(key, def string) string {

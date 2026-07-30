@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/rand/v2"
 	"time"
@@ -9,6 +10,7 @@ import (
 	basemodel "shop/pkg/model"
 	"shop/pkg/proto"
 
+	rmq "github.com/apache/rocketmq-clients/golang/v5"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -40,12 +42,12 @@ type OrderInfo struct {
 	OrderSn string `gorm:"column:order_sn;type:varchar(40);not null;uniqueIndex"` // 订单号
 	UserID  int32  `gorm:"column:user_id;type:int;not null;index"`                // 下单用户ID
 
-	Status  int32  `gorm:"type:int;not null;default:1;comment '1-待支付 2-已支付 3-已取消/超时关闭 4-交易创建 5-交易结束'"` // 1-待支付 2-已支付 3-已取消/超时关闭 4-交易创建 5-交易结束
-	PayType int32  `gorm:"column:pay_type;type:int;not null;default:1; comment '1-微信 2-支付宝'"`          // 1-微信 2-支付宝
+	Status  int32      `gorm:"type:int;not null;default:1;comment '1-待支付 2-已支付 3-已取消/超时关闭 4-交易创建 5-交易结束'"` // 1-待支付 2-已支付 3-已取消/超时关闭 4-交易创建 5-交易结束
+	PayType int32      `gorm:"column:pay_type;type:int;not null;default:1; comment '1-微信 2-支付宝'"`          // 1-微信 2-支付宝
 	TradeNo string     `gorm:"column:trade_no;type:varchar(100); comment '交易号/支付宝(微信)订单号'"`
 	PayTime *time.Time `gorm:"column:pay_time;comment '支付时间，未支付为 NULL'"`
-	Total   float32 `gorm:"type:float;not null"`                           // 商品总金额（不含运费）
-	PostFee float32 `gorm:"column:post_fee;type:float;not null;default:0"` // 运费
+	Total   float32    `gorm:"type:float;not null"`                           // 商品总金额（不含运费）
+	PostFee float32    `gorm:"column:post_fee;type:float;not null;default:0"` // 运费
 
 	Address string `gorm:"type:varchar(100);not null"`            // 收货地址
 	Name    string `gorm:"type:varchar(30);not null"`             // 收货人
@@ -64,27 +66,46 @@ type OrderGoods struct {
 	Num        int32   `gorm:"type:int;not null"`
 }
 
+// OrderRebackEvent 是"归还库存"事务消息的载体。
+// 消费者（inventory_srv）收到消息后据此调 RebackDetail 归还库存。
+type OrderRebackEvent struct {
+	OrderSn    string       `json:"order_sn"`
+	OrderGoods []RebackItem `json:"order_goods"`
+}
+
+type RebackItem struct {
+	GoodsId int32 `json:"goods_id"`
+	Num     int32 `json:"num"`
+}
+
+type transactionProducer interface {
+	BeginTransaction() rmq.Transaction
+	SendWithTransaction(ctx context.Context, msg *rmq.Message, tx rmq.Transaction) ([]*rmq.SendReceipt, error)
+}
+
 // OrderServer implements proto.OrderServer over an injected *gorm.DB,
 // orchestrating goods_srv（查价/快照）与 inventory_srv（扣减/归还库存）。
 type OrderServer struct {
 	proto.UnimplementedOrderServer
-	db       *gorm.DB
-	goodsSrv proto.GoodsClient
-	invSrv   proto.InventoryClient
-	log      *zap.SugaredLogger
+	db         *gorm.DB
+	goodsSrv   proto.GoodsClient
+	invSrv     proto.InventoryClient
+	log        *zap.SugaredLogger
+	txProducer transactionProducer
 }
 
 // NewOrderServer wires an OrderServer to its data store and downstream services.
-func NewOrderServer(db *gorm.DB, goodsSrv proto.GoodsClient, invSrv proto.InventoryClient, log *zap.SugaredLogger) *OrderServer {
-	return &OrderServer{db: db, goodsSrv: goodsSrv, invSrv: invSrv, log: log}
+func NewOrderServer(db *gorm.DB, goodsSrv proto.GoodsClient, invSrv proto.InventoryClient, log *zap.SugaredLogger, txProducer transactionProducer) *OrderServer {
+	return &OrderServer{db: db, goodsSrv: goodsSrv, invSrv: invSrv, log: log, txProducer: txProducer}
 }
 
 // CreateOrder 创建订单（编排跨服务下单流程）：
 //  1. 从购物车取出该用户已选中(checked=true)的商品
 //  2. 调 goods_srv.BatchGetGoods 拉取商品名/图/本店价，构建订单商品快照并计算总价
-//  3. 调 inventory_srv.StockSellDetail 扣减库存
-//  4. 本地事务：写订单主表 + 商品快照，并删除购物车中已购买的商品
-//  5. 若本地事务失败，调 inventory_srv.RebackDetail 归还库存
+//  3. 发送"归还库存"事务半消息（补偿消息，先于扣减库存发出）
+//  4. 调 inventory_srv.StockSellDetail 扣减库存
+//  5. 本地事务：写订单主表 + 商品快照，并删除购物车中已购买的商品
+//  6. 本地事务成功 → RollBack 半消息（订单已建，保持扣减）；失败 → Commit 半消息（消费者异步归还库存）
 func (s *OrderServer) CreateOrder(ctx context.Context, req *proto.OrderInfoRequest) (*proto.OrderInfoResponse, error) {
 	// 1. 取出购物车中已选中的商品
 	var carts []ShoppingCart
@@ -113,6 +134,7 @@ func (s *OrderServer) CreateOrder(ctx context.Context, req *proto.OrderInfoReque
 	var total float32
 	items := make([]OrderGoods, 0, len(carts))
 	sellDetails := make([]*proto.OrderGoodsDetail, 0, len(carts))
+	rebackItems := make([]RebackItem, 0, len(carts))
 	for i := range carts {
 		g, ok := goodsMap[carts[i].GoodsID]
 		if !ok {
@@ -130,16 +152,13 @@ func (s *OrderServer) CreateOrder(ctx context.Context, req *proto.OrderInfoReque
 			GoodsId: g.Id,
 			Num:     carts[i].Num,
 		})
+		rebackItems = append(rebackItems, RebackItem{
+			GoodsId: g.Id,
+			Num:     carts[i].Num,
+		})
 	}
 
-	// 4. 扣减库存。
-	if _, err := s.invSrv.StockSellDetail(ctx, &proto.OrderStockDetail{
-		OrderGoods: sellDetails,
-	}); err != nil {
-		return nil, status.Errorf(codes.Internal, "扣减库存失败: %v", err)
-	}
-
-	// 5. 本地事务：写订单 + 商品快照 + 删除购物车中已购买的商品
+	// 4. 构建订单（提前生成 orderSn 供半消息 keys 使用）
 	order := OrderInfo{
 		OrderSn: newOrderSn(req.UserId),
 		UserID:  req.UserId,
@@ -156,6 +175,34 @@ func (s *OrderServer) CreateOrder(ctx context.Context, req *proto.OrderInfoReque
 	for i := range carts {
 		cartIDs = append(cartIDs, carts[i].ID)
 	}
+
+	// 5. 先发送"归还库存"事务半消息（先于扣减库存）
+	eventBody, _ := json.Marshal(OrderRebackEvent{
+		OrderSn:    order.OrderSn,
+		OrderGoods: rebackItems,
+	})
+	mqTx := s.txProducer.BeginTransaction()
+	msg := &rmq.Message{
+		Topic: orderRebackTopic,
+		Body:  eventBody,
+	}
+	msg.SetKeys(order.OrderSn)
+	if _, err := s.txProducer.SendWithTransaction(ctx, msg, mqTx); err != nil {
+		return nil, status.Errorf(codes.Unavailable, "发送事务半消息失败: %v", err)
+	}
+
+	// 6. 扣减库存
+	if _, err := s.invSrv.StockSellDetail(ctx, &proto.OrderStockDetail{
+		OrderGoods: sellDetails,
+	}); err != nil {
+		// 扣减失败：回滚半消息
+		if rerr := mqTx.RollBack(); rerr != nil {
+			s.log.Errorf("扣减失败后回滚事务消息异常，等待 Broker 回查: %v", rerr)
+		}
+		return nil, status.Errorf(codes.Internal, "扣减库存失败: %v", err)
+	}
+
+	// 7. 本地事务：写订单 + 商品快照 + 删除购物车中已购买的商品
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&order).Error; err != nil {
 			return err
@@ -172,15 +219,18 @@ func (s *OrderServer) CreateOrder(ctx context.Context, req *proto.OrderInfoReque
 		return nil
 	})
 	if err != nil {
-		// 本地事务失败：归还已扣减的库存
-		s.log.Errorf("创建订单失败，尝试归还库存: %v", err)
-		if _, rerr := s.invSrv.RebackDetail(ctx, &proto.OrderStockDetail{
-			OrderSn:    0,
-			OrderGoods: sellDetails,
-		}); rerr != nil {
-			s.log.Errorf("归还库存失败，需人工介入: %v", rerr)
+		// 本地事务失败：提交半消息，消费者将异步归还已扣减的库存
+		s.log.Errorf("创建订单失败，提交归还库存消息: %v", err)
+		if rerr := mqTx.Commit(); rerr != nil {
+			s.log.Errorf("提交事务消息失败，等待 Broker 回查: %v", rerr)
 		}
 		return nil, status.Errorf(codes.Internal, "创建订单失败: %v", err)
+	}
+
+	// 8. 本地事务成功：回滚半消息（订单已创建，库存保持扣减状态）
+	if err := mqTx.RollBack(); err != nil {
+		// 回查时 checker 查到订单已存在会返回 ROLLBACK，最终一致
+		s.log.Errorf("回滚事务消息失败，等待 Broker 回查: %v", err)
 	}
 	return orderModelToResponse(&order, items), nil
 }
