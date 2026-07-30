@@ -43,6 +43,39 @@ CREATE TABLE `inventory` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for order-level inventory deductions.
+-- status: 1 = deducted, 2 = returned.
+--
+
+DROP TABLE IF EXISTS `stock_sell_detail_item`;
+DROP TABLE IF EXISTS `stock_sell_detail`;
+CREATE TABLE `stock_sell_detail` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `add_time` datetime(3) DEFAULT NULL,
+  `update_time` datetime(3) DEFAULT NULL,
+  `deleted_at` datetime(3) DEFAULT NULL,
+  `order_sn` varchar(40) NOT NULL,
+  `status` tinyint NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE KEY `uniq_stock_sell_detail_order_sn` (`order_sn`) USING BTREE,
+  KEY `idx_stock_sell_detail_deleted_at` (`deleted_at`),
+  CONSTRAINT `chk_stock_sell_detail_status` CHECK (`status` IN (1, 2))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+
+CREATE TABLE `stock_sell_detail_item` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `add_time` datetime(3) DEFAULT NULL,
+  `update_time` datetime(3) DEFAULT NULL,
+  `deleted_at` datetime(3) DEFAULT NULL,
+  `stock_sell_detail_id` int NOT NULL,
+  `goods_id` int NOT NULL,
+  `num` int NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE KEY `uniq_stock_sell_detail_goods` (`stock_sell_detail_id`, `goods_id`) USING BTREE,
+  KEY `idx_stock_sell_detail_item_deleted_at` (`deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+
+--
 -- Dumping data for table `inventory`
 --
 -- 根据 shop_goods_srv.goods 批量生成库存：

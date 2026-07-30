@@ -18,8 +18,9 @@ message GoodsInvInfo {
 }
 
 message OrderStockDetail {
-    int32 orderSn = 1;         // 订单号
+    int32 legacyOrderSn = 1 [deprecated = true]; // 旧版数字订单号，仅保留线协议兼容
     repeated OrderGoodsDetail orderGoods = 2; // 订单商品明细
+    string orderSn = 3;        // 当前字符串订单号
 }
 
 message OrderGoodsDetail {

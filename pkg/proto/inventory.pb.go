@@ -75,9 +75,11 @@ func (x *GoodsInvInfo) GetStocks() int32 {
 }
 
 type OrderStockDetail struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderSn       int32                  `protobuf:"varint,1,opt,name=orderSn,proto3" json:"orderSn,omitempty"`      // 订单号
-	OrderGoods    []*OrderGoodsDetail    `protobuf:"bytes,2,rep,name=orderGoods,proto3" json:"orderGoods,omitempty"` // 订单商品明细
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Deprecated: Marked as deprecated in inventory.proto.
+	LegacyOrderSn int32               `protobuf:"varint,1,opt,name=legacyOrderSn,proto3" json:"legacyOrderSn,omitempty"` // 旧版数字订单号，仅保留线协议兼容
+	OrderGoods    []*OrderGoodsDetail `protobuf:"bytes,2,rep,name=orderGoods,proto3" json:"orderGoods,omitempty"`        // 订单商品明细
+	OrderSn       string              `protobuf:"bytes,3,opt,name=orderSn,proto3" json:"orderSn,omitempty"`              // 当前字符串订单号
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -112,9 +114,10 @@ func (*OrderStockDetail) Descriptor() ([]byte, []int) {
 	return file_inventory_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *OrderStockDetail) GetOrderSn() int32 {
+// Deprecated: Marked as deprecated in inventory.proto.
+func (x *OrderStockDetail) GetLegacyOrderSn() int32 {
 	if x != nil {
-		return x.OrderSn
+		return x.LegacyOrderSn
 	}
 	return 0
 }
@@ -124,6 +127,13 @@ func (x *OrderStockDetail) GetOrderGoods() []*OrderGoodsDetail {
 		return x.OrderGoods
 	}
 	return nil
+}
+
+func (x *OrderStockDetail) GetOrderSn() string {
+	if x != nil {
+		return x.OrderSn
+	}
+	return ""
 }
 
 type OrderGoodsDetail struct {
@@ -289,12 +299,13 @@ const file_inventory_proto_rawDesc = "" +
 	"\x0finventory.proto\x1a\x1bgoogle/protobuf/empty.proto\"@\n" +
 	"\fGoodsInvInfo\x12\x18\n" +
 	"\agoodsId\x18\x01 \x01(\x05R\agoodsId\x12\x16\n" +
-	"\x06stocks\x18\x02 \x01(\x05R\x06stocks\"_\n" +
-	"\x10OrderStockDetail\x12\x18\n" +
-	"\aorderSn\x18\x01 \x01(\x05R\aorderSn\x121\n" +
+	"\x06stocks\x18\x02 \x01(\x05R\x06stocks\"\x89\x01\n" +
+	"\x10OrderStockDetail\x12(\n" +
+	"\rlegacyOrderSn\x18\x01 \x01(\x05B\x02\x18\x01R\rlegacyOrderSn\x121\n" +
 	"\n" +
 	"orderGoods\x18\x02 \x03(\v2\x11.OrderGoodsDetailR\n" +
-	"orderGoods\">\n" +
+	"orderGoods\x12\x18\n" +
+	"\aorderSn\x18\x03 \x01(\tR\aorderSn\">\n" +
 	"\x10OrderGoodsDetail\x12\x18\n" +
 	"\agoodsId\x18\x01 \x01(\x05R\agoodsId\x12\x10\n" +
 	"\x03num\x18\x02 \x01(\x05R\x03num\"N\n" +

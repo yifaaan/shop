@@ -294,6 +294,9 @@ func TestCreateOrder_HappyPath(t *testing.T) {
 	if len(inv.sellCalls) != 1 || len(inv.sellCalls[0].OrderGoods) != 2 {
 		t.Fatalf("库存扣减调用异常: %+v", inv.sellCalls)
 	}
+	if inv.sellCalls[0].GetOrderSn() != rsp.OrderSn {
+		t.Fatalf("库存扣减订单号 = %q, 期望 %q", inv.sellCalls[0].GetOrderSn(), rsp.OrderSn)
+	}
 	if len(inv.rebackCalls) != 0 {
 		t.Fatalf("成功路径不应归还库存, got %d 次", len(inv.rebackCalls))
 	}

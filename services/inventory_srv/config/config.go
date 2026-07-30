@@ -12,13 +12,14 @@ import (
 )
 
 type Config struct {
-	Name   string       `mapstructure:"name"`
-	Debug  bool         `mapstructure:"debug"` // from SHOP_DEBUG; selects dev logger + debug group
-	Host   string       `mapstructure:"host"`  // gRPC 监听地址
-	Port   int          `mapstructure:"port"`  // gRPC 监听端口
-	MySQL  MySQLConfig  `mapstructure:"mysql"`
-	Consul ConsulConfig `mapstructure:"consul"`
-	Redis  RedisConfig  `mapstructure:"redis"`
+	Name     string         `mapstructure:"name"`
+	Debug    bool           `mapstructure:"debug"` // from SHOP_DEBUG; selects dev logger + debug group
+	Host     string         `mapstructure:"host"`  // gRPC 监听地址
+	Port     int            `mapstructure:"port"`  // gRPC 监听端口
+	MySQL    MySQLConfig    `mapstructure:"mysql"`
+	Consul   ConsulConfig   `mapstructure:"consul"`
+	Redis    RedisConfig    `mapstructure:"redis"`
+	RocketMQ RocketMQConfig `mapstructure:"rocketmq"`
 }
 
 type MySQLConfig struct {
@@ -44,6 +45,15 @@ type RedisConfig struct {
 	Password string `mapstructure:"password"`
 	DB       int    `mapstructure:"db"`
 	PoolSize int    `mapstructure:"pool_size"`
+}
+
+// RocketMQConfig describes the connection used to consume inventory reback events.
+type RocketMQConfig struct {
+	Endpoint      string `mapstructure:"endpoint"`
+	Topic         string `mapstructure:"topic"`
+	ConsumerGroup string `mapstructure:"consumer_group"`
+	AccessKey     string `mapstructure:"access_key"`
+	AccessSecret  string `mapstructure:"access_secret"`
 }
 
 func (m *MySQLConfig) DSN() string {

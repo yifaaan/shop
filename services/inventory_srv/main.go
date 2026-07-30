@@ -59,8 +59,14 @@ func main() {
 	pool := goredis.NewPool(rdb)
 	rs := redsync.New(pool)
 
+	inventorySrv := NewInventoryServer(db, rs, log)
+	rebackConsumer, err := newRocketMQConsumer(cfg.RocketMQ, inventorySrv, log)
+	if err != nil {
+		log.Panic("failed to init rocketmq consumer: ", err)
+	}
+
 	server := grpc.NewServer()
-	proto.RegisterInventoryServer(server, NewInventoryServer(db, rs, log))
+	proto.RegisterInventoryServer(server, inventorySrv)
 
 	// gRPC 标准健康检查服务
 	healthSrv := health.NewServer()
@@ -95,6 +101,9 @@ func main() {
 	case <-ctx.Done():
 		log.Info("shutting down grpc server")
 		healthSrv.SetServingStatus(cfg.Name, grpc_health_v1.HealthCheckResponse_NOT_SERVING)
+		if err := rebackConsumer.Close(); err != nil {
+			log.Error("close rocketmq consumer error: ", err)
+		}
 		server.GracefulStop()
 		if err := reg.Deregister(); err != nil {
 			log.Error("deregister from consul error: ", err)
@@ -104,6 +113,8 @@ func main() {
 
 var migrateModels = []any{
 	&Inventory{},
+	&StockDeduction{},
+	&StockDeductionItem{},
 }
 
 // gormConfig 是建库连接与业务库连接共用的 GORM 配置。

@@ -193,6 +193,7 @@ func (s *OrderServer) CreateOrder(ctx context.Context, req *proto.OrderInfoReque
 
 	// 6. 扣减库存
 	if _, err := s.invSrv.StockSellDetail(ctx, &proto.OrderStockDetail{
+		OrderSn:    order.OrderSn,
 		OrderGoods: sellDetails,
 	}); err != nil {
 		// 扣减失败：回滚半消息
