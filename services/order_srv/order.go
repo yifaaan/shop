@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand/v2"
+	"strings"
 	"time"
 
 	basemodel "shop/pkg/model"
@@ -16,6 +18,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // 订单状态
@@ -78,8 +81,14 @@ type RebackItem struct {
 	Num     int32 `json:"num"`
 }
 
-type transactionProducer interface {
+// OrderTimeoutEvent 标识延时消息到期时需要关闭的订单。
+type OrderTimeoutEvent struct {
+	OrderSn string `json:"order_sn"`
+}
+
+type orderMessageProducer interface {
 	BeginTransaction() rmq.Transaction
+	Send(ctx context.Context, msg *rmq.Message) ([]*rmq.SendReceipt, error)
 	SendWithTransaction(ctx context.Context, msg *rmq.Message, tx rmq.Transaction) ([]*rmq.SendReceipt, error)
 }
 
@@ -91,12 +100,12 @@ type OrderServer struct {
 	goodsSrv   proto.GoodsClient
 	invSrv     proto.InventoryClient
 	log        *zap.SugaredLogger
-	txProducer transactionProducer
+	mqProducer orderMessageProducer
 }
 
 // NewOrderServer wires an OrderServer to its data store and downstream services.
-func NewOrderServer(db *gorm.DB, goodsSrv proto.GoodsClient, invSrv proto.InventoryClient, log *zap.SugaredLogger, txProducer transactionProducer) *OrderServer {
-	return &OrderServer{db: db, goodsSrv: goodsSrv, invSrv: invSrv, log: log, txProducer: txProducer}
+func NewOrderServer(db *gorm.DB, goodsSrv proto.GoodsClient, invSrv proto.InventoryClient, log *zap.SugaredLogger, mqProducer orderMessageProducer) *OrderServer {
+	return &OrderServer{db: db, goodsSrv: goodsSrv, invSrv: invSrv, log: log, mqProducer: mqProducer}
 }
 
 // CreateOrder 创建订单（编排跨服务下单流程）：
@@ -104,8 +113,9 @@ func NewOrderServer(db *gorm.DB, goodsSrv proto.GoodsClient, invSrv proto.Invent
 //  2. 调 goods_srv.BatchGetGoods 拉取商品名/图/本店价，构建订单商品快照并计算总价
 //  3. 发送"归还库存"事务半消息（补偿消息，先于扣减库存发出）
 //  4. 调 inventory_srv.StockSellDetail 扣减库存
-//  5. 本地事务：写订单主表 + 商品快照，并删除购物车中已购买的商品
-//  6. 本地事务成功 → RollBack 半消息（订单已建，保持扣减）；失败 → Commit 半消息（消费者异步归还库存）
+//  5. 发送 15 分钟后的订单超时消息
+//  6. 本地事务：写订单主表 + 商品快照，并删除购物车中已购买的商品
+//  7. 本地事务成功 → RollBack 半消息（订单已建，保持扣减）；失败 → Commit 半消息（消费者异步归还库存）
 func (s *OrderServer) CreateOrder(ctx context.Context, req *proto.OrderInfoRequest) (*proto.OrderInfoResponse, error) {
 	// 1. 取出购物车中已选中的商品
 	var carts []ShoppingCart
@@ -181,13 +191,13 @@ func (s *OrderServer) CreateOrder(ctx context.Context, req *proto.OrderInfoReque
 		OrderSn:    order.OrderSn,
 		OrderGoods: rebackItems,
 	})
-	mqTx := s.txProducer.BeginTransaction()
+	mqTx := s.mqProducer.BeginTransaction()
 	msg := &rmq.Message{
 		Topic: orderRebackTopic,
 		Body:  eventBody,
 	}
 	msg.SetKeys(order.OrderSn)
-	if _, err := s.txProducer.SendWithTransaction(ctx, msg, mqTx); err != nil {
+	if _, err := s.mqProducer.SendWithTransaction(ctx, msg, mqTx); err != nil {
 		return nil, status.Errorf(codes.Unavailable, "发送事务半消息失败: %v", err)
 	}
 
@@ -203,7 +213,25 @@ func (s *OrderServer) CreateOrder(ctx context.Context, req *proto.OrderInfoReque
 		return nil, status.Errorf(codes.Internal, "扣减库存失败: %v", err)
 	}
 
-	// 7. 本地事务：写订单 + 商品快照 + 删除购物车中已购买的商品
+	// 7. 库存扣减成功后先发送延时消息；发送失败则不创建订单，并触发库存补偿。
+	timeoutBody, err := json.Marshal(OrderTimeoutEvent{OrderSn: order.OrderSn})
+	if err != nil {
+		if rerr := mqTx.Commit(); rerr != nil {
+			s.log.Errorf("编码超时消息失败后提交库存补偿消息异常，等待 Broker 回查: %v", rerr)
+		}
+		return nil, status.Errorf(codes.Internal, "编码订单超时消息失败: %v", err)
+	}
+	timeoutMsg := &rmq.Message{Topic: orderTimeoutTopic, Body: timeoutBody}
+	timeoutMsg.SetKeys(order.OrderSn)
+	timeoutMsg.SetDelayTimestamp(time.Now().Add(orderTimeoutDelay))
+	if _, err := s.mqProducer.Send(ctx, timeoutMsg); err != nil {
+		if rerr := mqTx.Commit(); rerr != nil {
+			s.log.Errorf("发送超时消息失败后提交库存补偿消息异常，等待 Broker 回查: %v", rerr)
+		}
+		return nil, status.Errorf(codes.Unavailable, "发送订单超时消息失败: %v", err)
+	}
+
+	// 8. 本地事务：写订单 + 商品快照 + 删除购物车中已购买的商品
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&order).Error; err != nil {
 			return err
@@ -228,7 +256,7 @@ func (s *OrderServer) CreateOrder(ctx context.Context, req *proto.OrderInfoReque
 		return nil, status.Errorf(codes.Internal, "创建订单失败: %v", err)
 	}
 
-	// 8. 本地事务成功：回滚半消息（订单已创建，库存保持扣减状态）
+	// 9. 本地事务成功：回滚半消息（订单已创建，库存保持扣减状态）
 	if err := mqTx.RollBack(); err != nil {
 		// 回查时 checker 查到订单已存在会返回 ROLLBACK，最终一致
 		s.log.Errorf("回滚事务消息失败，等待 Broker 回查: %v", err)
@@ -288,14 +316,75 @@ func (s *OrderServer) UpdateOrderStatus(ctx context.Context, req *proto.UpdateOr
 	if req.Status < StatusPending || req.Status > StatusTradeFinished {
 		return nil, status.Errorf(codes.InvalidArgument, "非法的订单状态: %d", req.Status)
 	}
-	result := s.db.Model(&OrderInfo{}).Where("order_sn = ?", req.OrderSn).Update("status", req.Status)
-	if result.RowsAffected == 0 {
-		return nil, status.Errorf(codes.NotFound, "订单不存在")
+	q := s.db.WithContext(ctx).Model(&OrderInfo{}).Where("order_sn = ?", req.OrderSn)
+	if req.Status == StatusPaid {
+		// 支付和超时取消竞争同一个待支付状态，只允许先执行的一方成功。
+		q = q.Where("status <> ?", StatusCancel)
 	}
+	result := q.Update("status", req.Status)
 	if result.Error != nil {
 		return nil, status.Errorf(codes.Internal, "更新订单状态失败: %v", result.Error)
 	}
+	if result.RowsAffected == 0 {
+		var order OrderInfo
+		if err := s.db.WithContext(ctx).Where("order_sn = ?", req.OrderSn).First(&order).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, status.Error(codes.NotFound, "订单不存在")
+			}
+			return nil, status.Errorf(codes.Internal, "查询订单状态失败: %v", err)
+		}
+		if order.Status == req.Status {
+			return &emptypb.Empty{}, nil
+		}
+		return nil, status.Errorf(codes.FailedPrecondition, "订单当前状态为 %d，不能更新为 %d", order.Status, req.Status)
+	}
 	return &emptypb.Empty{}, nil
+}
+
+// processOrderTimeout 关闭待支付订单并归还库存。
+// 已取消订单仍会调用 RebackDetail，以处理上次消费已改状态但归还库存失败的情况。
+func (s *OrderServer) processOrderTimeout(ctx context.Context, orderSn string) error {
+	shouldReback, err := s.cancelExpiredOrder(ctx, orderSn)
+	if err != nil || !shouldReback {
+		return err
+	}
+	if _, err := s.invSrv.RebackDetail(ctx, &proto.OrderStockDetail{OrderSn: orderSn}); err != nil {
+		return fmt.Errorf("reback inventory for order %s: %w", orderSn, err)
+	}
+	return nil
+}
+
+func (s *OrderServer) cancelExpiredOrder(ctx context.Context, orderSn string) (bool, error) {
+	if strings.TrimSpace(orderSn) == "" {
+		return false, fmt.Errorf("order_sn is required")
+	}
+
+	shouldReback := false
+	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var order OrderInfo
+		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("order_sn = ?", orderSn).First(&order).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		if err != nil {
+			return fmt.Errorf("query order: %w", err)
+		}
+
+		switch order.Status {
+		case StatusPending:
+			if err := tx.Model(&order).Update("status", StatusCancel).Error; err != nil {
+				return fmt.Errorf("cancel order: %w", err)
+			}
+			shouldReback = true
+		case StatusCancel:
+			shouldReback = true
+		}
+		return nil
+	})
+	if err != nil {
+		return false, err
+	}
+	return shouldReback, nil
 }
 
 // DeleteOrder 软删除订单（BaseModel.DeletedAt）

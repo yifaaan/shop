@@ -15,6 +15,7 @@ import (
 	"shop/services/order_srv/config"
 	"shop/services/order_srv/registry"
 
+	rmq "github.com/apache/rocketmq-clients/golang/v5"
 	_ "github.com/mbobakov/grpc-consul-resolver" // 注册 "consul" gRPC resolver scheme
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -71,13 +72,20 @@ func main() {
 	defer inventoryConn.Close()
 
 	// 初始化事务消息生产者（订单超时归还库存）
+	rmq.EnableSsl = cfg.RocketMQ.EnableSSL
 	txProducer, err := newRocketMQProducer(cfg.RocketMQ, db, log)
 	if err != nil {
 		log.Panic("failed to init rocketmq producer: ", err)
 	}
+	orderSrv := NewOrderServer(db, proto.NewGoodsClient(goodsConn), proto.NewInventoryClient(inventoryConn), log, txProducer)
+	timeoutConsumer, err := newOrderTimeoutConsumer(cfg.RocketMQ, orderSrv, log)
+	if err != nil {
+		_ = txProducer.Close()
+		log.Panic("failed to init order timeout consumer: ", err)
+	}
 
 	server := grpc.NewServer()
-	proto.RegisterOrderServer(server, NewOrderServer(db, proto.NewGoodsClient(goodsConn), proto.NewInventoryClient(inventoryConn), log, txProducer))
+	proto.RegisterOrderServer(server, orderSrv)
 
 	// gRPC 标准健康检查服务
 	healthSrv := health.NewServer()
@@ -112,6 +120,9 @@ func main() {
 	case <-ctx.Done():
 		log.Info("shutting down grpc server")
 		healthSrv.SetServingStatus(cfg.Name, grpc_health_v1.HealthCheckResponse_NOT_SERVING)
+		if err := timeoutConsumer.Close(); err != nil {
+			log.Error("close order timeout consumer error: ", err)
+		}
 		server.GracefulStop()
 		if err := txProducer.Close(); err != nil {
 			log.Error("close rocketmq producer error: ", err)

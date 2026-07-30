@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"strings"
+	"time"
 
 	"shop/services/order_srv/config"
 
@@ -12,7 +15,13 @@ import (
 	"gorm.io/gorm"
 )
 
-const orderRebackTopic = "order_reback"
+const (
+	orderRebackTopic          = "order_reback"
+	orderTimeoutTopic         = "order_timeout"
+	orderTimeoutConsumerGroup = "order_srv_order_timeout"
+	orderTimeoutDelay         = 15 * time.Minute
+	orderTimeoutHandleTimeout = 10 * time.Second
+)
 
 type rocketMQProducer struct {
 	prod rmq.Producer
@@ -53,7 +62,7 @@ func newRocketMQProducer(cfg config.RocketMQConfig, db *gorm.DB, log *zap.Sugare
 				return rmq.COMMIT
 			},
 		}),
-		rmq.WithTopics(orderRebackTopic),
+		rmq.WithTopics(orderRebackTopic, orderTimeoutTopic),
 	)
 	if err != nil {
 		return nil, err
@@ -68,10 +77,93 @@ func (p *rocketMQProducer) BeginTransaction() rmq.Transaction {
 	return p.prod.BeginTransaction()
 }
 
+func (p *rocketMQProducer) Send(ctx context.Context, msg *rmq.Message) ([]*rmq.SendReceipt, error) {
+	return p.prod.Send(ctx, msg)
+}
+
 func (p *rocketMQProducer) SendWithTransaction(ctx context.Context, msg *rmq.Message, tx rmq.Transaction) ([]*rmq.SendReceipt, error) {
 	return p.prod.SendWithTransaction(ctx, msg, tx)
 }
 
 func (p *rocketMQProducer) Close() error {
 	return p.prod.GracefulStop()
+}
+
+type orderTimeoutProcessor interface {
+	processOrderTimeout(context.Context, string) error
+}
+
+type orderTimeoutHandler struct {
+	service orderTimeoutProcessor
+	log     *zap.SugaredLogger
+}
+
+func (h *orderTimeoutHandler) consume(body []byte) rmq.ConsumerResult {
+	orderSn, err := decodeOrderTimeoutEvent(body)
+	if err != nil {
+		// Retrying cannot repair malformed payloads.
+		h.log.Warnf("discard invalid order timeout message: %v", err)
+		return rmq.SUCCESS
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), orderTimeoutHandleTimeout)
+	defer cancel()
+	if err := h.service.processOrderTimeout(ctx, orderSn); err != nil {
+		h.log.Errorf("process timeout for order %s failed, message will be retried: %v", orderSn, err)
+		return rmq.FAILURE
+	}
+
+	h.log.Infof("order timeout message consumed, order_sn=%s", orderSn)
+	return rmq.SUCCESS
+}
+
+func decodeOrderTimeoutEvent(body []byte) (string, error) {
+	var event OrderTimeoutEvent
+	if err := json.Unmarshal(body, &event); err != nil {
+		return "", fmt.Errorf("decode payload: %w", err)
+	}
+	orderSn := strings.TrimSpace(event.OrderSn)
+	if orderSn == "" {
+		return "", fmt.Errorf("order_sn is required")
+	}
+	return orderSn, nil
+}
+
+type orderTimeoutConsumer struct {
+	consumer rmq.PushConsumer
+}
+
+func newOrderTimeoutConsumer(cfg config.RocketMQConfig, service orderTimeoutProcessor, log *zap.SugaredLogger) (*orderTimeoutConsumer, error) {
+	handler := &orderTimeoutHandler{service: service, log: log}
+	consumer, err := rmq.NewPushConsumer(
+		&rmq.Config{
+			Endpoint:      cfg.Endpoint,
+			ConsumerGroup: orderTimeoutConsumerGroup,
+			Credentials: &credentials.SessionCredentials{
+				AccessKey:    cfg.AccessKey,
+				AccessSecret: cfg.AccessSecret,
+			},
+		},
+		rmq.WithPushSubscriptionExpressions(map[string]*rmq.FilterExpression{
+			orderTimeoutTopic: rmq.SUB_ALL,
+		}),
+		rmq.WithPushMessageListener(&rmq.FuncMessageListener{
+			Consume: func(message *rmq.MessageView) rmq.ConsumerResult {
+				return handler.consume(message.GetBody())
+			},
+		}),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("create order timeout consumer: %w", err)
+	}
+	if err := consumer.Start(); err != nil {
+		return nil, fmt.Errorf("start order timeout consumer: %w", err)
+	}
+
+	log.Infof("listening for order timeout messages, topic=%s group=%s", orderTimeoutTopic, orderTimeoutConsumerGroup)
+	return &orderTimeoutConsumer{consumer: consumer}, nil
+}
+
+func (c *orderTimeoutConsumer) Close() error {
+	return c.consumer.GracefulStop()
 }

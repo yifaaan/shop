@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"shop/pkg/proto"
 
@@ -49,7 +52,50 @@ func (noopTransaction) RollBack() error { return nil }
 type noopProducer struct{}
 
 func (noopProducer) BeginTransaction() rmq.Transaction { return noopTransaction{} }
+func (noopProducer) Send(context.Context, *rmq.Message) ([]*rmq.SendReceipt, error) {
+	return []*rmq.SendReceipt{{}}, nil
+}
 func (noopProducer) SendWithTransaction(ctx context.Context, msg *rmq.Message, tx rmq.Transaction) ([]*rmq.SendReceipt, error) {
+	return []*rmq.SendReceipt{{}}, nil
+}
+
+type recordingTransaction struct {
+	commits   int
+	rollbacks int
+}
+
+func (t *recordingTransaction) Commit() error {
+	t.commits++
+	return nil
+}
+
+func (t *recordingTransaction) RollBack() error {
+	t.rollbacks++
+	return nil
+}
+
+type recordingProducer struct {
+	tx       *recordingTransaction
+	messages []*rmq.Message
+	sendErr  error
+}
+
+func (p *recordingProducer) BeginTransaction() rmq.Transaction {
+	if p.tx == nil {
+		p.tx = &recordingTransaction{}
+	}
+	return p.tx
+}
+
+func (p *recordingProducer) Send(_ context.Context, msg *rmq.Message) ([]*rmq.SendReceipt, error) {
+	p.messages = append(p.messages, msg)
+	if p.sendErr != nil {
+		return nil, p.sendErr
+	}
+	return []*rmq.SendReceipt{{}}, nil
+}
+
+func (p *recordingProducer) SendWithTransaction(context.Context, *rmq.Message, rmq.Transaction) ([]*rmq.SendReceipt, error) {
 	return []*rmq.SendReceipt{{}}, nil
 }
 
@@ -100,9 +146,9 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
 	cfg := &gorm.Config{
-		NamingStrategy: schema.NamingStrategy{SingularTable: true},
+		NamingStrategy:                           schema.NamingStrategy{SingularTable: true},
 		DisableForeignKeyConstraintWhenMigrating: true,
-		Logger: logger.Default.LogMode(logger.Silent),
+		Logger:                                   logger.Default.LogMode(logger.Silent),
 	}
 
 	srv, err := gorm.Open(mysql.Open(dsn("")), cfg)
@@ -142,6 +188,10 @@ func setupTestDB(t *testing.T) *gorm.DB {
 }
 
 func newTestServer(t *testing.T, db *gorm.DB, goods map[int32]*proto.GoodsInfoResponse, inv *stubInventoryClient) *OrderServer {
+	return newTestServerWithProducer(t, db, goods, inv, noopProducer{})
+}
+
+func newTestServerWithProducer(t *testing.T, db *gorm.DB, goods map[int32]*proto.GoodsInfoResponse, inv *stubInventoryClient, producer orderMessageProducer) *OrderServer {
 	t.Helper()
 	if goods == nil {
 		goods = map[int32]*proto.GoodsInfoResponse{}
@@ -149,7 +199,7 @@ func newTestServer(t *testing.T, db *gorm.DB, goods map[int32]*proto.GoodsInfoRe
 	if inv == nil {
 		inv = &stubInventoryClient{}
 	}
-	return NewOrderServer(db, &stubGoodsClient{goods: goods}, inv, zap.NewNop().Sugar(), noopProducer{})
+	return NewOrderServer(db, &stubGoodsClient{goods: goods}, inv, zap.NewNop().Sugar(), producer)
 }
 
 func envOr(key, def string) string {
@@ -261,16 +311,19 @@ func addCheckedCart(t *testing.T, srv *OrderServer, ctx context.Context, userID 
 func TestCreateOrder_HappyPath(t *testing.T) {
 	db := setupTestDB(t)
 	inv := &stubInventoryClient{}
-	srv := newTestServer(t, db, sampleGoods(), inv)
+	producer := &recordingProducer{}
+	srv := newTestServerWithProducer(t, db, sampleGoods(), inv, producer)
 	ctx := context.Background()
 
 	addCheckedCart(t, srv, ctx, 1, struct{ gid, num int32 }{101, 2}, struct{ gid, num int32 }{102, 1})
 	// 一件未选中商品，下单不应包含、也不应删除
 	must(t, errOf(srv.AddCartItem(ctx, &proto.AddCartItemRequest{UserId: 1, GoodsId: 999, Num: 1, Checked: false})))
 
+	before := time.Now()
 	rsp, err := srv.CreateOrder(ctx, &proto.OrderInfoRequest{
 		UserId: 1, Address: "addr", Name: "tom", Mobile: "13800000000", PayType: 1, PostFee: 0,
 	})
+	after := time.Now()
 	must(t, err)
 
 	// 总价 = 5*2 + 3*1 = 13
@@ -300,12 +353,53 @@ func TestCreateOrder_HappyPath(t *testing.T) {
 	if len(inv.rebackCalls) != 0 {
 		t.Fatalf("成功路径不应归还库存, got %d 次", len(inv.rebackCalls))
 	}
+	if len(producer.messages) != 1 {
+		t.Fatalf("延时消息数量 = %d, 期望 1", len(producer.messages))
+	}
+	timeoutMsg := producer.messages[0]
+	if timeoutMsg.Topic != orderTimeoutTopic {
+		t.Fatalf("延时消息 topic = %q, 期望 %q", timeoutMsg.Topic, orderTimeoutTopic)
+	}
+	var event OrderTimeoutEvent
+	if err := json.Unmarshal(timeoutMsg.Body, &event); err != nil {
+		t.Fatalf("解析延时消息失败: %v", err)
+	}
+	if event.OrderSn != rsp.OrderSn {
+		t.Fatalf("延时消息 order_sn = %q, 期望 %q", event.OrderSn, rsp.OrderSn)
+	}
+	deliverAt := timeoutMsg.GetDeliveryTimestamp()
+	if deliverAt == nil || deliverAt.Before(before.Add(orderTimeoutDelay)) || deliverAt.After(after.Add(orderTimeoutDelay)) {
+		t.Fatalf("延时投递时间 = %v, 期望创建时间后 %v", deliverAt, orderTimeoutDelay)
+	}
 
 	// 购物车：已购(选中)的删除，未选中的保留
 	list, err := srv.CartItemList(ctx, &proto.CartItemListRequest{UserId: 1})
 	must(t, err)
 	if len(list.Data) != 1 || list.Data[0].GoodsId != 999 {
 		t.Fatalf("购物车应仅剩未选中商品 999, got %+v", list.Data)
+	}
+}
+
+func TestCreateOrder_TimeoutMessageFailCompensatesInventory(t *testing.T) {
+	db := setupTestDB(t)
+	inv := &stubInventoryClient{}
+	producer := &recordingProducer{sendErr: errors.New("rocketmq unavailable")}
+	srv := newTestServerWithProducer(t, db, sampleGoods(), inv, producer)
+	ctx := context.Background()
+
+	addCheckedCart(t, srv, ctx, 1, struct{ gid, num int32 }{101, 1})
+	_, err := srv.CreateOrder(ctx, &proto.OrderInfoRequest{UserId: 1})
+	if status.Code(err) != codes.Unavailable {
+		t.Fatalf("延时消息失败期望 Unavailable, got %v", err)
+	}
+	if count(db, &OrderInfo{}) != 0 {
+		t.Fatal("延时消息发送失败时不应创建订单")
+	}
+	if len(inv.sellCalls) != 1 {
+		t.Fatalf("库存扣减调用次数 = %d, 期望 1", len(inv.sellCalls))
+	}
+	if producer.tx == nil || producer.tx.commits != 1 || producer.tx.rollbacks != 0 {
+		t.Fatalf("库存补偿事务状态异常: %+v", producer.tx)
 	}
 }
 
@@ -419,6 +513,94 @@ func TestOrderLifecycle(t *testing.T) {
 	must(t, errOf(srv.DeleteOrder(ctx, &proto.DeleteOrderInfo{Id: created.Id})))
 	if _, err := srv.GetOrderDetail(ctx, &proto.OrderInfoRequest{Id: created.Id, UserId: 7}); status.Code(err) != codes.NotFound {
 		t.Fatalf("删除后查询期望 NotFound, got %v", err)
+	}
+}
+
+func TestProcessOrderTimeout(t *testing.T) {
+	tests := []struct {
+		name         string
+		status       int32
+		wantStatus   int32
+		wantReback   int
+		missingOrder bool
+	}{
+		{name: "pending order is canceled", status: StatusPending, wantStatus: StatusCancel, wantReback: 1},
+		{name: "paid order is ignored", status: StatusPaid, wantStatus: StatusPaid},
+		{name: "canceled order retries inventory reback", status: StatusCancel, wantStatus: StatusCancel, wantReback: 1},
+		{name: "missing order is ignored", missingOrder: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db := setupTestDB(t)
+			inv := &stubInventoryClient{}
+			srv := newTestServer(t, db, nil, inv)
+			orderSn := "timeout-order"
+			if !tt.missingOrder {
+				if err := db.Create(&OrderInfo{OrderSn: orderSn, UserID: 1, Status: tt.status}).Error; err != nil {
+					t.Fatalf("create order: %v", err)
+				}
+			}
+
+			if err := srv.processOrderTimeout(t.Context(), orderSn); err != nil {
+				t.Fatalf("processOrderTimeout() error = %v", err)
+			}
+			if len(inv.rebackCalls) != tt.wantReback {
+				t.Fatalf("RebackDetail() calls = %d, want %d", len(inv.rebackCalls), tt.wantReback)
+			}
+			if !tt.missingOrder {
+				var order OrderInfo
+				if err := db.Where("order_sn = ?", orderSn).First(&order).Error; err != nil {
+					t.Fatalf("query order: %v", err)
+				}
+				if order.Status != tt.wantStatus {
+					t.Fatalf("order status = %d, want %d", order.Status, tt.wantStatus)
+				}
+			}
+		})
+	}
+}
+
+func TestProcessOrderTimeout_RetriesInventoryAfterCancel(t *testing.T) {
+	db := setupTestDB(t)
+	inv := &stubInventoryClient{rebackErr: errors.New("inventory unavailable")}
+	srv := newTestServer(t, db, nil, inv)
+	orderSn := "timeout-retry-order"
+	if err := db.Create(&OrderInfo{OrderSn: orderSn, UserID: 1, Status: StatusPending}).Error; err != nil {
+		t.Fatalf("create order: %v", err)
+	}
+
+	if err := srv.processOrderTimeout(t.Context(), orderSn); err == nil {
+		t.Fatal("库存归还失败时应返回错误")
+	}
+	var order OrderInfo
+	if err := db.Where("order_sn = ?", orderSn).First(&order).Error; err != nil {
+		t.Fatalf("query order: %v", err)
+	}
+	if order.Status != StatusCancel {
+		t.Fatalf("库存归还失败后订单状态 = %d, 期望 %d", order.Status, StatusCancel)
+	}
+
+	inv.rebackErr = nil
+	if err := srv.processOrderTimeout(t.Context(), orderSn); err != nil {
+		t.Fatalf("retry processOrderTimeout() error = %v", err)
+	}
+	if len(inv.rebackCalls) != 2 {
+		t.Fatalf("RebackDetail() calls = %d, want 2", len(inv.rebackCalls))
+	}
+}
+
+func TestUpdateOrderStatus_RejectsPaymentAfterTimeout(t *testing.T) {
+	db := setupTestDB(t)
+	srv := newTestServer(t, db, nil, nil)
+	orderSn := "canceled-order"
+	if err := db.Create(&OrderInfo{OrderSn: orderSn, UserID: 1, Status: StatusCancel}).Error; err != nil {
+		t.Fatalf("create order: %v", err)
+	}
+
+	_, err := srv.UpdateOrderStatus(t.Context(), &proto.UpdateOrderStatusInfo{OrderSn: orderSn, Status: StatusPaid})
+	if status.Code(err) != codes.FailedPrecondition {
+		t.Fatalf("已取消订单支付期望 FailedPrecondition, got %v", err)
 	}
 }
 

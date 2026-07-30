@@ -157,6 +157,19 @@ services:
       retries: 10
       start_period: 30s
 
+  rocketmq-topic-init:
+    image: apache/rocketmq:5.3.2
+    container_name: rocketmq-topic-init
+    depends_on:
+      rocketmq-broker:
+        condition: service_healthy
+    entrypoint: ["sh", "-c"]
+    command:
+      - >
+        sh mqadmin updateTopic -n rocketmq-namesrv:9876 -c DefaultCluster -t order_reback -a +message.type=TRANSACTION &&
+        sh mqadmin updateTopic -n rocketmq-namesrv:9876 -c DefaultCluster -t order_timeout -a +message.type=DELAY
+    restart: on-failure
+
   rocketmq-proxy:
     image: apache/rocketmq:5.3.2
     container_name: rocketmq-proxy
@@ -164,6 +177,8 @@ services:
     depends_on:
       rocketmq-broker:
         condition: service_healthy
+      rocketmq-topic-init:
+        condition: service_completed_successfully
     command: sh mqproxy -n rocketmq-namesrv:9876 -pm cluster -pc /home/rocketmq/conf/proxy.json
     environment:
       NAMESRV_ADDR: rocketmq-namesrv:9876

@@ -47,10 +47,11 @@ type ServiceSrvConfig struct {
 
 // RocketMQConfig 描述 order_srv 连接 RocketMQ 所需的配置。
 type RocketMQConfig struct {
-	Endpoint     string `mapstructure:"endpoint"`       // proxy gRPC 地址，如 127.0.0.1:18081
-	Topic        string `mapstructure:"topic"`          // 事务消息 Topic，如 order_reback
-	AccessKey    string `mapstructure:"access_key"`     // ACL AccessKey（未开启鉴权时留空）
-	AccessSecret string `mapstructure:"access_secret"`  // ACL AccessSecret（未开启鉴权时留空）
+	Endpoint     string `mapstructure:"endpoint"`      // proxy gRPC 地址，如 127.0.0.1:18081
+	Topic        string `mapstructure:"topic"`         // 事务消息 Topic，如 order_reback
+	AccessKey    string `mapstructure:"access_key"`    // ACL AccessKey（未开启鉴权时留空）
+	AccessSecret string `mapstructure:"access_secret"` // ACL AccessSecret（未开启鉴权时留空）
+	EnableSSL    bool   `mapstructure:"enable_ssl"`    // 本地明文 Proxy 为 false，生产 TLS 环境设为 true
 }
 
 func (m *MySQLConfig) DSN() string {
