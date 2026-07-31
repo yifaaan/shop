@@ -143,15 +143,15 @@ services:
       NAMESRV_ADDR: rocketmq-namesrv:9876
       JAVA_OPT_EXT: -server -Xms512m -Xmx512m -Xmn256m
     ports:
-      # Windows reserves the default 10909/10911 ports on this development machine.
-      - "11009:11009"
-      - "11011:11011"
+      # Keep both ports outside Windows' current dynamic exclusion ranges.
+      - "21009:21009"
+      - "21011:21011"
     volumes:
       - ./docker/rocketmq:/home/rocketmq/conf:ro
       - rocketmq-broker-logs:/home/rocketmq/logs
       - rocketmq-broker-store:/home/rocketmq/store
     healthcheck:
-      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/11011'"]
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/21011'"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -257,6 +257,30 @@ services:
       interval: 10s
       timeout: 5s
       retries: 20
+
+  jaeger:
+    # all-in-one 镜像：collector + query + UI + 内存存储，开发环境开箱即用。
+    # 生产请拆分并改用 ES/Cassandra 作为后端存储。
+    image: jaegertracing/all-in-one:1.62.0
+    container_name: jaeger
+    restart: always
+    environment:
+      # 内存存储，重启即丢；如需持久化可改用 ES：
+      # - SPAN_STORAGE_TYPE=elasticsearch
+      # - ES_SERVER_URLS=http://elasticsearch:9200
+      - SPAN_STORAGE_TYPE=memory
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"   # Jaeger Web UI
+      - "4317:4317"     # OTLP gRPC（应用通过 OTel SDK 上报）
+      - "4318:4318"     # OTLP HTTP
+      - "14268:14268"   # Jaeger Thrift HTTP（旧版 SDK 直传）
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:16686"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
 
 volumes:
   mongo-data:

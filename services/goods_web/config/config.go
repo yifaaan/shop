@@ -12,12 +12,13 @@ import (
 )
 
 type Config struct {
-	Name     string        `mapstructure:"name"`
-	Debug    bool          `mapstructure:"debug"` // from SHOP_DEBUG; selects dev logger + debug group
-	Port     int           `mapstructure:"port"`
+	Name     string         `mapstructure:"name"`
+	Debug    bool           `mapstructure:"debug"` // from SHOP_DEBUG; selects dev logger + debug group
+	Port     int            `mapstructure:"port"`
 	GoodsSrv GoodsSrvConfig `mapstructure:"goods-srv"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	Consul   ConsulConfig   `mapstructure:"consul"`
+	Trace    TraceConfig    `mapstructure:"trace"`
 }
 
 type GoodsSrvConfig struct {
@@ -32,6 +33,13 @@ type ConsulConfig struct {
 	Host    string `mapstructure:"host"`    // Consul agent 地址
 	Port    int    `mapstructure:"port"`    // Consul agent 端口
 	Address string `mapstructure:"address"` // 本服务对外宣告地址（健康检查 & 被发现用）
+}
+
+type TraceConfig struct {
+	Enabled     bool    `mapstructure:"enabled"`
+	Endpoint    string  `mapstructure:"endpoint"`
+	Insecure    bool    `mapstructure:"insecure"`
+	SampleRatio float64 `mapstructure:"sample-ratio"`
 }
 
 // Load fetches the service config from Nacos (DataID "goods-web", Group
@@ -50,24 +58,32 @@ func Load() (*Config, error) {
 		Host:      envStr("SHOP_NACOS_HOST", "127.0.0.1"),
 		Port:      envInt("SHOP_NACOS_PORT", 8848),
 		Namespace: envStr("SHOP_NACOS_NAMESPACE_GOODS", ""), // goods 命名空间 ID（未设则 public）
-		Username: envStr("SHOP_NACOS_USERNAME", "nacos"),
-		Password: envStr("SHOP_NACOS_PASSWORD", "nacos"),
+		Username:  envStr("SHOP_NACOS_USERNAME", "nacos"),
+		Password:  envStr("SHOP_NACOS_PASSWORD", "nacos"),
 		DataID:    "goods-web",
 		Group:     groupFor(debug),
 	}
 
 	cfg := &Config{}
 	v, err := nacosconf.Load(opts, func(nv *viper.Viper) {
-		_ = nv.Unmarshal(cfg)
+		_ = unmarshalConfig(nv, cfg)
 	})
 	if err != nil {
 		return nil, err
 	}
-	if err := v.Unmarshal(cfg); err != nil {
+	if err := unmarshalConfig(v, cfg); err != nil {
 		return nil, fmt.Errorf("unmarshal config: %w", err)
 	}
 	cfg.Debug = debug
 	return cfg, nil
+}
+
+func unmarshalConfig(v *viper.Viper, cfg *Config) error {
+	v.SetDefault("trace.enabled", true)
+	v.SetDefault("trace.endpoint", "127.0.0.1:4317")
+	v.SetDefault("trace.insecure", true)
+	v.SetDefault("trace.sample-ratio", 1.0)
+	return v.Unmarshal(cfg)
 }
 
 func groupFor(debug bool) string {

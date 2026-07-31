@@ -14,10 +14,13 @@ import (
 	"shop/pkg/proto"
 	"shop/services/goods_web/config"
 	"shop/services/goods_web/registry"
+	"shop/services/goods_web/telemetry"
 	"shop/services/goods_web/web"
 
-	"go.uber.org/zap"
 	_ "github.com/mbobakov/grpc-consul-resolver" // 注册 "consul" gRPC resolver scheme
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/otel"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -31,6 +34,30 @@ func main() {
 		log.Panic("failed to load config: ", err)
 	}
 	log = newLogger(cfg.Debug)
+	otel.SetErrorHandler(otel.ErrorHandlerFunc(func(err error) {
+		log.Error("OpenTelemetry error: ", err)
+	}))
+
+	traceShutdown, err := telemetry.New(context.Background(), telemetry.Config{
+		Enabled:     cfg.Trace.Enabled,
+		ServiceName: cfg.Name,
+		Endpoint:    cfg.Trace.Endpoint,
+		Insecure:    cfg.Trace.Insecure,
+		SampleRatio: cfg.Trace.SampleRatio,
+	})
+	if err != nil {
+		log.Panic("failed to initialize tracing: ", err)
+	}
+	if cfg.Trace.Enabled {
+		log.Infow("tracing initialized", "endpoint", cfg.Trace.Endpoint, "sample_ratio", cfg.Trace.SampleRatio)
+	}
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := traceShutdown(ctx); err != nil {
+			log.Error("trace shutdown error: ", err)
+		}
+	}()
 
 	// DEBUG 用配置里的固定端口，否则用 OS 分配的动态端口
 	cfg.Port, err = port.Get(cfg.Debug, cfg.Port)
@@ -53,6 +80,7 @@ func main() {
 		fmt.Sprintf("consul://%s:%d/%s?healthy=true", cfg.Consul.Host, cfg.Consul.Port, cfg.GoodsSrv.Name),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"round_robin"}`),
+		grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
 	)
 	if err != nil {
 		log.Panic("failed to connect to goods service: ", err)

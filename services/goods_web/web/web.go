@@ -7,6 +7,7 @@ import (
 	"shop/services/goods_web/config"
 
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.uber.org/zap"
 )
 
@@ -31,6 +32,9 @@ func New(cfg *config.Config, log *zap.SugaredLogger, j *JWT, goodsSrv proto.Good
 // Routers builds the gin engine with all routes registered.
 func (s *Server) Routers() *gin.Engine {
 	router := gin.Default()
+	router.Use(otelgin.Middleware(s.cfg.Name, otelgin.WithFilter(func(req *http.Request) bool {
+		return req.URL.Path != "/health"
+	})))
 	router.Use(Cors())
 
 	router.GET("/health", s.Health) // Consul 健康检查
