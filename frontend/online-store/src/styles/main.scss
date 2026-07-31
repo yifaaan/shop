@@ -48,8 +48,14 @@ button {
 
 // 通用工具类
 .container {
-  width: var(--content-width);
+  width: min(var(--content-width), calc(100% - 32px));
   margin: 0 auto;
+}
+
+@media (max-width: 767px) {
+  .container {
+    width: calc(100% - 20px);
+  }
 }
 
 .text-red {

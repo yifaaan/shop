@@ -148,6 +148,12 @@ export interface CreateOrderParams {
   post_fee?: number | string
 }
 
+export interface OrderListParams {
+  status?: number
+  p?: number
+  pnum?: number
+}
+
 export interface OrderItem {
   id: number
   order_sn?: string

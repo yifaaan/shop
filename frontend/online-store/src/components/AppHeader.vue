@@ -417,4 +417,53 @@ onMounted(async () => {
     }
   }
 }
+
+@media (max-width: 767px) {
+  .main-bar {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 0;
+
+    .logo {
+      flex: 1;
+      min-width: 0;
+
+      .logo-text {
+        font-size: 22px;
+        letter-spacing: 0;
+      }
+    }
+
+    .search-box {
+      order: 3;
+      flex: 0 0 100%;
+      max-width: none;
+      min-width: 0;
+
+      .hot-search {
+        display: none;
+      }
+    }
+  }
+
+  .nav-bar {
+    .nav-inner {
+      overflow-x: auto;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    .nav-item {
+      flex-shrink: 0;
+      padding: 0 14px;
+    }
+
+    .home-link {
+      margin-left: 0;
+    }
+  }
+}
 </style>

@@ -6,7 +6,7 @@
     </el-breadcrumb>
 
     <div class="member-body">
-      <aside class="menu">
+      <aside class="menu desktop-menu">
         <h3 class="menu-title">会员中心</h3>
         <el-menu :default-active="activeMenu" @select="onSelect">
           <el-sub-menu index="order-center">
@@ -22,6 +22,18 @@
           </el-sub-menu>
         </el-menu>
       </aside>
+      <el-select
+        class="mobile-menu"
+        :model-value="activeMenu"
+        aria-label="会员中心页面"
+        @change="onSelect"
+      >
+        <el-option label="我的订单" value="order" />
+        <el-option label="收货地址" value="receive" />
+        <el-option label="用户信息" value="userinfo" />
+        <el-option label="我的收藏" value="collection" />
+        <el-option label="我的留言" value="message" />
+      </el-select>
       <section class="content">
         <router-view />
       </section>
@@ -37,7 +49,10 @@ import { ArrowRight } from '@element-plus/icons-vue'
 const route = useRoute()
 const router = useRouter()
 
-const activeMenu = computed(() => (route.name as string) ?? 'userinfo')
+const activeMenu = computed(() => {
+  const routeName = (route.name as string) ?? 'userinfo'
+  return routeName === 'orderDetail' ? 'order' : routeName
+})
 
 function onSelect(index: string) {
   router.push({ name: index })
@@ -75,5 +90,33 @@ function onSelect(index: string) {
 .content {
   flex: 1;
   min-width: 0;
+}
+
+.mobile-menu {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .member-page {
+    padding: 12px 0 20px;
+  }
+
+  .crumb {
+    margin-bottom: 10px;
+  }
+
+  .member-body {
+    display: block;
+  }
+
+  .desktop-menu {
+    display: none;
+  }
+
+  .mobile-menu {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+  }
 }
 </style>

@@ -16,6 +16,7 @@ import type {
   LoginParams,
   MessageItem,
   OrderItem,
+  OrderListParams,
   PagedResult,
   RegisterParams,
   SendSmsParams,
@@ -94,8 +95,8 @@ export const deleteShopCart = (id: number | string): Promise<any> =>
   request.delete(`${ORDER}/cart/${id}`)
 
 // ===== 订单 =====
-export const getOrders = (): Promise<{ total?: number; data: OrderItem[] }> =>
-  request.get(`${ORDER}/orders`)
+export const getOrders = (params: OrderListParams = {}): Promise<{ total?: number; data: OrderItem[] }> =>
+  request.get(`${ORDER}/orders`, { params })
 
 export const getOrderDetail = (orderId: number | string): Promise<OrderItem> =>
   request.get(`${ORDER}/orders/${orderId}`)

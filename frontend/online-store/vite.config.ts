@@ -25,7 +25,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 8089,
+    port: 4173,
     proxy: {
       // user_web (local :8021) — auth, register, captcha, sms, user
       '/u': {
