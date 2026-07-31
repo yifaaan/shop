@@ -21,6 +21,7 @@ type Config struct {
 	JWT          JWTConfig          `mapstructure:"jwt"`
 	Consul       ConsulConfig       `mapstructure:"consul"`
 	AliPay       AliPayConfig       `mapstructure:"alipay"`
+	Trace        TraceConfig        `mapstructure:"trace"`
 }
 
 // OrderSrvConfig 描述 order_srv 在 Consul 注册的服务名，用于服务发现。
@@ -57,6 +58,13 @@ type AliPayConfig struct {
 	ReturnUrl    string `mapstructure:"return_url"`
 }
 
+type TraceConfig struct {
+	Enabled     bool    `mapstructure:"enabled"`
+	Endpoint    string  `mapstructure:"endpoint"`
+	Insecure    bool    `mapstructure:"insecure"`
+	SampleRatio float64 `mapstructure:"sample-ratio"`
+}
+
 // Load fetches the service config from Nacos (DataID "order-web", Group
 // "debug" or "pro" per SHOP_DEBUG) in the order namespace, applies SHOP_-
 // prefixed env overrides, and returns a populated Config.
@@ -77,16 +85,24 @@ func Load() (*Config, error) {
 
 	cfg := &Config{}
 	v, err := nacosconf.Load(opts, func(nv *viper.Viper) {
-		_ = nv.Unmarshal(cfg)
+		_ = unmarshalConfig(nv, cfg)
 	})
 	if err != nil {
 		return nil, err
 	}
-	if err := v.Unmarshal(cfg); err != nil {
+	if err := unmarshalConfig(v, cfg); err != nil {
 		return nil, fmt.Errorf("unmarshal config: %w", err)
 	}
 	cfg.Debug = debug
 	return cfg, nil
+}
+
+func unmarshalConfig(v *viper.Viper, cfg *Config) error {
+	v.SetDefault("trace.enabled", true)
+	v.SetDefault("trace.endpoint", "127.0.0.1:4317")
+	v.SetDefault("trace.insecure", true)
+	v.SetDefault("trace.sample-ratio", 1.0)
+	return v.Unmarshal(cfg)
 }
 
 func groupFor(debug bool) string {
