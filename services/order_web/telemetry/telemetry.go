@@ -4,8 +4,6 @@ package telemetry
 import (
 	"context"
 	"fmt"
-	"math"
-	"strings"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -27,9 +25,6 @@ type Config struct {
 func New(ctx context.Context, cfg Config) (func(context.Context) error, error) {
 	if !cfg.Enabled {
 		return func(context.Context) error { return nil }, nil
-	}
-	if err := cfg.validate(); err != nil {
-		return nil, err
 	}
 
 	res, err := resource.Merge(
@@ -61,17 +56,4 @@ func New(ctx context.Context, cfg Config) (func(context.Context) error, error) {
 	))
 
 	return provider.Shutdown, nil
-}
-
-func (cfg Config) validate() error {
-	if strings.TrimSpace(cfg.ServiceName) == "" {
-		return fmt.Errorf("service name is required")
-	}
-	if strings.TrimSpace(cfg.Endpoint) == "" {
-		return fmt.Errorf("OTLP endpoint is required")
-	}
-	if math.IsNaN(cfg.SampleRatio) || cfg.SampleRatio < 0 || cfg.SampleRatio > 1 {
-		return fmt.Errorf("sample ratio must be between 0 and 1")
-	}
-	return nil
 }
