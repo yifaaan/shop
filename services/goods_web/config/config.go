@@ -12,13 +12,14 @@ import (
 )
 
 type Config struct {
-	Name     string         `mapstructure:"name"`
-	Debug    bool           `mapstructure:"debug"` // from SHOP_DEBUG; selects dev logger + debug group
-	Port     int            `mapstructure:"port"`
-	GoodsSrv GoodsSrvConfig `mapstructure:"goods-srv"`
-	JWT      JWTConfig      `mapstructure:"jwt"`
-	Consul   ConsulConfig   `mapstructure:"consul"`
-	Trace    TraceConfig    `mapstructure:"trace"`
+	Name      string          `mapstructure:"name"`
+	Debug     bool            `mapstructure:"debug"` // from SHOP_DEBUG; selects dev logger + debug group
+	Port      int             `mapstructure:"port"`
+	GoodsSrv  GoodsSrvConfig  `mapstructure:"goods-srv"`
+	JWT       JWTConfig       `mapstructure:"jwt"`
+	Consul    ConsulConfig    `mapstructure:"consul"`
+	Trace     TraceConfig     `mapstructure:"trace"`
+	RateLimit RateLimitConfig `mapstructure:"rate-limit"`
 }
 
 type GoodsSrvConfig struct {
@@ -40,6 +41,10 @@ type TraceConfig struct {
 	Endpoint    string  `mapstructure:"endpoint"`
 	Insecure    bool    `mapstructure:"insecure"`
 	SampleRatio float64 `mapstructure:"sample-ratio"`
+}
+
+type RateLimitConfig struct {
+	GoodsListQPS float64 `mapstructure:"goods-list-qps"`
 }
 
 // Load fetches the service config from Nacos (DataID "goods-web", Group
@@ -83,6 +88,7 @@ func unmarshalConfig(v *viper.Viper, cfg *Config) error {
 	v.SetDefault("trace.endpoint", "127.0.0.1:4317")
 	v.SetDefault("trace.insecure", true)
 	v.SetDefault("trace.sample-ratio", 1.0)
+	v.SetDefault("rate-limit.goods-list-qps", 10.0)
 	return v.Unmarshal(cfg)
 }
 

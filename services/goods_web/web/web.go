@@ -5,6 +5,7 @@ import (
 
 	"shop/pkg/proto"
 	"shop/services/goods_web/config"
+	"shop/services/goods_web/ratelimit"
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
@@ -54,7 +55,7 @@ func (s *Server) Routers() *gin.Engine {
 func (s *Server) registerGoodsRoutes(g *gin.RouterGroup) {
 	gg := g.Group("goods")
 	// 公开浏览
-	gg.GET("/", s.GoodsList)
+	gg.GET("/", ratelimit.Middleware(ratelimit.GoodsListResource), s.GoodsList)
 	gg.GET("/:id", s.GetGoodsDetail)
 	// 管理员操作
 	admin := gg.Group("", AdminAuth(s.j))

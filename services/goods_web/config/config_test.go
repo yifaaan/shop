@@ -25,12 +25,16 @@ func TestUnmarshalConfigTraceDefaults(t *testing.T) {
 	if cfg.Trace.SampleRatio != 1 {
 		t.Fatalf("Trace.SampleRatio = %v, want 1", cfg.Trace.SampleRatio)
 	}
+	if cfg.RateLimit.GoodsListQPS != 10 {
+		t.Fatalf("RateLimit.GoodsListQPS = %v, want 10", cfg.RateLimit.GoodsListQPS)
+	}
 }
 
 func TestUnmarshalConfigTraceEnvOverrides(t *testing.T) {
 	t.Setenv("SHOP_TRACE_ENDPOINT", "jaeger:4317")
 	t.Setenv("SHOP_TRACE_INSECURE", "false")
 	t.Setenv("SHOP_TRACE_SAMPLE_RATIO", "0.25")
+	t.Setenv("SHOP_RATE_LIMIT_GOODS_LIST_QPS", "2")
 
 	v := viper.New()
 	v.SetEnvPrefix("SHOP")
@@ -50,5 +54,8 @@ func TestUnmarshalConfigTraceEnvOverrides(t *testing.T) {
 	}
 	if cfg.Trace.SampleRatio != 0.25 {
 		t.Fatalf("Trace.SampleRatio = %v, want 0.25", cfg.Trace.SampleRatio)
+	}
+	if cfg.RateLimit.GoodsListQPS != 2 {
+		t.Fatalf("RateLimit.GoodsListQPS = %v, want 2", cfg.RateLimit.GoodsListQPS)
 	}
 }

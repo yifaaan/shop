@@ -13,6 +13,7 @@ import (
 	"shop/pkg/port"
 	"shop/pkg/proto"
 	"shop/services/goods_web/config"
+	"shop/services/goods_web/ratelimit"
 	"shop/services/goods_web/registry"
 	"shop/services/goods_web/telemetry"
 	"shop/services/goods_web/web"
@@ -34,6 +35,12 @@ func main() {
 		log.Panic("failed to load config: ", err)
 	}
 	log = newLogger(cfg.Debug)
+	if err := ratelimit.Init(ratelimit.Config{
+		GoodsListQPS: cfg.RateLimit.GoodsListQPS,
+	}); err != nil {
+		log.Panic("failed to initialize Sentinel rate limiting: ", err)
+	}
+	log.Infow("Sentinel rate limiting initialized", "resource", ratelimit.GoodsListResource, "qps", cfg.RateLimit.GoodsListQPS)
 	otel.SetErrorHandler(otel.ErrorHandlerFunc(func(err error) {
 		log.Error("OpenTelemetry error: ", err)
 	}))
