@@ -1,0 +1,22 @@
+name: user-web
+port: 50000
+user-srv:
+  name: user-srv
+jwt:
+  signing_key: "<SHOP_JWT_SIGNING_KEY>"
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: "<SHOP_REDIS_PASSWORD>"
+  db: 0
+aliyun-sms:
+  region_id: "<SHOP_ALIYUN_SMS_REGION_ID>"
+  access_key_id: "<SHOP_ALIYUN_SMS_ACCESS_KEY_ID>"
+  access_key_secret: "<SHOP_ALIYUN_SMS_ACCESS_KEY_SECRET>"
+  sign_name: "<SHOP_ALIYUN_SMS_SIGN_NAME>"
+  template_code: "<SHOP_ALIYUN_SMS_TEMPLATE_CODE>"
+  expire: 300
+consul:
+  host: 127.0.0.1
+  port: 18500
+  address: host.docker.internal

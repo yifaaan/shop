@@ -1,0 +1,21 @@
+name: order-srv
+host: 0.0.0.0
+port: 50053
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: "<SHOP_MYSQL_ROOT_PASSWORD>"
+  dbname: shop_order_srv
+  charset: utf8mb4
+  parse_time: true
+  loc: Local
+consul:
+  host: 127.0.0.1
+  port: 18500
+  address: host.docker.internal
+rocketmq:
+  endpoint: 127.0.0.1:18081
+  topic: order_reback
+  access_key: "<SHOP_ROCKETMQ_ACCESS_KEY>"
+  access_secret: "<SHOP_ROCKETMQ_ACCESS_SECRET>"

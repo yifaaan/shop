@@ -1,0 +1,19 @@
+name: order-web
+port: 8083
+order-srv:
+  name: order-srv
+inventory-srv:
+  name: inventory-srv
+jwt:
+  signing_key: "<SHOP_JWT_SIGNING_KEY>"
+consul:
+  host: 127.0.0.1
+  port: 18500
+  address: host.docker.internal
+alipay:
+  app_id: "<SHOP_ALIPAY_APP_ID>"
+  private_key: "<SHOP_ALIPAY_PRIVATE_KEY>"
+  public_key: "<SHOP_ALIPAY_PUBLIC_KEY>"
+  is_production: false
+  notify_url: "<SHOP_ALIPAY_NOTIFY_URL>"
+  return_url: "<SHOP_ALIPAY_RETURN_URL>"

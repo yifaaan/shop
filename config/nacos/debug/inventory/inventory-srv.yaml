@@ -1,0 +1,28 @@
+name: inventory-srv
+host: 127.0.0.1
+port: 50054
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: "<SHOP_MYSQL_ROOT_PASSWORD>"
+  dbname: shop_inventory_srv
+  charset: utf8mb4
+  parse_time: true
+  loc: Local
+consul:
+  host: 127.0.0.1
+  port: 18500
+  address: host.docker.internal
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: "<SHOP_REDIS_PASSWORD>"
+  db: 0
+  pool_size: 10
+rocketmq:
+  endpoint: 127.0.0.1:18081
+  topic: order_reback
+  consumer_group: inventory_srv_order_reback
+  access_key: "<SHOP_ROCKETMQ_ACCESS_KEY>"
+  access_secret: "<SHOP_ROCKETMQ_ACCESS_SECRET>"

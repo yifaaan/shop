@@ -1,0 +1,13 @@
+name: userop-web
+port: 8083
+debug: true
+userop-srv:
+  name: userop-srv
+goods-srv:
+  name: goods-srv
+jwt:
+  signing_key: "<SHOP_JWT_SIGNING_KEY>"
+consul:
+  host: 127.0.0.1
+  port: 18500
+  address: host.docker.internal

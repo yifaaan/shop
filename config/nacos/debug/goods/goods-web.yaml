@@ -1,0 +1,15 @@
+name: goods-web
+port: 50053
+goods-srv:
+  name: goods-srv
+jwt:
+  signing_key: "<SHOP_JWT_SIGNING_KEY>"
+consul:
+  host: 127.0.0.1
+  port: 18500
+  address: host.docker.internal
+trace:
+  enabled: true
+  endpoint: 127.0.0.1:4317
+  insecure: true
+  sample-ratio: 1.0
