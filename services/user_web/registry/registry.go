@@ -27,6 +27,12 @@ func New(cfg *config.Config) (*Registrar, error) {
 		Name:    cfg.Name,
 		Address: cfg.Consul.Address,
 		Port:    cfg.Port,
+		Tags: []string{
+			"traefik.enable=true",
+			"traefik.http.routers.user-web.rule=PathPrefix(`/u/v1`)",
+			"traefik.http.routers.user-web.entrypoints=web",
+			"traefik.http.routers.user-web.service=user-web",
+		},
 		Check: &api.AgentServiceCheck{
 			HTTP:     fmt.Sprintf("http://%s:%d/health", cfg.Consul.Address, cfg.Port),
 			Interval: "10s",

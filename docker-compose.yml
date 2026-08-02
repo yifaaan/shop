@@ -211,6 +211,18 @@ services:
       - consul-data:/consul/data
       - consul-config:/consul/config
 
+  traefik:
+    image: traefik:v3.5
+    container_name: traefik
+    restart: always
+    depends_on:
+      - consul
+    ports:
+      - "127.0.0.1:18000:80"    # Shop API gateway
+      - "127.0.0.1:18001:8080"  # Traefik dashboard (local development only)
+    volumes:
+      - ./docker/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+
   elasticsearch:
     # 自构建镜像：官方 ES + IK 中文分词插件（见 docker/elasticsearch/Dockerfile）
     build:
