@@ -38,7 +38,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import ProductCard from '@/components/ProductCard.vue'
-import { getBanners, getGoodsList, queryCategoryGoods } from '@/api'
+import { getBanners, getCategoryList, getGoodsDetail, getGoodsList } from '@/api'
 import type { Banner, Goods } from '@/types'
 
 const banners = ref<Banner[]>([])
@@ -49,7 +49,18 @@ const loadingGroup = ref(false)
 
 async function loadBanners() {
   try {
-    banners.value = await getBanners()
+    const items = await getBanners()
+    banners.value = await Promise.all(
+      items.map(async (item) => {
+        if (!item.image.includes('shop.projectsedu.com')) return item
+        try {
+          const goods = await getGoodsDetail(item.url)
+          return { ...item, image: goods.front_image || item.image }
+        } catch {
+          return item
+        }
+      }),
+    )
   } catch {
     banners.value = []
   }
@@ -60,6 +71,8 @@ async function loadNewGoods() {
   try {
     const res = await getGoodsList({ in: '1', pnum: 8 })
     newGoods.value = res.data ?? []
+  } catch {
+    newGoods.value = []
   } finally {
     loadingNew.value = false
   }
@@ -68,11 +81,21 @@ async function loadNewGoods() {
 async function loadCategoryGroups() {
   loadingGroup.value = true
   try {
-    const res = await queryCategoryGoods()
-    categoryGroups.value = (res ?? []).map((g: any) => ({
-      name: g.name,
-      goods: g.goods ?? [],
-    }))
+    const categories = await getCategoryList()
+    const groups = await Promise.all(
+      categories.map(async (category) => {
+        try {
+          const res = await getGoodsList({ c: category.id, pnum: 8 })
+          const goods = res.data ?? []
+          return goods.length ? { name: category.name, goods } : null
+        } catch {
+          return null
+        }
+      }),
+    )
+    categoryGroups.value = groups.filter(
+      (group): group is { name: string; goods: Goods[] } => group !== null,
+    )
   } catch {
     categoryGroups.value = []
   } finally {

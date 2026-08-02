@@ -132,7 +132,7 @@
                   >
                   <div class="sub-children">
                     <router-link
-                      v-for="child in sub.sub_category"
+                      v-for="child in sub.sub_categories ?? []"
                       :key="child.id"
                       :to="{ name: 'list', params: { id: child.id } }"
                       >{{ child.name }}</router-link
@@ -156,7 +156,7 @@ import { useRouter } from 'vue-router'
 import { Search, ShoppingCart, ArrowDown } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore, useCartStore } from '@/stores'
-import { getCategoryList, getCategory, getHotSearch, deleteShopCart } from '@/api'
+import { getCategoryList, deleteShopCart } from '@/api'
 import type { Category } from '@/types'
 
 const router = useRouter()
@@ -184,14 +184,10 @@ function onMenuCommand(cmd: string) {
   router.push({ name: cmd })
 }
 
-async function loadSubMenu(id: number) {
+function loadSubMenu(id: number) {
   if (subMenuCache[id]) return
-  try {
-    const res = await getCategory(id)
-    subMenuCache[id] = res.sub_categories ?? []
-  } catch {
-    subMenuCache[id] = []
-  }
+  const category = allMenu.value.find((item) => item.id === id)
+  subMenuCache[id] = category?.sub_categories ?? []
 }
 
 function onCartVisible(v: boolean) {
@@ -218,11 +214,6 @@ onMounted(async () => {
     allMenu.value = await getCategoryList()
   } catch {
     allMenu.value = []
-  }
-  try {
-    hotSearch.value = await getHotSearch()
-  } catch {
-    hotSearch.value = []
   }
   if (userStore.isLoggedIn()) cartStore.refresh()
 })

@@ -24,7 +24,7 @@ export interface AuthResult {
 }
 
 export interface CaptchaResult {
-  captcha_id: string
+  captchaId: string
   picPath: string
 }
 
@@ -59,7 +59,7 @@ export interface Category {
   parent?: number
   level?: number
   is_tab?: boolean
-  sub_category?: Category[]
+  sub_categories?: Category[]
 }
 
 export interface Goods {

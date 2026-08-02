@@ -76,9 +76,8 @@ export const getBanners = (): Promise<Banner[]> =>
   request.get(`${GOODS}/banner`).then((r: any) => r?.data ?? [])
 
 // 首页按分类分组的商品（外部 legacy 接口）
-export const queryCategoryGoods = (): Promise<any[]> => request.get('/ext/indexgoods/')
+// Category-grouped homepage data is assembled from the local goods APIs.
 
-export const getHotSearch = (): Promise<{ keywords: string }[]> => request.get('/ext/hotsearchs')
 
 // ===== 购物车（order_web /cart） =====
 export const getShopCarts = (): Promise<{ total?: number; data: any[] }> =>

@@ -80,7 +80,7 @@ async function loadCaptcha() {
   try {
     const res = await getCaptcha()
     captchaPic.value = res.picPath
-    form.captcha_id = res.captcha_id
+    form.captcha_id = res.captchaId
   } catch {
     /* handled */
   }
